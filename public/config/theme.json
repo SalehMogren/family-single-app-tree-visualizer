@@ -1,0 +1,90 @@
+{
+  "colors": {
+    "light": {
+      "primary": "#D4AF37",
+      "secondary": "#F59E0B",
+      "accent": "#FCD34D",
+      "background": "#FFFBEB",
+      "surface": "#FFFFFF",
+      "text": "#1F2937",
+      "textSecondary": "#6B7280",
+      "border": "#E5E7EB",
+      "maleColor": "#1E40AF",
+      "femaleColor": "#BE185D",
+      "linkColor": "#D4AF37"
+    },
+    "dark": {
+      "primary": "#F59E0B",
+      "secondary": "#D4AF37",
+      "accent": "#FCD34D",
+      "background": "#111827",
+      "surface": "#1F2937",
+      "text": "#F9FAFB",
+      "textSecondary": "#D1D5DB",
+      "border": "#374151",
+      "maleColor": "#3B82F6",
+      "femaleColor": "#EC4899",
+      "linkColor": "#F59E0B"
+    }
+  },
+  "fonts": {
+    "primary": "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif",
+    "secondary": "Amiri, Noto Sans Arabic, Arial, sans-serif",
+    "body": "Noto Sans Arabic, Arial, sans-serif"
+  },
+  "spacing": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2rem",
+    "2xl": "3rem"
+  },
+  "borderRadius": {
+    "sm": "0.25rem",
+    "md": "0.5rem",
+    "lg": "0.75rem",
+    "xl": "1rem"
+  },
+  "shadows": {
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+    "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+  },
+  "animations": {
+    "duration": {
+      "fast": "150ms",
+      "normal": "300ms",
+      "slow": "500ms"
+    },
+    "easing": {
+      "easeIn": "cubic-bezier(0.4, 0, 1, 1)",
+      "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+      "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)"
+    }
+  },
+  "tree": {
+    "defaultSettings": {
+      "cardWidth": 140,
+      "cardHeight": 70,
+      "horizontalSpacing": 2.0,
+      "verticalSpacing": 2.5,
+      "margin": {
+        "top": 60,
+        "right": 60,
+        "bottom": 60,
+        "left": 60
+      },
+      "lineShape": "curved",
+      "lineLength": 1.0,
+      "showLabels": {
+        "name": true,
+        "birthYear": true,
+        "deathYear": true,
+        "spouse": true,
+        "genderIcon": true
+      }
+    }
+  }
+}

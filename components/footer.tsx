@@ -1,17 +1,27 @@
 "use client"
 
-import { Heart, Users, Mail, Phone, MapPin } from "lucide-react"
+import { Users, Mail, Phone, MapPin } from "lucide-react"
+import { useFooterConfig, useTheme } from "@/hooks/useConfig"
 
 interface FooterProps {
   isDarkMode: boolean
 }
 
 export default function Footer({ isDarkMode }: FooterProps) {
+  const { footerConfig } = useFooterConfig()
+  const { theme } = useTheme()
+
+  if (!footerConfig || !theme) return null
+
+  const colors = isDarkMode ? theme.colors.dark : theme.colors.light
+
   return (
     <footer
-      className={`border-t transition-colors duration-300 ${
-        isDarkMode ? "bg-gray-900 border-amber-600" : "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200"
-      }`}
+      className={`border-t transition-colors duration-300`}
+      style={{
+        backgroundColor: colors.background,
+        borderColor: colors.border,
+      }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-8">
@@ -19,84 +29,79 @@ export default function Footer({ isDarkMode }: FooterProps) {
           <div className="text-center md:text-right">
             <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
               <div
-                className={`p-2 rounded-lg transition-colors duration-300 ${
-                  isDarkMode ? "bg-amber-900/50" : "bg-amber-100"
-                }`}
+                className={`p-2 rounded-lg transition-colors duration-300`}
+                style={{ backgroundColor: `${colors.primary}50` }}
               >
-                <Users
-                  className={`h-6 w-6 transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-700"
-                  }`}
-                />
+                <Users className={`h-6 w-6 transition-colors duration-300`} style={{ color: colors.primary }} />
               </div>
               <h3
-                className={`text-xl font-bold transition-colors duration-300 ${
-                  isDarkMode ? "text-amber-300" : "text-amber-800"
-                }`}
-                style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                className={`text-xl font-bold transition-colors duration-300`}
+                style={{
+                  color: colors.primary,
+                  fontFamily: theme.fonts.primary,
+                }}
               >
-                عائلة الأحمد
+                {footerConfig.familyInfo.name}
               </h3>
             </div>
             <p
-              className={`text-sm leading-relaxed transition-colors duration-300 ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}
-              style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif", lineHeight: "1.8" }}
+              className={`text-sm leading-relaxed transition-colors duration-300`}
+              style={{
+                color: colors.textSecondary,
+                fontFamily: theme.fonts.secondary,
+                lineHeight: "1.8",
+              }}
             >
-              عائلة عريقة تمتد جذورها لأكثر من قرنين من الزمان، تفخر بتاريخها العريق ومساهماتها في المجتمع عبر الأجيال
-              المتعاقبة.
+              {footerConfig.familyInfo.description}
             </p>
           </div>
 
           {/* Contact Info */}
           <div className="text-center">
             <h4
-              className={`text-lg font-bold mb-4 transition-colors duration-300 ${
-                isDarkMode ? "text-amber-300" : "text-amber-800"
-              }`}
-              style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+              className={`text-lg font-bold mb-4 transition-colors duration-300`}
+              style={{
+                color: colors.primary,
+                fontFamily: theme.fonts.primary,
+              }}
             >
               معلومات التواصل
             </h4>
             <div className="space-y-3">
               <div className="flex items-center justify-center gap-3">
-                <MapPin
-                  className={`h-4 w-4 transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                />
+                <MapPin className={`h-4 w-4 transition-colors duration-300`} style={{ color: colors.secondary }} />
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
-                  المملكة العربية السعودية - منطقة نجد
+                  {footerConfig.contact.location}
                 </span>
               </div>
               <div className="flex items-center justify-center gap-3">
-                <Mail
-                  className={`h-4 w-4 transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                />
+                <Mail className={`h-4 w-4 transition-colors duration-300`} style={{ color: colors.secondary }} />
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
-                  family@al-ahmed.sa
+                  {footerConfig.contact.email}
                 </span>
               </div>
               <div className="flex items-center justify-center gap-3">
-                <Phone
-                  className={`h-4 w-4 transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                />
+                <Phone className={`h-4 w-4 transition-colors duration-300`} style={{ color: colors.secondary }} />
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
-                  +966 50 123 4567
+                  {footerConfig.contact.phone}
                 </span>
               </div>
             </div>
@@ -105,58 +110,71 @@ export default function Footer({ isDarkMode }: FooterProps) {
           {/* Family Stats */}
           <div className="text-center md:text-left">
             <h4
-              className={`text-lg font-bold mb-4 transition-colors duration-300 ${
-                isDarkMode ? "text-amber-300" : "text-amber-800"
-              }`}
-              style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+              className={`text-lg font-bold mb-4 transition-colors duration-300`}
+              style={{
+                color: colors.primary,
+                fontFamily: theme.fonts.primary,
+              }}
             >
               إحصائيات العائلة
             </h4>
             <div className="space-y-2">
               <div className="flex justify-center md:justify-start items-center gap-2">
                 <span
-                  className={`text-2xl font-bold transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-2xl font-bold transition-colors duration-300`}
+                  style={{
+                    color: colors.secondary,
+                    fontFamily: theme.fonts.primary,
+                  }}
                 >
-                  45
+                  {footerConfig.stats.totalMembers}
                 </span>
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
                   فرد من العائلة
                 </span>
               </div>
               <div className="flex justify-center md:justify-start items-center gap-2">
                 <span
-                  className={`text-2xl font-bold transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-2xl font-bold transition-colors duration-300`}
+                  style={{
+                    color: colors.secondary,
+                    fontFamily: theme.fonts.primary,
+                  }}
                 >
-                  5
+                  {footerConfig.stats.generations}
                 </span>
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
                   أجيال متتالية
                 </span>
               </div>
               <div className="flex justify-center md:justify-start items-center gap-2">
                 <span
-                  className={`text-2xl font-bold transition-colors duration-300 ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-2xl font-bold transition-colors duration-300`}
+                  style={{
+                    color: colors.secondary,
+                    fontFamily: theme.fonts.primary,
+                  }}
                 >
-                  200+
+                  {footerConfig.stats.yearsOfHistory}+
                 </span>
                 <span
-                  className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
-                  style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                  className={`text-sm transition-colors duration-300`}
+                  style={{
+                    color: colors.textSecondary,
+                    fontFamily: theme.fonts.secondary,
+                  }}
                 >
                   سنة من التاريخ
                 </span>
@@ -167,32 +185,28 @@ export default function Footer({ isDarkMode }: FooterProps) {
 
         {/* Bottom Section */}
         <div
-          className={`mt-8 pt-8 border-t text-center transition-colors duration-300 ${
-            isDarkMode ? "border-amber-600/30" : "border-amber-200"
-          }`}
+          className={`mt-8 pt-8 border-t text-center transition-colors duration-300`}
+          style={{ borderColor: colors.border }}
         >
           <div className="flex items-center justify-center gap-2 mb-2">
             <span
-              className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-              style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+              className={`text-sm transition-colors duration-300`}
+              style={{
+                color: colors.textSecondary,
+                fontFamily: theme.fonts.secondary,
+              }}
             >
-              صُنع بـ
-            </span>
-            <Heart
-              className={`h-4 w-4 transition-colors duration-300 ${isDarkMode ? "text-red-400" : "text-red-500"}`}
-            />
-            <span
-              className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-              style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
-            >
-              لحفظ تاريخ العائلة
+              {footerConfig.copyright.madeWithLove}
             </span>
           </div>
           <p
-            className={`text-xs transition-colors duration-300 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
-            style={{ fontFamily: "Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+            className={`text-xs transition-colors duration-300`}
+            style={{
+              color: colors.textSecondary,
+              fontFamily: theme.fonts.secondary,
+            }}
           >
-            © 2024 عائلة الأحمد. جميع الحقوق محفوظة.
+            © {footerConfig.copyright.year} {footerConfig.copyright.text}
           </p>
         </div>
       </div>

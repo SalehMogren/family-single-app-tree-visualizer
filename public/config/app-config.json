@@ -1,0 +1,31 @@
+{
+  "appInfo": {
+    "title": "شجرة العائلة",
+    "subtitle": "عائلة الأحمد",
+    "description": "تطبيق شجرة العائلة التفاعلي",
+    "version": "1.0.0"
+  },
+  "features": {
+    "familyHistory": true,
+    "familyStats": true,
+    "familyGeo": true,
+    "familyAchievements": true,
+    "treeSettings": true,
+    "darkMode": true,
+    "exportTree": false,
+    "editMembers": false
+  },
+  "navigation": {
+    "showNavbar": true,
+    "showFooter": true,
+    "smoothScroll": true
+  },
+  "tree": {
+    "defaultOrientation": "vertical",
+    "defaultDirection": "bottom-to-top",
+    "enableZoom": true,
+    "enableDrag": true,
+    "showMiniTree": true,
+    "showDetailPanel": true
+  }
+}
