@@ -1,0 +1,81 @@
+{
+  "name": "أحمد محمد الأحمد",
+  "gender": "male",
+  "birth_year": 1920,
+  "death_year": 1995,
+  "spouse": "فاطمة علي السالم",
+  "children": [
+    {
+      "name": "محمد أحمد الأحمد",
+      "gender": "male",
+      "birth_year": 1945,
+      "spouse": "عائشة حسن المحمد",
+      "children": [
+        {
+          "name": "أحمد محمد الأحمد",
+          "gender": "male",
+          "birth_year": 1975,
+          "spouse": "نورا سالم الخالد",
+          "children": [
+            {
+              "name": "محمد أحمد الأحمد",
+              "gender": "male",
+              "birth_year": 2005
+            },
+            {
+              "name": "فاطمة أحمد الأحمد",
+              "gender": "female",
+              "birth_year": 2008
+            }
+          ]
+        },
+        {
+          "name": "فاطمة محمد الأحمد",
+          "gender": "female",
+          "birth_year": 1978,
+          "spouse": "خالد عبدالله الزهراني",
+          "children": [
+            {
+              "name": "عبدالله خالد الزهراني",
+              "gender": "male",
+              "birth_year": 2010
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "علي أحمد الأحمد",
+      "gender": "male",
+      "birth_year": 1948,
+      "spouse": "مريم يوسف الغامدي",
+      "children": [
+        {
+          "name": "يوسف علي الأحمد",
+          "gender": "male",
+          "birth_year": 1980,
+          "spouse": "هند محمد القحطاني"
+        },
+        {
+          "name": "نورا علي الأحمد",
+          "gender": "female",
+          "birth_year": 1983,
+          "spouse": "سعد عبدالرحمن المطيري"
+        }
+      ]
+    },
+    {
+      "name": "خديجة أحمد الأحمد",
+      "gender": "female",
+      "birth_year": 1950,
+      "spouse": "عبدالرحمن سالم الدوسري",
+      "children": [
+        {
+          "name": "سالم عبدالرحمن الدوسري",
+          "gender": "male",
+          "birth_year": 1985
+        }
+      ]
+    }
+  ]
+}
