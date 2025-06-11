@@ -7,22 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import {
-  Download,
-  Upload,
-  ArrowLeft,
-  Plus,
-  X,
-  Settings,
-  User,
-  Users,
-  Moon,
-  Sun,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-} from "lucide-react"
+import { Download, Upload, ArrowLeft, Settings, User, Users, Moon, Sun, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as d3 from "d3"
 
@@ -32,21 +17,45 @@ interface FamilyMember {
   gender: "male" | "female"
   birth_year: number
   death_year?: number
-  spouse?: string
-  spouseId?: string
-  children?: FamilyMember[]
+  parents?: string[] // Array of parent IDs
+  spouses?: string[] // Array of spouse IDs
+  children?: string[] // Array of children IDs
   occupation?: string
   birthplace?: string
   notes?: string
   image?: string
-  parentId?: string
   x?: number
   y?: number
 }
 
-interface TreeNode extends d3.HierarchyNode<FamilyMember> {
-  x: number
-  y: number
+interface FamilyTree {
+  members: { [id: string]: FamilyMember }
+  rootId: string
+}
+
+interface PlaceholderNode {
+  id: string
+  type: "parent" | "spouse" | "child"
+  targetId: string
+  isPlaceholder: true
+  gender?: "male" | "female"
+  name: string
+  x?: number
+  y?: number
+}
+
+interface TreeNodeData {
+  id: string
+  name: string
+  gender: "male" | "female"
+  birth_year: number
+  death_year?: number
+  isPlaceholder?: boolean
+  type?: "parent" | "spouse" | "child"
+  targetId?: string
+  image?: string
+  level: number
+  generation: number
 }
 
 interface DetailPanelSettings {
@@ -76,16 +85,11 @@ export default function TreeEditor() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
 
-  const [familyData, setFamilyData] = useState<FamilyMember | null>(null)
+  const [familyTree, setFamilyTree] = useState<FamilyTree | null>(null)
   const [selectedNode, setSelectedNode] = useState<FamilyMember | null>(null)
   const [editingNode, setEditingNode] = useState<Partial<FamilyMember>>({})
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [zoom, setZoom] = useState(1)
-  const [showAddOptions, setShowAddOptions] = useState<{
-    nodeId: string
-    type: "parent" | "spouse" | "child"
-    position: { x: number; y: number }
-  } | null>(null)
 
   // Panel settings
   const [detailSettings, setDetailSettings] = useState<DetailPanelSettings>({
@@ -98,16 +102,26 @@ export default function TreeEditor() {
 
   // Initialize with sample data
   useEffect(() => {
-    const sampleData: FamilyMember = {
+    const rootMember: FamilyMember = {
       id: "root",
       name: "أحمد محمد",
       gender: "male",
       birth_year: 1970,
+      parents: [],
+      spouses: [],
       children: [],
     }
-    setFamilyData(sampleData)
-    setSelectedNode(sampleData)
-    setEditingNode(sampleData)
+
+    const sampleTree: FamilyTree = {
+      members: {
+        root: rootMember,
+      },
+      rootId: "root",
+    }
+
+    setFamilyTree(sampleTree)
+    setSelectedNode(rootMember)
+    setEditingNode(rootMember)
   }, [])
 
   // Toggle dark mode
@@ -122,128 +136,117 @@ export default function TreeEditor() {
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
-  const findNodeById = (node: FamilyMember, id: string): FamilyMember | null => {
-    if (node.id === id) return node
-    if (node.children) {
-      for (const child of node.children) {
-        const found = findNodeById(child, id)
-        if (found) return found
-      }
+  const addRelative = (
+    targetId: string,
+    newMember: Omit<FamilyMember, "id">,
+    relationType: "parent" | "spouse" | "child",
+  ) => {
+    if (!familyTree) return
+
+    const newId = generateId()
+    const newMemberWithId: FamilyMember = {
+      ...newMember,
+      id: newId,
+      parents: newMember.parents || [],
+      spouses: newMember.spouses || [],
+      children: newMember.children || [],
     }
-    return null
-  }
 
-  const updateNode = (node: FamilyMember, updatedNode: FamilyMember): FamilyMember => {
-    if (node.id === updatedNode.id) {
-      return { ...updatedNode, children: node.children }
-    }
-    if (node.children) {
-      return {
-        ...node,
-        children: node.children.map((child) => updateNode(child, updatedNode)),
-      }
-    }
-    return node
-  }
+    const updatedMembers = { ...familyTree.members }
+    const targetMember = updatedMembers[targetId]
 
-  const addRelative = (targetId: string, newMember: FamilyMember, relationType: "parent" | "spouse" | "child") => {
-    if (!familyData) return
+    if (!targetMember) return
 
-    const newTree = { ...familyData }
-    const targetNode = findNodeById(newTree, targetId)
+    // Add the new member
+    updatedMembers[newId] = newMemberWithId
 
-    if (!targetNode) return
+    // Update relationships
+    if (relationType === "parent") {
+      // Add parent to target's parents
+      if (!targetMember.parents) targetMember.parents = []
+      targetMember.parents.push(newId)
 
-    if (relationType === "child") {
-      if (!targetNode.children) targetNode.children = []
-      targetNode.children.push({ ...newMember, parentId: targetId })
+      // Add target to parent's children
+      if (!newMemberWithId.children) newMemberWithId.children = []
+      newMemberWithId.children.push(targetId)
     } else if (relationType === "spouse") {
-      // Add spouse relationship
-      targetNode.spouse = newMember.name
-      targetNode.spouseId = newMember.id
+      // Add spouse relationship (bidirectional)
+      if (!targetMember.spouses) targetMember.spouses = []
+      targetMember.spouses.push(newId)
 
-      // Create a new node for the spouse if needed
-      // In a real app, you might want to add this to a separate spouses array
-      // For simplicity, we're just updating the spouse property
-    } else if (relationType === "parent") {
-      // This is more complex as we need to restructure the tree
-      // For simplicity, we'll just create a new parent node and make the target a child
+      if (!newMemberWithId.spouses) newMemberWithId.spouses = []
+      newMemberWithId.spouses.push(targetId)
+    } else if (relationType === "child") {
+      // Add child to target's children
+      if (!targetMember.children) targetMember.children = []
+      targetMember.children.push(newId)
 
-      // If this is the root node, we need special handling
-      if (targetId === newTree.id) {
-        // Create a new root with the current root as a child
-        const newRoot = {
-          ...newMember,
-          children: [newTree],
-        }
-        setFamilyData(newRoot)
-        return
-      }
-
-      // Otherwise, find the parent of the target node and replace the target with the new parent
-      // This is a simplified approach - a real implementation would be more complex
-      const replaceInTree = (node: FamilyMember): FamilyMember => {
-        if (!node.children) return node
-
-        const childIndex = node.children.findIndex((child) => child.id === targetId)
-        if (childIndex >= 0) {
-          // Found the parent, replace the child with the new parent
-          const newChildren = [...node.children]
-          newChildren[childIndex] = { ...newMember, children: [node.children[childIndex]] }
-          return { ...node, children: newChildren }
-        }
-
-        // Continue searching
-        return {
-          ...node,
-          children: node.children.map(replaceInTree),
-        }
-      }
-
-      setFamilyData(replaceInTree(newTree))
-      return
+      // Add target to child's parents
+      if (!newMemberWithId.parents) newMemberWithId.parents = []
+      newMemberWithId.parents.push(targetId)
     }
 
-    setFamilyData(newTree)
+    setFamilyTree({
+      ...familyTree,
+      members: updatedMembers,
+    })
   }
 
   const deleteNode = (nodeId: string) => {
-    if (!familyData || nodeId === familyData.id) return
+    if (!familyTree || nodeId === familyTree.rootId) return
 
-    const deleteFromNode = (node: FamilyMember): FamilyMember => {
-      if (node.children) {
-        return {
-          ...node,
-          children: node.children.filter((child) => child.id !== nodeId).map(deleteFromNode),
-        }
+    const updatedMembers = { ...familyTree.members }
+    const nodeToDelete = updatedMembers[nodeId]
+
+    if (!nodeToDelete) return
+
+    // Remove relationships
+    Object.values(updatedMembers).forEach((member) => {
+      if (member.parents) {
+        member.parents = member.parents.filter((id) => id !== nodeId)
       }
-      return node
-    }
+      if (member.spouses) {
+        member.spouses = member.spouses.filter((id) => id !== nodeId)
+      }
+      if (member.children) {
+        member.children = member.children.filter((id) => id !== nodeId)
+      }
+    })
 
-    setFamilyData(deleteFromNode(familyData))
+    // Delete the node
+    delete updatedMembers[nodeId]
+
+    setFamilyTree({
+      ...familyTree,
+      members: updatedMembers,
+    })
+
     setSelectedNode(null)
     setEditingNode({})
   }
 
   const handleSave = () => {
-    if (!familyData || !selectedNode || !editingNode.name) return
+    if (!familyTree || !selectedNode || !editingNode.name) return
 
-    const updatedNode: FamilyMember = {
+    const updatedMembers = { ...familyTree.members }
+    updatedMembers[selectedNode.id] = {
       ...selectedNode,
       ...editingNode,
       birth_year: editingNode.birth_year || selectedNode.birth_year,
-      children: selectedNode.children || [],
     }
 
-    const updatedTree = updateNode(familyData, updatedNode)
-    setFamilyData(updatedTree)
-    setSelectedNode(updatedNode)
+    setFamilyTree({
+      ...familyTree,
+      members: updatedMembers,
+    })
+
+    setSelectedNode(updatedMembers[selectedNode.id])
   }
 
   const exportData = () => {
-    if (!familyData) return
+    if (!familyTree) return
 
-    const dataStr = JSON.stringify(familyData, null, 2)
+    const dataStr = JSON.stringify(familyTree, null, 2)
     const dataBlob = new Blob([dataStr], { type: "application/json" })
     const url = URL.createObjectURL(dataBlob)
 
@@ -264,9 +267,9 @@ export default function TreeEditor() {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string)
-        setFamilyData(data)
-        setSelectedNode(data)
-        setEditingNode(data)
+        setFamilyTree(data)
+        setSelectedNode(data.members[data.rootId])
+        setEditingNode(data.members[data.rootId])
       } catch (error) {
         alert("خطأ في قراءة الملف. تأكد من أن الملف بصيغة JSON صحيحة.")
       }
@@ -290,39 +293,178 @@ export default function TreeEditor() {
   }
 
   const handleReset = () => {
-    if (svgRef.current && zoomRef.current && familyData) {
+    if (svgRef.current && zoomRef.current && familyTree) {
       const svg = d3.select(svgRef.current)
-      const bounds = svg.select("g").node()?.getBBox()
-      if (bounds) {
-        const width = 800
-        const height = 600
-        const fullWidth = bounds.width
-        const fullHeight = bounds.height
-        const midX = bounds.x + fullWidth / 2
-        const midY = bounds.y + fullHeight / 2
+      svg.transition().duration(750).call(zoomRef.current.transform, d3.zoomIdentity.translate(400, 300).scale(1))
+    }
+  }
 
-        const scale = Math.min(width / fullWidth, height / fullHeight) * 0.9
-        const translateX = width / 2 - midX * scale
-        const translateY = height / 2 - midY * scale
+  // Create layout with proper positioning
+  const createFamilyLayout = (tree: FamilyTree): TreeNodeData[] => {
+    const nodes: TreeNodeData[] = []
+    const visited = new Set<string>()
+    const positions = new Map<string, { x: number; y: number; generation: number }>()
 
-        svg
-          .transition()
-          .duration(750)
-          .call(zoomRef.current.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale))
+    // Calculate generations
+    const calculateGeneration = (memberId: string, generation = 0): number => {
+      const member = tree.members[memberId]
+      if (!member || visited.has(memberId)) return generation
+
+      visited.add(memberId)
+      let maxGeneration = generation
+
+      // Check children for deeper generations
+      if (member.children) {
+        member.children.forEach((childId) => {
+          const childGeneration = calculateGeneration(childId, generation + 1)
+          maxGeneration = Math.max(maxGeneration, childGeneration)
+        })
+      }
+
+      return maxGeneration
+    }
+
+    // Start from root and assign positions
+    const assignPositions = (memberId: string, x = 400, y = 300, generation = 0) => {
+      if (positions.has(memberId)) return
+
+      const member = tree.members[memberId]
+      if (!member) return
+
+      positions.set(memberId, { x, y, generation })
+
+      // Add to nodes array
+      nodes.push({
+        id: member.id,
+        name: member.name,
+        gender: member.gender,
+        birth_year: member.birth_year,
+        death_year: member.death_year,
+        image: member.image,
+        level: 0,
+        generation,
+      })
+
+      // Position parents above
+      if (member.parents && member.parents.length > 0) {
+        member.parents.forEach((parentId, index) => {
+          const parentX = x + (index - 0.5) * 200
+          const parentY = y - 150
+          assignPositions(parentId, parentX, parentY, generation - 1)
+        })
+      }
+
+      // Position spouses to the side
+      if (member.spouses && member.spouses.length > 0) {
+        member.spouses.forEach((spouseId, index) => {
+          const spouseX = x + 250 + index * 200
+          const spouseY = y
+          assignPositions(spouseId, spouseX, spouseY, generation)
+        })
+      }
+
+      // Position children below
+      if (member.children && member.children.length > 0) {
+        const childrenWidth = (member.children.length - 1) * 200
+        const startX = x - childrenWidth / 2
+
+        member.children.forEach((childId, index) => {
+          const childX = startX + index * 200
+          const childY = y + 150
+          assignPositions(childId, childX, childY, generation + 1)
+        })
       }
     }
+
+    // Start layout from root
+    assignPositions(tree.rootId)
+
+    // Add placeholders for missing relationships
+    Object.values(tree.members).forEach((member) => {
+      const pos = positions.get(member.id)
+      if (!pos) return
+
+      // Add parent placeholders
+      if (!member.parents || member.parents.length < 2) {
+        const existingParents = member.parents?.length || 0
+        for (let i = existingParents; i < 2; i++) {
+          nodes.push({
+            id: `${member.id}-parent-${i}-placeholder`,
+            name: i === 0 ? "إضافة والد" : "إضافة والدة",
+            gender: i === 0 ? "male" : "female",
+            birth_year: member.birth_year - 30,
+            isPlaceholder: true,
+            type: "parent",
+            targetId: member.id,
+            level: 0,
+            generation: pos.generation - 1,
+          })
+        }
+      }
+
+      // Add spouse placeholder
+      nodes.push({
+        id: `${member.id}-spouse-placeholder`,
+        name: member.gender === "male" ? "إضافة زوجة" : "إضافة زوج",
+        gender: member.gender === "male" ? "female" : "male",
+        birth_year: member.birth_year,
+        isPlaceholder: true,
+        type: "spouse",
+        targetId: member.id,
+        level: 0,
+        generation: pos.generation,
+      })
+
+      // Add child placeholder
+      nodes.push({
+        id: `${member.id}-child-placeholder`,
+        name: "إضافة طفل",
+        gender: "male",
+        birth_year: member.birth_year + 25,
+        isPlaceholder: true,
+        type: "child",
+        targetId: member.id,
+        level: 0,
+        generation: pos.generation + 1,
+      })
+    })
+
+    return nodes
+  }
+
+  const handlePlaceholderClick = (placeholderNode: TreeNodeData) => {
+    if (!placeholderNode.isPlaceholder || !placeholderNode.type || !placeholderNode.targetId) return
+
+    const newMember: Omit<FamilyMember, "id"> = {
+      name:
+        placeholderNode.type === "parent"
+          ? placeholderNode.gender === "male"
+            ? "الوالد"
+            : "الوالدة"
+          : placeholderNode.type === "spouse"
+            ? placeholderNode.gender === "male"
+              ? "الزوج"
+              : "الزوجة"
+            : "الطفل",
+      gender: placeholderNode.gender || "male",
+      birth_year: placeholderNode.birth_year,
+      parents: [],
+      spouses: [],
+      children: [],
+    }
+
+    addRelative(placeholderNode.targetId, newMember, placeholderNode.type)
   }
 
   // Render tree visualization
   useEffect(() => {
-    if (!familyData || !svgRef.current) return
+    if (!familyTree || !svgRef.current) return
 
     const svg = d3.select(svgRef.current)
     svg.selectAll("*").remove()
 
     const width = 800
     const height = 600
-    const margin = { top: 50, right: 50, bottom: 50, left: 50 }
 
     // Create zoom behavior
     const zoomBehavior = d3
@@ -338,77 +480,109 @@ export default function TreeEditor() {
 
     const container = svg.append("g")
 
-    // Create hierarchy
-    const root = d3.hierarchy(familyData)
+    // Create layout
+    const layoutNodes = createFamilyLayout(familyTree)
 
-    // Create tree layout
-    const treeLayout = d3
-      .tree<FamilyMember>()
-      .size([width - margin.left - margin.right, height - margin.top - margin.bottom])
-      .separation((a, b) => (a.parent === b.parent ? 1.5 : 2))
+    // Create connections
+    const connections: Array<{ source: TreeNodeData; target: TreeNodeData; type: string }> = []
 
-    treeLayout(root)
+    Object.values(familyTree.members).forEach((member) => {
+      const memberNode = layoutNodes.find((n) => n.id === member.id)
+      if (!memberNode) return
 
-    // Position nodes
-    root.each((d: any) => {
-      d.y = d.depth * 120 + margin.top
-      d.x = d.x + margin.left
+      // Parent connections
+      if (member.parents) {
+        member.parents.forEach((parentId) => {
+          const parentNode = layoutNodes.find((n) => n.id === parentId)
+          if (parentNode) {
+            connections.push({
+              source: parentNode,
+              target: memberNode,
+              type: "parent-child",
+            })
+          }
+        })
+      }
+
+      // Spouse connections
+      if (member.spouses) {
+        member.spouses.forEach((spouseId) => {
+          const spouseNode = layoutNodes.find((n) => n.id === spouseId)
+          if (spouseNode && member.id < spouseId) {
+            // Avoid duplicate spouse connections
+            connections.push({
+              source: memberNode,
+              target: spouseNode,
+              type: "spouse",
+            })
+          }
+        })
+      }
     })
 
-    // Create links with proper updates on drag
-    const linkGenerator = d3
-      .linkVertical<any, any>()
-      .x((d: any) => d.x)
-      .y((d: any) => d.y)
-
+    // Draw connections
     const links = container
       .selectAll(".link")
-      .data(root.links())
+      .data(connections)
       .enter()
       .append("path")
       .attr("class", "link")
-      .attr("d", linkGenerator)
-      .attr("fill", "none")
-      .attr("stroke", "#D4AF37")
-      .attr("stroke-width", 2)
-      .attr("opacity", 0.7)
+      .attr("d", (d) => {
+        const sourceX = d.source.id.includes("placeholder") ? 0 : 400 // Placeholder positioning
+        const sourceY = d.source.id.includes("placeholder") ? 0 : 300
+        const targetX = d.target.id.includes("placeholder") ? 0 : 400
+        const targetY = d.target.id.includes("placeholder") ? 0 : 300
 
-    // Update links function for drag
-    function updateLinks() {
-      container.selectAll(".link").attr("d", linkGenerator)
-    }
+        if (d.type === "spouse") {
+          return `M${sourceX},${sourceY} L${targetX},${targetY}`
+        } else {
+          const midY = sourceY + (targetY - sourceY) / 2
+          return `M${sourceX},${sourceY} L${sourceX},${midY} L${targetX},${midY} L${targetX},${targetY}`
+        }
+      })
+      .attr("fill", "none")
+      .attr("stroke", (d) => {
+        if (d.source.isPlaceholder || d.target.isPlaceholder) return "#9CA3AF"
+        return d.type === "spouse" ? "#F59E0B" : "#D4AF37"
+      })
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", (d) => {
+        return d.source.isPlaceholder || d.target.isPlaceholder ? "5,5" : "none"
+      })
+      .attr("opacity", (d) => {
+        return d.source.isPlaceholder || d.target.isPlaceholder ? 0.5 : 0.7
+      })
 
     // Create nodes
     const nodes = container
       .selectAll(".node")
-      .data(root.descendants())
+      .data(layoutNodes)
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", (d) => `translate(${d.x},${d.y})`)
+      .attr("transform", "translate(400,300)") // Center initially
       .style("cursor", "pointer")
-      .call(d3.drag<SVGGElement, any>().on("start", dragStarted).on("drag", dragged).on("end", dragEnded))
 
-    function dragStarted(event: any, d: any) {
-      d3.select(this).raise().attr("stroke", "black")
-    }
-
-    function dragged(event: any, d: any) {
-      d3.select(this).attr("transform", `translate(${event.x},${event.y})`)
-      d.x = event.x
-      d.y = event.y
-
-      // Update links when dragging
-      updateLinks()
-    }
-
-    function dragEnded(event: any, d: any) {
-      d3.select(this).attr("stroke", null)
-
-      // Select the node when drag ends
-      setSelectedNode(d.data)
-      setEditingNode(d.data)
-    }
+    // Only make real nodes draggable
+    nodes
+      .filter((d: any) => !d.isPlaceholder)
+      .call(
+        d3
+          .drag<SVGGElement, TreeNodeData>()
+          .on("start", function (event, d) {
+            d3.select(this).raise()
+          })
+          .on("drag", function (event, d) {
+            d3.select(this).attr("transform", `translate(${event.x},${event.y})`)
+          })
+          .on("end", (event, d) => {
+            const member = familyTree.members[d.id]
+            if (member) {
+              setSelectedNode(member)
+              setEditingNode(member)
+            }
+          }),
+      )
 
     // Add node backgrounds
     nodes
@@ -418,257 +592,82 @@ export default function TreeEditor() {
       .attr("width", 160)
       .attr("height", 70)
       .attr("rx", 8)
-      .attr("fill", (d: any) => {
-        if (selectedNode && d.data.id === selectedNode.id) {
-          return "#FCD34D"
-        }
-        return d.data.gender === "male" ? "#1E40AF" : "#BE185D"
+      .attr("fill", (d) => {
+        if (d.isPlaceholder) return "none"
+        if (selectedNode && d.id === selectedNode.id) return "#FCD34D"
+        return d.gender === "male" ? "#1E40AF" : "#BE185D"
       })
-      .attr("stroke", "#D4AF37")
+      .attr("stroke", (d) => {
+        if (d.isPlaceholder) {
+          return d.gender === "male" ? "#1E40AF" : "#BE185D"
+        }
+        return "#D4AF37"
+      })
       .attr("stroke-width", 2)
-      .on("click", (event, d: any) => {
+      .attr("stroke-dasharray", (d) => (d.isPlaceholder ? "5,5" : "none"))
+      .attr("opacity", (d) => (d.isPlaceholder ? 0.6 : 1))
+      .on("click", (event, d) => {
         event.stopPropagation()
-        setSelectedNode(d.data)
-        setEditingNode(d.data)
+        if (d.isPlaceholder) {
+          handlePlaceholderClick(d)
+        } else {
+          const member = familyTree.members[d.id]
+          if (member) {
+            setSelectedNode(member)
+            setEditingNode(member)
+          }
+        }
       })
 
-    // Add images if available
+    // Add plus icon for placeholder nodes
     nodes
-      .filter((d: any) => d.data.image)
+      .filter((d) => d.isPlaceholder)
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", 5)
+      .attr("fill", (d) => (d.gender === "male" ? "#1E40AF" : "#BE185D"))
+      .attr("font-size", "24px")
+      .attr("font-weight", "bold")
+      .text("+")
+
+    // Add images if available (only for real nodes)
+    nodes
+      .filter((d) => !d.isPlaceholder && d.image)
       .append("image")
       .attr("x", -70)
       .attr("y", -25)
       .attr("width", 30)
       .attr("height", 30)
-      .attr("href", (d: any) => d.data.image)
+      .attr("href", (d) => d.image!)
       .attr("clip-path", "circle(15px)")
 
     // Add names
     nodes
       .append("text")
       .attr("text-anchor", "middle")
-      .attr("dy", -10)
-      .attr("fill", "white")
-      .attr("font-size", "14px")
-      .attr("font-weight", "bold")
-      .text((d: any) => d.data.name)
+      .attr("dy", (d) => (d.isPlaceholder ? 25 : -10))
+      .attr("fill", (d) => {
+        if (d.isPlaceholder) {
+          return d.gender === "male" ? "#1E40AF" : "#BE185D"
+        }
+        return "white"
+      })
+      .attr("font-size", (d) => (d.isPlaceholder ? "12px" : "14px"))
+      .attr("font-weight", (d) => (d.isPlaceholder ? "normal" : "bold"))
+      .text((d) => d.name)
 
-    // Add birth year
+    // Add birth year (only for real nodes)
     nodes
+      .filter((d) => !d.isPlaceholder)
       .append("text")
       .attr("text-anchor", "middle")
       .attr("dy", 10)
       .attr("fill", "white")
       .attr("font-size", "12px")
-      .text((d: any) => d.data.birth_year)
+      .text((d) => d.birth_year.toString())
+  }, [familyTree, selectedNode])
 
-    // Add relationship buttons around selected node
-    if (selectedNode) {
-      const selectedD3Node = root.descendants().find((d) => d.data.id === selectedNode.id)
-      if (selectedD3Node) {
-        const nodeGroup = container
-          .append("g")
-          .attr("class", "relationship-buttons")
-          .attr("transform", `translate(${selectedD3Node.x},${selectedD3Node.y})`)
-
-        // Add Father button (top-left)
-        const fatherButton = nodeGroup
-          .append("g")
-          .attr("transform", "translate(-120, -80)")
-          .style("cursor", "pointer")
-          .on("click", () => {
-            const newFather: FamilyMember = {
-              id: generateId(),
-              name: "الوالد",
-              gender: "male",
-              birth_year: selectedNode.birth_year - 30,
-            }
-            addRelative(selectedNode.id, newFather, "parent")
-          })
-
-        fatherButton
-          .append("rect")
-          .attr("x", -40)
-          .attr("y", -20)
-          .attr("width", 80)
-          .attr("height", 40)
-          .attr("rx", 8)
-          .attr("fill", "none")
-          .attr("stroke", "#10B981")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "5,5")
-
-        fatherButton
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", 5)
-          .attr("fill", "#10B981")
-          .attr("font-size", "12px")
-          .text("إضافة الوالد")
-
-        // Add Mother button (top-right)
-        const motherButton = nodeGroup
-          .append("g")
-          .attr("transform", "translate(120, -80)")
-          .style("cursor", "pointer")
-          .on("click", () => {
-            const newMother: FamilyMember = {
-              id: generateId(),
-              name: "الوالدة",
-              gender: "female",
-              birth_year: selectedNode.birth_year - 28,
-            }
-            addRelative(selectedNode.id, newMother, "parent")
-          })
-
-        motherButton
-          .append("rect")
-          .attr("x", -40)
-          .attr("y", -20)
-          .attr("width", 80)
-          .attr("height", 40)
-          .attr("rx", 8)
-          .attr("fill", "none")
-          .attr("stroke", "#EC4899")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "5,5")
-
-        motherButton
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", 5)
-          .attr("fill", "#EC4899")
-          .attr("font-size", "12px")
-          .text("إضافة الوالدة")
-
-        // Add Spouse button (right)
-        const spouseButton = nodeGroup
-          .append("g")
-          .attr("transform", "translate(200, 0)")
-          .style("cursor", "pointer")
-          .on("click", () => {
-            const newSpouse: FamilyMember = {
-              id: generateId(),
-              name: selectedNode.gender === "male" ? "الزوجة" : "الزوج",
-              gender: selectedNode.gender === "male" ? "female" : "male",
-              birth_year: selectedNode.birth_year,
-            }
-            addRelative(selectedNode.id, newSpouse, "spouse")
-          })
-
-        spouseButton
-          .append("rect")
-          .attr("x", -40)
-          .attr("y", -20)
-          .attr("width", 80)
-          .attr("height", 40)
-          .attr("rx", 8)
-          .attr("fill", "none")
-          .attr("stroke", "#F59E0B")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "5,5")
-
-        spouseButton
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", 5)
-          .attr("fill", "#F59E0B")
-          .attr("font-size", "12px")
-          .text("إضافة الزوج/ة")
-
-        // Add Son button (bottom-left)
-        const sonButton = nodeGroup
-          .append("g")
-          .attr("transform", "translate(-120, 80)")
-          .style("cursor", "pointer")
-          .on("click", () => {
-            const newSon: FamilyMember = {
-              id: generateId(),
-              name: "الابن",
-              gender: "male",
-              birth_year: selectedNode.birth_year + 25,
-              parentId: selectedNode.id,
-            }
-            addRelative(selectedNode.id, newSon, "child")
-          })
-
-        sonButton
-          .append("rect")
-          .attr("x", -40)
-          .attr("y", -20)
-          .attr("width", 80)
-          .attr("height", 40)
-          .attr("rx", 8)
-          .attr("fill", "none")
-          .attr("stroke", "#3B82F6")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "5,5")
-
-        sonButton
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", 5)
-          .attr("fill", "#3B82F6")
-          .attr("font-size", "12px")
-          .text("إضافة ابن")
-
-        // Add Daughter button (bottom-right)
-        const daughterButton = nodeGroup
-          .append("g")
-          .attr("transform", "translate(120, 80)")
-          .style("cursor", "pointer")
-          .on("click", () => {
-            const newDaughter: FamilyMember = {
-              id: generateId(),
-              name: "الابنة",
-              gender: "female",
-              birth_year: selectedNode.birth_year + 25,
-              parentId: selectedNode.id,
-            }
-            addRelative(selectedNode.id, newDaughter, "child")
-          })
-
-        daughterButton
-          .append("rect")
-          .attr("x", -40)
-          .attr("y", -20)
-          .attr("width", 80)
-          .attr("height", 40)
-          .attr("rx", 8)
-          .attr("fill", "none")
-          .attr("stroke", "#EC4899")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "5,5")
-
-        daughterButton
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", 5)
-          .attr("fill", "#EC4899")
-          .attr("font-size", "12px")
-          .text("إضافة ابنة")
-      }
-    }
-
-    // Show the entire tree initially
-    setTimeout(() => {
-      const bounds = container.node()?.getBBox()
-      if (bounds) {
-        const fullWidth = bounds.width
-        const fullHeight = bounds.height
-        const midX = bounds.x + fullWidth / 2
-        const midY = bounds.y + fullHeight / 2
-
-        const scale = Math.min(width / fullWidth, height / fullHeight) * 0.9
-        const translateX = width / 2 - midX * scale
-        const translateY = height / 2 - midY * scale
-
-        svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale))
-      }
-    }, 100)
-  }, [familyData, selectedNode])
-
-  if (!familyData) {
+  if (!familyTree) {
     return (
       <div className={`flex items-center justify-center h-screen ${isDarkMode ? "bg-gray-900" : "bg-amber-50"}`}>
         <div className="text-center">
@@ -711,6 +710,7 @@ export default function TreeEditor() {
           </div>
         </div>
       </div>
+
       {/* Left Panel - Detail Panel */}
       <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-20 overflow-y-auto">
         <div className="p-6">
@@ -718,7 +718,7 @@ export default function TreeEditor() {
             <h2 className="text-lg font-bold dark:text-white">لوحة التفاصيل</h2>
           </div>
 
-          {/* Single Legend */}
+          {/* Legend */}
           <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <h3 className="font-semibold mb-3 dark:text-white">المفتاح</h3>
             <div className="space-y-2">
@@ -729,6 +729,18 @@ export default function TreeEditor() {
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-pink-600 rounded"></div>
                 <span className="text-sm dark:text-gray-300">أنثى</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-gray-400 border-dashed rounded"></div>
+                <span className="text-sm dark:text-gray-300">عضو جديد</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-1 bg-amber-500"></div>
+                <span className="text-sm dark:text-gray-300">رابط عائلي</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-1 bg-orange-500"></div>
+                <span className="text-sm dark:text-gray-300">رابط زواج</span>
               </div>
             </div>
           </div>
@@ -769,40 +781,28 @@ export default function TreeEditor() {
             </div>
           </div>
 
-          {/* Fields Configuration */}
+          {/* Family Statistics */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold dark:text-white">الحقول</h3>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium dark:text-gray-300">الحقول القابلة للتحرير</span>
-                <Button size="sm" variant="outline" className="text-xs">
-                  <Plus className="h-3 w-3 mr-1" />
-                  إضافة حقل
-                </Button>
+            <h3 className="font-semibold dark:text-white">إحصائيات العائلة</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {Object.keys(familyTree.members).length}
+                </div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">إجمالي الأعضاء</div>
               </div>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {fields
-                  .filter((f) => f.editable)
-                  .map((field) => (
-                    <Badge
-                      key={field.id}
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    >
-                      {field.name}
-                      <X className="h-3 w-3 mr-1 cursor-pointer" />
-                    </Badge>
-                  ))}
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {Object.values(familyTree.members).filter((m) => m.children && m.children.length > 0).length}
+                </div>
+                <div className="text-xs text-green-600 dark:text-green-400">الآباء</div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      ;
+
+      {/* Center Panel - Tree View */}
       <div className="flex-1 pt-20 bg-gray-50 dark:bg-gray-900">
         <div className="h-full p-6">
           <Card className="h-full border-2 shadow-xl dark:border-gray-700">
@@ -839,32 +839,25 @@ export default function TreeEditor() {
                 التكبير: {Math.round(zoom * 100)}%
               </div>
 
-              {/* Data Format Tabs */}
-              <div className="absolute bottom-4 left-4 flex gap-1 bg-white/90 dark:bg-gray-800/90 rounded-lg p-1">
-                <Button size="sm" variant="ghost" className="text-xs">
-                  DATA
-                </Button>
-                <Button size="sm" variant="ghost" className="text-xs">
-                  FULL HTML
-                </Button>
-                <Button size="sm" variant="ghost" className="text-xs">
-                  VUE
-                </Button>
-                <Button size="sm" variant="ghost" className="text-xs bg-blue-100 dark:bg-blue-900 dark:text-blue-200">
-                  REACT
-                </Button>
+              {/* Instructions */}
+              <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 px-3 py-2 rounded text-xs max-w-xs">
+                <p className="font-semibold mb-1">التعليمات:</p>
+                <p>• انقر على العقد المنقطة لإضافة أعضاء جدد</p>
+                <p>• اسحب العقد الموجودة لإعادة ترتيبها</p>
+                <p>• انقر على عضو لتحريره في اللوحة اليمنى</p>
               </div>
             </div>
           </Card>
         </div>
       </div>
-      ;
+
+      {/* Right Panel - Node Editor */}
       <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-20 overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Settings className="h-5 w-5 dark:text-gray-300" />
-              <X className="h-5 w-5 text-gray-400" />
+              <span className="text-lg font-bold dark:text-white">محرر العضو</span>
             </div>
           </div>
 
@@ -911,16 +904,6 @@ export default function TreeEditor() {
                 </div>
 
                 <div>
-                  <Label className="text-sm text-gray-600 dark:text-gray-300">اسم العائلة</Label>
-                  <Input
-                    value={editingNode.surname || ""}
-                    onChange={(e) => setEditingNode({ ...editingNode, surname: e.target.value })}
-                    placeholder="اسم العائلة"
-                    className="mt-1 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-
-                <div>
                   <Label className="text-sm text-gray-600 dark:text-gray-300">سنة الميلاد</Label>
                   <Input
                     type="number"
@@ -936,10 +919,57 @@ export default function TreeEditor() {
                   <Input
                     value={editingNode.image || ""}
                     onChange={(e) => setEditingNode({ ...editingNode, image: e.target.value })}
-                    placeholder="https://static8.depositphotos.com/1009634/..."
+                    placeholder="https://example.com/image.jpg"
                     className="mt-1 dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
+              </div>
+
+              {/* Family Relationships Display */}
+              <div className="space-y-3">
+                <h4 className="font-semibold dark:text-white">العلاقات العائلية</h4>
+
+                {selectedNode.parents && selectedNode.parents.length > 0 && (
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <span className="text-xs text-blue-600 dark:text-blue-400">الوالدان:</span>
+                    {selectedNode.parents.map((parentId) => {
+                      const parent = familyTree.members[parentId]
+                      return parent ? (
+                        <p key={parentId} className="text-sm dark:text-gray-300">
+                          {parent.name}
+                        </p>
+                      ) : null
+                    })}
+                  </div>
+                )}
+
+                {selectedNode.spouses && selectedNode.spouses.length > 0 && (
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                    <span className="text-xs text-yellow-600 dark:text-yellow-400">الأزواج:</span>
+                    {selectedNode.spouses.map((spouseId) => {
+                      const spouse = familyTree.members[spouseId]
+                      return spouse ? (
+                        <p key={spouseId} className="text-sm dark:text-gray-300">
+                          {spouse.name}
+                        </p>
+                      ) : null
+                    })}
+                  </div>
+                )}
+
+                {selectedNode.children && selectedNode.children.length > 0 && (
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                    <span className="text-xs text-green-600 dark:text-green-400">الأطفال:</span>
+                    {selectedNode.children.map((childId) => {
+                      const child = familyTree.members[childId]
+                      return child ? (
+                        <p key={childId} className="text-sm dark:text-gray-300">
+                          {child.name}
+                        </p>
+                      ) : null
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -948,7 +978,7 @@ export default function TreeEditor() {
                   variant="destructive"
                   className="w-full"
                   onClick={() => deleteNode(selectedNode.id)}
-                  disabled={selectedNode.id === familyData?.id}
+                  disabled={selectedNode.id === familyTree?.rootId}
                 >
                   حذف
                 </Button>
@@ -973,11 +1003,13 @@ export default function TreeEditor() {
             <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
               <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>اختر عضواً من الشجرة للتحرير</p>
+              <p className="text-xs mt-2">أو انقر على العقد المنقطة لإضافة أعضاء جدد</p>
             </div>
           )}
         </div>
       </div>
-      ;<input ref={fileInputRef} type="file" accept=".json" onChange={importData} className="hidden" />
+
+      <input ref={fileInputRef} type="file" accept=".json" onChange={importData} className="hidden" />
     </div>
   )
 }

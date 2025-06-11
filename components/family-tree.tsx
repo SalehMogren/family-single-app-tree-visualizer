@@ -1684,46 +1684,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
           </div>
 
           {/* Legend */}
-          <div
-            className={`absolute top-4 left-4 backdrop-blur-sm rounded-lg p-3 border shadow-lg transition-colors duration-300 ${
-              isDarkMode ? "bg-gray-800/90 border-amber-600" : "bg-white/90 border-amber-200"
-            }`}
-          >
-            <h3
-              className={`font-semibold mb-2 text-sm transition-colors duration-300 ${
-                isDarkMode ? "text-amber-300" : "text-amber-800"
-              }`}
-              style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
-            >
-              المفتاح
-            </h3>
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-md border-2 border-amber-400"
-                  style={{ backgroundColor: settings.maleColor }}
-                ></div>
-                <span
-                  className={`transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
-                >
-                  ذكر
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-md border-2 border-amber-400"
-                  style={{ backgroundColor: settings.femaleColor }}
-                ></div>
-                <span
-                  className={`transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
-                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
-                >
-                  أنثى
-                </span>
-              </div>
-            </div>
-          </div>
+          
         </Card>
       </section>
   )
