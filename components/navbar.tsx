@@ -94,6 +94,16 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
             >
               الشجرة التفاعلية
             </button>
+            <button
+              onClick={() => window.open("/tree-editor", "_blank")}
+              className={`text-sm font-medium transition-colors duration-300 hover:scale-105`}
+              style={{
+                color: colors.text,
+                fontFamily: theme.fonts.primary,
+              }}
+            >
+              محرر الشجرة
+            </button>
             <div className="h-4 w-px bg-amber-300 opacity-50"></div>
             {config.features.darkMode && (
               <Button
@@ -157,6 +167,16 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 }}
               >
                 الشجرة التفاعلية
+              </button>
+              <button
+                onClick={() => window.open("/tree-editor", "_blank")}
+                className={`block w-full text-right px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
+                style={{
+                  color: colors.text,
+                  fontFamily: theme.fonts.primary,
+                }}
+              >
+                محرر الشجرة
               </button>
             </div>
           </div>

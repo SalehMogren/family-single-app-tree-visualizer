@@ -4,28 +4,33 @@
   "birth_year": 1920,
   "death_year": 1995,
   "spouse": "فاطمة علي السالم",
+  "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
   "children": [
     {
       "name": "محمد أحمد الأحمد",
       "gender": "male",
       "birth_year": 1945,
       "spouse": "عائشة حسن المحمد",
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
       "children": [
         {
           "name": "أحمد محمد الأحمد",
           "gender": "male",
           "birth_year": 1975,
           "spouse": "نورا سالم الخالد",
+          "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
           "children": [
             {
               "name": "محمد أحمد الأحمد",
               "gender": "male",
-              "birth_year": 2005
+              "birth_year": 2005,
+              "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
             },
             {
               "name": "فاطمة أحمد الأحمد",
               "gender": "female",
-              "birth_year": 2008
+              "birth_year": 2008,
+              "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
             }
           ]
         },
@@ -34,11 +39,13 @@
           "gender": "female",
           "birth_year": 1978,
           "spouse": "خالد عبدالله الزهراني",
+          "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
           "children": [
             {
               "name": "عبدالله خالد الزهراني",
               "gender": "male",
-              "birth_year": 2010
+              "birth_year": 2010,
+              "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
             }
           ]
         }
@@ -49,18 +56,21 @@
       "gender": "male",
       "birth_year": 1948,
       "spouse": "مريم يوسف الغامدي",
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
       "children": [
         {
           "name": "يوسف علي الأحمد",
           "gender": "male",
           "birth_year": 1980,
-          "spouse": "هند محمد القحطاني"
+          "spouse": "هند محمد القحطاني",
+          "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face"
         },
         {
           "name": "نورا علي الأحمد",
           "gender": "female",
           "birth_year": 1983,
-          "spouse": "سعد عبدالرحمن المطيري"
+          "spouse": "سعد عبدالرحمن المطيري",
+          "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
         }
       ]
     },
@@ -69,11 +79,13 @@
       "gender": "female",
       "birth_year": 1950,
       "spouse": "عبدالرحمن سالم الدوسري",
+      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
       "children": [
         {
           "name": "سالم عبدالرحمن الدوسري",
           "gender": "male",
-          "birth_year": 1985
+          "birth_year": 1985,
+          "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
         }
       ]
     }

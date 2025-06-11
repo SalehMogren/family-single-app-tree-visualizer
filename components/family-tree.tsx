@@ -9,6 +9,8 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { exportTreeAsImage, downloadFile, generatePDF } from "@/lib/export"
+import { Download } from "lucide-react"
 
 interface FamilyMember {
   name: string
@@ -20,6 +22,7 @@ interface FamilyMember {
   occupation?: string
   birthplace?: string
   notes?: string
+  image?: string // Add this line
 }
 
 interface TreeNode extends d3.HierarchyNode<FamilyMember> {
@@ -213,25 +216,24 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     let linkGenerator: any
 
     if (settings.lineShape === "straight") {
-      // Use straight lines
       linkGenerator = (d: any) => {
         const sourceX = d.source.x
-        const sourceY = d.source.y
+        const sourceY = d.source.y + settings.cardHeight / 2 // Bottom of source card
         const targetX = d.target.x
-        const targetY = d.target.y
-        
-        // Calculate the adjusted target position based on lineLength
-        const dx = targetX - sourceX
-        const dy = targetY - sourceY
-        const adjustedTargetX = sourceX + dx * settings.lineLength
-        const adjustedTargetY = sourceY + dy * settings.lineLength
-        
-        return `M${sourceX},${sourceY}L${adjustedTargetX},${adjustedTargetY}`
+        const targetY = d.target.y - settings.cardHeight / 2 // Top of target card
+
+        // Create neat angled lines with proper spacing
+        const midY = sourceY + (targetY - sourceY) * settings.lineLength * 0.5
+
+        return `M${sourceX},${sourceY}
+            L${sourceX},${midY}
+            L${targetX},${midY}
+            L${targetX},${targetY}`
       }
     } else {
       // Use curved lines
       if (settings.orientation === "vertical") {
-        linkGenerator = d3
+        const linkGenerator = d3
           .linkVertical<any, d3.HierarchyPointLink<FamilyMember>>()
           .x((d) => d.x)
           .y((d) => {
@@ -240,9 +242,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
               const targetY = d.target.y
               const distance = Math.abs(targetY - sourceY)
               const direction = targetY > sourceY ? 1 : -1
-              
+
               if (d === d.target) {
-                return sourceY + (distance * settings.lineLength * direction)
+                return sourceY + distance * settings.lineLength * direction
               }
             }
             return d.y
@@ -256,9 +258,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
               const targetX = d.target.x
               const distance = Math.abs(targetX - sourceX)
               const direction = targetX > sourceX ? 1 : -1
-              
+
               if (d === d.target) {
-                return sourceX + (distance * settings.lineLength * direction)
+                return sourceX + distance * settings.lineLength * direction
               }
             }
             return d.x
@@ -290,7 +292,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         event.stopPropagation()
-        
+
         // Zoom to the clicked node
         const scale = 1.5
         const translateX = width / 2 - d.x * scale
@@ -300,10 +302,10 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
           .transition()
           .duration(750)
           .call(zoomBehavior.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale))
-        
+
         // Show mini tree
         setSelectedNode(d)
-        
+
         // Prepare mini-tree data
         const miniData = {
           self: d,
@@ -338,6 +340,18 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
       .on("mouseout", function (event, d) {
         d3.select(this).transition().duration(200).attr("stroke-width", 2).attr("opacity", 0.9)
       })
+
+    // Add image rendering
+    nodes
+      .filter((d) => d.data.image)
+      .append("image")
+      .attr("x", -settings.cardWidth / 2 + 10)
+      .attr("y", -settings.cardHeight / 2 + 10)
+      .attr("width", 30)
+      .attr("height", 30)
+      .attr("href", (d) => d.data.image)
+      .attr("clip-path", "circle(15px)")
+      .style("cursor", "pointer")
 
     // Add labels based on settings
     let yOffset = -settings.cardHeight / 2 + 20
@@ -497,6 +511,30 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     setSettings(isDarkMode ? darkSettings : defaultSettings)
   }
 
+  const handleExport = async (format: "png" | "pdf") => {
+    if (!svgRef.current) return
+
+    try {
+      const options = {
+        format,
+        quality: 0.9,
+        backgroundColor: isDarkMode ? "#1F2937" : "#FFFFFF",
+        includeWatermark: true,
+      }
+
+      const dataUrl = await exportTreeAsImage(svgRef.current, options)
+
+      if (format === "png") {
+        downloadFile(dataUrl, `family-tree-${Date.now()}.png`)
+      } else {
+        await generatePDF(dataUrl, `family-tree-${Date.now()}.pdf`)
+      }
+    } catch (error) {
+      console.error("Export failed:", error)
+      alert("فشل في تصدير الشجرة. يرجى المحاولة مرة أخرى.")
+    }
+  }
+
   if (loading) {
     return (
       <div className={`flex items-center justify-center h-96 ${isDarkMode ? "bg-gray-900" : "bg-amber-50"}`}>
@@ -554,7 +592,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
           }`}
         >
           <div
-            className={`p-4 border-b transition-colors duration-300 ${
+            className={`p-4 border-b transition-colors duration-300-300-300 ${
               isDarkMode
                 ? "border-amber-600 bg-gradient-to-r from-amber-900/50 to-orange-900/50"
                 : "border-amber-200 bg-gradient-to-r from-amber-100 to-orange-100"
@@ -616,6 +654,28 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   }`}
                 >
                   <RotateCcw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport("png")}
+                  className={`border-amber-300 transition-colors duration-300 ${
+                    isDarkMode ? "hover:bg-amber-900/50 border-amber-600" : "hover:bg-amber-100"
+                  }`}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  تصدير PNG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport("pdf")}
+                  className={`border-amber-300 transition-colors duration-300 ${
+                    isDarkMode ? "hover:bg-amber-900/50 border-amber-600" : "hover:bg-amber-100"
+                  }`}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  تصدير PDF
                 </Button>
                 <span
                   className={`text-sm mr-2 transition-colors duration-300 ${
@@ -1387,5 +1447,284 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                               isDarkMode ? "bg-gray-600/50" : "bg-white/70"
                             }`}
                           >
+                            <div className="flex items-center gap-4 mb-4">
+                              {detailNode.data.image && (
+                                <img
+                                  src={detailNode.data.image || "/placeholder.svg"}
+                                  alt={detailNode.data.name}
+                                  className="w-24 h-24 rounded-full object-cover border-4 border-amber-300"
+                                />
+                              )}
+                              <div>
+                                <h4
+                                  className={`text-2xl font-bold transition-colors duration-300 ${
+                                    isDarkMode ? "text-white" : "text-gray-900"
+                                  }`}
+                                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                                >
+                                  {detailNode.data.name}
+                                </h4>
+                                <p
+                                  className={`text-lg transition-colors duration-300 ${
+                                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                                  }`}
+                                >
+                                  {detailNode.data.birth_year}
+                                  {detailNode.data.death_year ? ` - ${detailNode.data.death_year}` : ""}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`font-semibold transition-colors duration-300 ${
+                                    isDarkMode ? "text-amber-300" : "text-amber-700"
+                                  }`}
+                                >
+                                  الجنس:
+                                </span>
+                                <span
+                                  className={`transition-colors duration-300 ${
+                                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                                  }`}
+                                >
+                                  {detailNode.data.gender === "male" ? "ذكر" : "أنثى"}
+                                </span>
+                              </div>
+
+                              {detailNode.data.spouse && (
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`font-semibold transition-colors duration-300 ${
+                                      isDarkMode ? "text-amber-300" : "text-amber-700"
+                                    }`}
+                                  >
+                                    الزوج/ة:
+                                  </span>
+                                  <span
+                                    className={`transition-colors duration-300 ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    {detailNode.data.spouse}
+                                  </span>
+                                </div>
+                              )}
+
+                              {detailNode.data.occupation && (
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`font-semibold transition-colors duration-300 ${
+                                      isDarkMode ? "text-amber-300" : "text-amber-700"
+                                    }`}
+                                  >
+                                    المهنة:
+                                  </span>
+                                  <span
+                                    className={`transition-colors duration-300 ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    {detailNode.data.occupation}
+                                  </span>
+                                </div>
+                              )}
+
+                              {detailNode.data.birthplace && (
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`font-semibold transition-colors duration-300 ${
+                                      isDarkMode ? "text-amber-300" : "text-amber-700"
+                                    }`}
+                                  >
+                                    مكان الميلاد:
+                                  </span>
+                                  <span
+                                    className={`transition-colors duration-300 ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    {detailNode.data.birthplace}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {detailNode.data.notes && (
                             <div
-                              className=\"w-24 h-24\
+                              className={`p-4 rounded-lg transition-colors duration-300 ${
+                                isDarkMode ? "bg-gray-600/50" : "bg-white/70"
+                              }`}
+                            >
+                              <h5
+                                className={`font-semibold mb-2 transition-colors duration-300 ${
+                                  isDarkMode ? "text-amber-300" : "text-amber-700"
+                                }`}
+                              >
+                                ملاحظات:
+                              </h5>
+                              <p
+                                className={`text-sm leading-relaxed transition-colors duration-300 ${
+                                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                                }`}
+                                style={{ lineHeight: "1.8" }}
+                              >
+                                {detailNode.data.notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Family Connections */}
+                      <div
+                        className={`p-6 rounded-lg border-2 transition-colors duration-300 ${
+                          isDarkMode ? "bg-gray-700/50 border-amber-600" : "bg-amber-50 border-amber-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+                            isDarkMode ? "text-amber-300" : "text-amber-800"
+                          }`}
+                          style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                        >
+                          الروابط العائلية
+                        </h3>
+
+                        <div className="space-y-4">
+                          {detailNode.parent && (
+                            <div
+                              className={`p-3 rounded-lg transition-colors duration-300 ${
+                                isDarkMode ? "bg-gray-600/50" : "bg-white/70"
+                              }`}
+                            >
+                              <h5
+                                className={`font-semibold mb-2 transition-colors duration-300 ${
+                                  isDarkMode ? "text-blue-300" : "text-blue-700"
+                                }`}
+                              >
+                                الوالد/ة:
+                              </h5>
+                              <p
+                                className={`transition-colors duration-300 ${
+                                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                                }`}
+                              >
+                                {detailNode.parent.data.name}
+                              </p>
+                            </div>
+                          )}
+
+                          {detailNode.children && detailNode.children.length > 0 && (
+                            <div
+                              className={`p-3 rounded-lg transition-colors duration-300 ${
+                                isDarkMode ? "bg-gray-600/50" : "bg-white/70"
+                              }`}
+                            >
+                              <h5
+                                className={`font-semibold mb-2 transition-colors duration-300 ${
+                                  isDarkMode ? "text-green-300" : "text-green-700"
+                                }`}
+                              >
+                                الأبناء ({detailNode.children.length}):
+                              </h5>
+                              <ul className="space-y-1">
+                                {detailNode.children.map((child, index) => (
+                                  <li
+                                    key={index}
+                                    className={`text-sm transition-colors duration-300 ${
+                                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    • {child.data.name} ({child.data.birth_year})
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {detailNode.parent?.children && detailNode.parent.children.length > 1 && (
+                            <div
+                              className={`p-3 rounded-lg transition-colors duration-300 ${
+                                isDarkMode ? "bg-gray-600/50" : "bg-white/70"
+                              }`}
+                            >
+                              <h5
+                                className={`font-semibold mb-2 transition-colors duration-300 ${
+                                  isDarkMode ? "text-purple-300" : "text-purple-700"
+                                }`}
+                              >
+                                الإخوة والأخوات:
+                              </h5>
+                              <ul className="space-y-1">
+                                {detailNode.parent.children
+                                  .filter((sibling) => sibling !== detailNode)
+                                  .map((sibling, index) => (
+                                    <li
+                                      key={index}
+                                      className={`text-sm transition-colors duration-300 ${
+                                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                                      }`}
+                                    >
+                                      • {sibling.data.name} ({sibling.data.birth_year})
+                                    </li>
+                                  ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Legend */}
+          <div
+            className={`absolute top-4 left-4 backdrop-blur-sm rounded-lg p-3 border shadow-lg transition-colors duration-300 ${
+              isDarkMode ? "bg-gray-800/90 border-amber-600" : "bg-white/90 border-amber-200"
+            }`}
+          >
+            <h3
+              className={`font-semibold mb-2 text-sm transition-colors duration-300 ${
+                isDarkMode ? "text-amber-300" : "text-amber-800"
+              }`}
+              style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+            >
+              المفتاح
+            </h3>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-md border-2 border-amber-400"
+                  style={{ backgroundColor: settings.maleColor }}
+                ></div>
+                <span
+                  className={`transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                >
+                  ذكر
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-md border-2 border-amber-400"
+                  style={{ backgroundColor: settings.femaleColor }}
+                ></div>
+                <span
+                  className={`transition-colors duration-300 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                  style={{ fontFamily: "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif" }}
+                >
+                  أنثى
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </section>
+  )
+}

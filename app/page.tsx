@@ -6,6 +6,7 @@ import FamilyBrief from "@/components/family-brief"
 import FamilyTree from "@/components/family-tree"
 import Footer from "@/components/footer"
 import { useAppConfig } from "@/hooks/useConfig"
+import TimelineView from "@/components/timeline-view"
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -32,6 +33,7 @@ export default function Home() {
       <main>
         {config.features.familyHistory && <FamilyBrief isDarkMode={isDarkMode} />}
         <FamilyTree isDarkMode={isDarkMode} />
+        <TimelineView isDarkMode={isDarkMode} />
       </main>
       {config.navigation.showFooter && <Footer isDarkMode={isDarkMode} />}
     </div>
