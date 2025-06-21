@@ -19,6 +19,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3": "latest",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
     "react": "^18",
@@ -31,6 +33,8 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@types/html2canvas": "^0.5.35",
+    "@types/jspdf": "^1.3.3",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",

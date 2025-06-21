@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Moon, Sun, Users, Menu, X } from "lucide-react"
-import { useAppConfig, useTheme } from "@/hooks/useConfig"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Moon, Sun, Users, Menu, X } from "lucide-react";
+import { useAppConfig, useTheme } from "@/hooks/useConfig";
 
 interface NavbarProps {
-  isDarkMode: boolean
-  toggleTheme: () => void
+  isDarkMode: boolean;
+  toggleTheme: () => void;
 }
 
 export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { config } = useAppConfig()
-  const { theme } = useTheme()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { config } = useAppConfig();
+  const { theme } = useTheme();
 
-  if (!config || !theme) return null
+  if (!config || !theme) return null;
 
   const scrollToSection = (sectionId: string) => {
-    if (!config.navigation.smoothScroll) return
+    if (!config.navigation.smoothScroll) return;
 
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
+      element.scrollIntoView({ behavior: "smooth" });
     }
-    setIsMenuOpen(false)
-  }
+    setIsMenuOpen(false);
+  };
 
-  const colors = isDarkMode ? theme.colors.dark : theme.colors.light
+  const colors = isDarkMode ? theme.colors.dark : theme.colors.light;
 
   return (
     <nav
@@ -36,17 +36,18 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
         backgroundColor: `${colors.surface}95`,
         borderColor: colors.primary,
         boxShadow: theme.shadows.lg,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      }}>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='flex justify-between items-center h-16'>
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <div className='flex items-center gap-3'>
             <div
               className={`p-2 rounded-lg transition-colors duration-300`}
-              style={{ backgroundColor: `${colors.primary}50` }}
-            >
-              <Users className={`h-6 w-6 transition-colors duration-300`} style={{ color: colors.primary }} />
+              style={{ backgroundColor: `${colors.primary}50` }}>
+              <Users
+                className={`h-6 w-6 transition-colors duration-300`}
+                style={{ color: colors.primary }}
+              />
             </div>
             <div>
               <h1
@@ -54,8 +55,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 style={{
                   color: colors.primary,
                   fontFamily: theme.fonts.primary,
-                }}
-              >
+                }}>
                 {config.appInfo.title}
               </h1>
               <p
@@ -63,15 +63,14 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 style={{
                   color: `${colors.primary}70`,
                   fontFamily: theme.fonts.secondary,
-                }}
-              >
+                }}>
                 {config.appInfo.subtitle}
               </p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className='hidden md:flex items-center gap-6'>
             {config.features.familyHistory && (
               <button
                 onClick={() => scrollToSection("family-brief")}
@@ -79,19 +78,17 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 style={{
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
-                }}
-              >
+                }}>
                 نبذة العائلة
               </button>
-            )}
+            )}{" "}
             <button
               onClick={() => scrollToSection("family-tree")}
               className={`text-sm font-medium transition-colors duration-300 hover:scale-105`}
               style={{
                 color: colors.text,
                 fontFamily: theme.fonts.primary,
-              }}
-            >
+              }}>
               الشجرة التفاعلية
             </button>
             <button
@@ -100,38 +97,51 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
               style={{
                 color: colors.text,
                 fontFamily: theme.fonts.primary,
-              }}
-            >
+              }}>
               محرر الشجرة
             </button>
-            <div className="h-4 w-px bg-amber-300 opacity-50"></div>
+            <div className='h-4 w-px bg-amber-300 opacity-50'></div>
             {config.features.darkMode && (
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={toggleTheme}
                 className={`transition-all duration-300 hover:scale-110`}
-                style={{ color: colors.primary }}
-              >
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                style={{ color: colors.primary }}>
+                {isDarkMode ? (
+                  <Sun className='h-4 w-4' />
+                ) : (
+                  <Moon className='h-4 w-4' />
+                )}
               </Button>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className='md:hidden flex items-center gap-2'>
             {config.features.darkMode && (
-              <Button variant="ghost" size="sm" onClick={toggleTheme} style={{ color: colors.primary }}>
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={toggleTheme}
+                style={{ color: colors.primary }}>
+                {isDarkMode ? (
+                  <Sun className='h-4 w-4' />
+                ) : (
+                  <Moon className='h-4 w-4' />
+                )}
               </Button>
             )}
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              style={{ color: colors.primary }}
-            >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              style={{ color: colors.primary }}>
+              {isMenuOpen ? (
+                <X className='h-5 w-5' />
+              ) : (
+                <Menu className='h-5 w-5' />
+              )}
             </Button>
           </div>
         </div>
@@ -143,9 +153,8 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
             style={{
               borderColor: colors.border,
               backgroundColor: `${colors.surface}95`,
-            }}
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1">
+            }}>
+            <div className='px-2 pt-2 pb-3 space-y-1'>
               {config.features.familyHistory && (
                 <button
                   onClick={() => scrollToSection("family-brief")}
@@ -153,19 +162,17 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                   style={{
                     color: colors.text,
                     fontFamily: theme.fonts.primary,
-                  }}
-                >
+                  }}>
                   نبذة العائلة
                 </button>
-              )}
+              )}{" "}
               <button
                 onClick={() => scrollToSection("family-tree")}
                 className={`block w-full text-right px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
                 style={{
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
-                }}
-              >
+                }}>
                 الشجرة التفاعلية
               </button>
               <button
@@ -174,8 +181,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 style={{
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
-                }}
-              >
+                }}>
                 محرر الشجرة
               </button>
             </div>
@@ -183,5 +189,5 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
         )}
       </div>
     </nav>
-  )
+  );
 }

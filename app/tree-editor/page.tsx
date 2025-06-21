@@ -1,616 +1,427 @@
+/**
+ * @file The main page component for the Family Tree Editor.
+ * This component orchestrates the entire editor UI, including the header,
+ * sidebar, and the main tree visualization area.
+ */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect, useRef } from "react";
+import { useTreeStore } from "../../hooks/useTreeStore";
+import { TreeSvg } from "../../components/tree-editor/TreeSvg";
+import { Toolbar } from "../../components/tree-editor/Toolbar";
+import { AddOrEditNodeForm } from "../../components/tree-editor/AddOrEditNodeForm";
+import { DebugComponent } from "../../components/tree-editor/DebugComponent";
+import { TreeNodeData, FamilyMember } from "../../lib/types";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Download,
-  Upload,
-  ArrowLeft,
-  Settings,
-  User,
-  Users,
-  Moon,
-  Sun,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useTreeStore } from "./store/useTreeStore";
-import { calculateTree } from "./utils/CalculateTree";
-import { useLinks } from "./hooks/useLinks";
-import { TreeSvg } from "./components/TreeSvg";
-import { DetailPanelSettings, FieldConfig, TreeNodeData } from "./types";
-import { toggleRels } from "./handlers/toggleRels";
-import { newPerson } from "./handlers/newPerson";
+import { Moon, Sun, TreePine, Edit, Trash2, X } from "lucide-react";
 
-const defaultFields: FieldConfig[] = [
-  {
-    id: "name",
-    name: "Name",
-    type: "text",
-    required: true,
-    editable: true,
-  },
-  {
-    id: "birth_year",
-    name: "Birthday",
-    type: "number",
-    required: true,
-    editable: true,
-  },
-  {
-    id: "image",
-    name: "Avatar",
-    type: "image",
-    required: false,
-    editable: true,
-  },
-];
+// Defines the different modes for the sidebar panel.
+type SidebarMode = "stats" | "view" | "edit" | "add";
 
 export default function TreeEditor() {
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // UI state for dark mode, sidebar view, and loading status.
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>("stats");
+  const [selectedNode, setSelectedNode] = useState<FamilyMember | null>(null);
+  const [addRelativeInfo, setAddRelativeInfo] = useState<{
+    targetId: string;
+    type: "parent" | "spouse" | "child";
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Use the custom hook to interact with the Redux store.
   const {
-    data: familyTree,
+    data,
     tree,
     mainId,
-    focusNodeId,
-    nodeSeparation,
-    levelSeparation,
-    updateData,
-    updateMainId,
-    recalculateTree,
-    toggleAllRels,
+    updateDataAndMainId,
+    setFocusNode,
+    addNode,
+    updateNode,
+    deleteNode,
     undo,
     redo,
-    setFocusNode,
-    loadInitialData,
+    canUndo,
+    canRedo,
   } = useTreeStore();
 
+  // A ref to access methods on the TreeSvg component (e.g., for zoom).
+  const treeSvgRef = useRef<any>(null);
+
+  // Effect for loading the initial sample data.
   useEffect(() => {
-    if (!familyTree) {
-      loadInitialData();
-    } else {
-      recalculateTree();
-    }
-  }, [familyTree, loadInitialData, recalculateTree]);
+    const sampleData = {
+      person_1: {
+        id: "person_1",
+        name: "المؤسس",
+        gender: "male" as const,
+        birth_year: 1950,
+        parents: [],
+        spouses: [],
+        children: [],
+      },
+    };
+    updateDataAndMainId(sampleData, "person_1");
+    setIsLoading(false);
+  }, []); // Empty dependency array ensures this runs only once on mount.
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [isAddingNewMember, setIsAddingNewMember] = useState(false);
-  const [showPlaceholders, setShowPlaceholders] = useState(true);
-  const [selectedNode, setSelectedNode] = useState<TreeNodeData | null>(null);
-  const [editingNode, setEditingNode] = useState<Partial<TreeNodeData>>({});
+  // Effect to detect and apply the system's preferred color scheme.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    setIsDarkMode(mediaQuery.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
-  // Panel settings
-  const [detailSettings, setDetailSettings] = useState<DetailPanelSettings>({
-    enableDetailView: true,
-    viewOnly: false,
-    editOnClick: true,
-  });
-
-  // Toggle dark mode
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+  // Effect to apply the dark mode class to the root element.
+  useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.remove("dark");
-    } else {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-  };
+  }, [isDarkMode]);
 
-  // Handle node click
+  /**
+   * Handles clicks on a node in the tree.
+   * Switches the sidebar to 'view' mode for regular nodes or 'add' mode for placeholders.
+   */
   const handleNodeClick = (node: TreeNodeData) => {
     if (node.isPlaceholder) {
-      setSelectedNode(node);
-      setIsAddingNewMember(true);
-      setEditingNode({
-        gender: node.gender,
-        birth_year: node.birth_year,
-      });
+      if (node.targetId && node.type) {
+        setAddRelativeInfo({ targetId: node.targetId, type: node.type });
+        setSidebarMode("add");
+        setSelectedNode(null);
+      }
     } else {
-      setSelectedNode(node);
-      setEditingNode(node);
-      setIsAddingNewMember(false);
+      setSelectedNode(data[node.id]);
+      setFocusNode(node.id);
+      setSidebarMode("view");
     }
   };
 
-  // Handle node drag
-  const handleNodeDrag = (node: TreeNodeData, x: number, y: number) => {
-    if (!familyTree) return;
-
-    const updatedMembers = { ...familyTree.members };
-    const member = updatedMembers[node.id];
-    if (member) {
-      member.x = x;
-      member.y = y;
-      updateData({
-        ...familyTree,
-        members: updatedMembers,
-      });
-    }
-  };
-
-  // Handle form submission
-  const handleSubmitForm = () => {
-    if (!familyTree || !editingNode.name) return;
-
-    if (isAddingNewMember && selectedNode) {
-      const newMemberData = {
-        name: editingNode.name,
-        gender: editingNode.gender || "male",
-        birth_year: editingNode.birth_year || 0,
-        type: selectedNode.type || "spouse",
-        targetId: selectedNode.targetId || "",
-      };
-
-      const updatedTree = newPerson({
-        tree: familyTree,
-        data: newMemberData,
-      });
-
-      updateData(updatedTree);
-    } else if (selectedNode) {
-      const updatedMembers = { ...familyTree.members };
-      updatedMembers[selectedNode.id] = {
-        ...selectedNode,
-        ...editingNode,
-        parents: selectedNode.parents?.map((p) => p.id) || [],
-        children: selectedNode.children?.map((c) => c.id) || [],
-        spouses: selectedNode.spouses?.map((s) => s.id) || [],
-      };
-
-      updateData({
-        ...familyTree,
-        members: updatedMembers,
-      });
-    }
-
+  /**
+   * Handles clicks on the '+' buttons around a selected node.
+   * Switches the sidebar to 'add' mode for the specified relative type.
+   */
+  const handleAddRelativeClick = (
+    nodeId: string,
+    type: "parent" | "spouse" | "child"
+  ) => {
+    setAddRelativeInfo({ targetId: nodeId, type });
+    setSidebarMode("add");
     setSelectedNode(null);
-    setEditingNode({});
-    setIsAddingNewMember(false);
   };
 
-  // Export data
-  const exportData = () => {
-    if (!familyTree) return;
+  /**
+   * Saves data from the AddOrEditNodeForm.
+   * Dispatches either an 'updateNode' or 'addNode' action.
+   */
+  const handleSaveNode = (formData: Partial<FamilyMember>) => {
+    if (sidebarMode === "edit" && selectedNode) {
+      updateNode({ ...selectedNode, ...formData } as FamilyMember);
+    } else if (sidebarMode === "add" && addRelativeInfo) {
+      addNode(addRelativeInfo.targetId, addRelativeInfo.type, formData);
+    }
+    // Reset the sidebar to its default state.
+    setSidebarMode("stats");
+    setSelectedNode(null);
+    setAddRelativeInfo(null);
+  };
 
-    const dataStr = JSON.stringify(familyTree, null, 2);
+  /**
+   * Deletes the currently selected node from the tree.
+   */
+  const handleDeleteNode = () => {
+    if (selectedNode) {
+      deleteNode(selectedNode.id);
+      setSidebarMode("stats");
+      setSelectedNode(null);
+    }
+  };
+
+  /**
+   * Cancels the add/edit operation and returns the sidebar to the previous view.
+   */
+  const handleCancel = () => {
+    setSidebarMode(selectedNode ? "view" : "stats");
+    setAddRelativeInfo(null);
+  };
+
+  /**
+   * Triggers a browser download of the current tree data as a JSON file.
+   */
+  const handleSaveToFile = () => {
+    const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-
     const link = document.createElement("a");
     link.href = url;
-    link.download = `family-tree-${Date.now()}.json`;
-    document.body.appendChild(link);
+    link.download = "family-data.json";
     link.click();
-    document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  // Import data
-  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target?.result as string);
-        updateData(data);
-        setSelectedNode(data.members[data.rootId]);
-        setEditingNode(data.members[data.rootId]);
-      } catch (error) {
-        alert("Error reading file. Please ensure it's a valid JSON file.");
+  /**
+   * Opens a file dialog to load tree data from a local JSON file.
+   */
+  const handleLoadFromFile = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const loadedData = JSON.parse(ev.target?.result as string);
+            const firstPersonId = Object.keys(loadedData)[0] || "";
+            if (firstPersonId) {
+              updateDataAndMainId(loadedData, firstPersonId);
+            }
+          } catch (error) {
+            console.error("Failed to parse JSON file.", error);
+            alert("Error loading file.");
+          }
+        };
+        reader.readAsText(file);
       }
     };
-    reader.readAsText(file);
+    input.click();
   };
 
-  // Calculate tree layout
-  const treeNodes = tree || [];
+  // Handlers to call zoom/reset methods on the TreeSvg component.
+  const handleResetView = () => treeSvgRef.current?.onResetView();
+  const handleZoomIn = () => treeSvgRef.current?.onZoomIn();
+  const handleZoomOut = () => treeSvgRef.current?.onZoomOut();
 
-  // Generate links
-  const links = useLinks({
-    nodes: treeNodes,
-    showPlaceholders,
-  });
-
-  if (!familyTree) {
+  // Display a loading indicator while the initial data is being fetched.
+  if (isLoading) {
     return (
       <div
-        className={`flex items-center justify-center h-screen ${
-          isDarkMode ? "bg-gray-900" : "bg-amber-50"
+        className={`min-h-screen flex items-center justify-center ${
+          isDarkMode ? "bg-gray-900" : "bg-gray-50"
         }`}>
-        <div className='text-center'>
-          <Users
-            className={`mx-auto h-12 w-12 mb-4 animate-pulse ${
-              isDarkMode ? "text-amber-400" : "text-amber-600"
-            }`}
-          />
-          <p
-            className={`text-lg font-semibold ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
-            }`}>
-            Loading tree editor...
-          </p>
-        </div>
+        <TreePine
+          className={`w-12 h-12 mx-auto mb-4 animate-pulse ${
+            isDarkMode ? "text-green-400" : "text-green-600"
+          }`}
+        />
       </div>
     );
   }
 
+  // Render the main editor layout.
   return (
     <div
-      className={`min-h-screen ${
-        isDarkMode ? "dark" : ""
-      } bg-gray-50 dark:bg-gray-900 flex`}
-      dir='rtl'>
-      {/* Header */}
-      <div className='fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
+      className={`min-h-screen transition-colors duration-300 ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      }`}>
+      {/* Header Section */}
+      <header
+        className={`border-b transition-colors duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        }`}>
+        <div className='container mx-auto px-6 py-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <TreePine
+                className={`w-8 h-8 ${
+                  isDarkMode ? "text-green-400" : "text-green-600"
+                }`}
+              />
+              <h1
+                className={`text-2xl font-bold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}>
+                محرر شجرة العائلة
+              </h1>
+            </div>
             <Button
               variant='outline'
-              onClick={() => router.push("/")}
-              className='flex items-center gap-2'>
-              <ArrowLeft className='h-4 w-4' />
-              Back to Home
-            </Button>
-            <h1 className='text-2xl font-bold dark:text-white'>
-              Family Tree Editor
-            </h1>
-          </div>
-
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='outline'
-              onClick={toggleTheme}
-              className='flex items-center gap-2'>
+              size='icon'
+              onClick={() => setIsDarkMode(!isDarkMode)}>
               {isDarkMode ? (
-                <Sun className='h-4 w-4' />
+                <Sun className='w-5 h-5' />
               ) : (
-                <Moon className='h-4 w-4' />
+                <Moon className='w-5 h-5' />
               )}
             </Button>
-            <Button
-              variant='outline'
-              onClick={() => setShowPlaceholders(!showPlaceholders)}
-              className='flex items-center gap-2'>
-              {showPlaceholders ? (
-                <Users className='h-4 w-4' />
-              ) : (
-                <User className='h-4 w-4' />
-              )}
-              {showPlaceholders ? "Hide Placeholders" : "Show Placeholders"}
-            </Button>
-            <Button
-              variant='outline'
-              onClick={() => fileInputRef.current?.click()}
-              className='flex items-center gap-2'>
-              <Upload className='h-4 w-4' />
-              Import
-            </Button>
-            <Button onClick={exportData} className='flex items-center gap-2'>
-              <Download className='h-4 w-4' />
-              Export JSON
-            </Button>
           </div>
         </div>
-      </div>
-
-      {/* Left Panel - Detail Panel */}
-      <div className='w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-20 overflow-y-auto'>
-        <div className='p-6'>
-          <div className='flex items-center justify-between mb-6'>
-            <h2 className='text-lg font-bold dark:text-white'>
-              {selectedNode
-                ? isAddingNewMember
-                  ? "Add Member"
-                  : "Edit Member"
-                : "Member Details"}
-            </h2>
-          </div>
-
-          {/* Legend */}
-          <div className='mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg'>
-            <h3 className='font-semibold mb-3 dark:text-white'>Legend</h3>
-            <div className='space-y-2'>
-              <div className='flex items-center gap-2'>
-                <div className='w-4 h-4 bg-blue-600 rounded'></div>
-                <span className='text-sm dark:text-gray-300'>Male</span>
-              </div>
-              <div className='flex items-center gap-2'>
-                <div className='w-4 h-4 bg-pink-600 rounded'></div>
-                <span className='text-sm dark:text-gray-300'>Female</span>
-              </div>
-              <div className='flex items-center gap-2'>
-                <div className='w-4 h-4 border-2 border-gray-400 border-dashed rounded'></div>
-                <span className='text-sm dark:text-gray-300'>New Member</span>
-              </div>
-              <div className='flex items-center gap-2'>
-                <div className='w-6 h-1 bg-amber-500'></div>
-                <span className='text-sm dark:text-gray-300'>Family Link</span>
-              </div>
-              <div className='flex items-center gap-2'>
-                <div className='w-6 h-1 bg-orange-500'></div>
-                <span className='text-sm dark:text-gray-300'>
-                  Marriage Link
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Panel Settings */}
-          <div className='space-y-4 mb-8'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-blue-500 rounded-full'></div>
-                <span className='text-sm dark:text-gray-300'>
-                  Enable Detail View
-                </span>
-              </div>
-              <Switch
-                checked={detailSettings.enableDetailView}
-                onCheckedChange={(checked) =>
-                  setDetailSettings((prev) => ({
-                    ...prev,
-                    enableDetailView: checked,
-                  }))
-                }
+      </header>
+      {/* Main Content Area */}
+      <div
+        className={`grid h-[calc(100vh-80px)] ${
+          isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        }`}
+        style={{ gridTemplateColumns: "384px 1fr 384px" }}>
+        {/* Right Sidebar (was Left) - For Node Info */}
+        <aside
+          className={`border-r overflow-y-auto transition-colors duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          }`}>
+          <div className='p-4 space-y-4'>
+            {/* Conditional rendering for the right sidebar panel */}
+            {sidebarMode === "add" && addRelativeInfo ? (
+              <AddOrEditNodeForm
+                onSave={handleSaveNode}
+                onCancel={handleCancel}
+                isDarkMode={isDarkMode}
+                relationType={addRelativeInfo.type}
               />
-            </div>
-
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-purple-500 rounded-full'></div>
-                <span className='text-sm dark:text-gray-300'>View Only</span>
-              </div>
-              <Switch
-                checked={detailSettings.viewOnly}
-                onCheckedChange={(checked) =>
-                  setDetailSettings((prev) => ({ ...prev, viewOnly: checked }))
-                }
+            ) : sidebarMode === "edit" && selectedNode ? (
+              <AddOrEditNodeForm
+                nodeToEdit={selectedNode}
+                onSave={handleSaveNode}
+                onCancel={handleCancel}
+                isDarkMode={isDarkMode}
               />
-            </div>
-
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-blue-500 rounded-full'></div>
-                <span className='text-sm dark:text-gray-300'>
-                  Edit on Click
-                </span>
-              </div>
-              <Switch
-                checked={detailSettings.editOnClick}
-                onCheckedChange={(checked) =>
-                  setDetailSettings((prev) => ({
-                    ...prev,
-                    editOnClick: checked,
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          {/* Family Statistics */}
-          <div className='space-y-4'>
-            <h3 className='font-semibold dark:text-white'>Family Statistics</h3>
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='p-3 bg-blue-50 dark:bg-blue-900/20 rounded'>
-                <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>
-                  {Object.keys(familyTree.members).length}
+            ) : sidebarMode === "view" && selectedNode ? (
+              <Card
+                className={`p-4 ${
+                  isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
+                }`}>
+                <div className='flex items-center justify-between mb-3'>
+                  <h3
+                    className={`font-semibold ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}>
+                    معلومات العضو
+                  </h3>
+                  <Button variant='ghost' size='sm' onClick={handleCancel}>
+                    <X className='w-4 h-4' />
+                  </Button>
                 </div>
-                <div className='text-xs text-blue-600 dark:text-blue-400'>
-                  Total Members
-                </div>
-              </div>
-              <div className='p-3 bg-green-50 dark:bg-green-900/20 rounded'>
-                <div className='text-2xl font-bold text-green-600 dark:text-green-400'>
-                  {
-                    Object.values(
-                      familyTree.members as Record<
-                        string,
-                        { children?: string[] }
-                      >
-                    ).filter((m) => m.children && m.children.length > 0).length
-                  }
-                </div>
-                <div className='text-xs text-green-600 dark:text-green-400'>
-                  Parents
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Center Panel - Tree View */}
-      <div className='flex-1 pt-20 bg-gray-50 dark:bg-gray-900'>
-        <div className='h-full p-6'>
-          <Card className='h-full border-2 shadow-xl dark:border-gray-700'>
-            <div className='h-full relative overflow-hidden bg-gradient-to-br from-slate-50 to-amber-50 dark:from-gray-800 dark:to-gray-900'>
-              <TreeSvg
-                nodes={treeNodes}
-                links={links}
-                zoom={zoom}
-                onZoomChange={setZoom}
-                onNodeClick={handleNodeClick}
-                onNodeDrag={handleNodeDrag}
-              />
-
-              {/* Tree Controls */}
-              <div className='absolute top-4 left-4 flex gap-2'>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  className='bg-white/90 dark:bg-gray-800/90'
-                  onClick={() => setZoom(zoom * 1.5)}>
-                  <ZoomIn className='h-4 w-4' />
-                </Button>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  className='bg-white/90 dark:bg-gray-800/90'
-                  onClick={() => setZoom(zoom / 1.5)}>
-                  <ZoomOut className='h-4 w-4' />
-                </Button>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  className='bg-white/90 dark:bg-gray-800/90'
-                  onClick={() => setZoom(1)}>
-                  <RotateCcw className='h-4 w-4' />
-                </Button>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  className='bg-white/90 dark:bg-gray-800/90'>
-                  <Settings className='h-4 w-4' />
-                </Button>
-              </div>
-
-              {/* Zoom Info */}
-              <div className='absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded text-xs'>
-                Zoom: {Math.round(zoom * 100)}%
-              </div>
-
-              {/* Instructions */}
-              <div className='absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 px-3 py-2 rounded text-xs max-w-xs'>
-                <p className='font-semibold mb-1'>Instructions:</p>
-                <p>• Click on dotted nodes to add new members</p>
-                <p>• Drag existing nodes to rearrange them</p>
-                <p>• Click on a member to edit in the right panel</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Right Panel - Node Editor */}
-      <div className='w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-20 overflow-y-auto'>
-        <div className='p-6'>
-          <div className='flex items-center justify-between mb-6'>
-            <div className='flex items-center gap-2'>
-              <Settings className='h-5 w-5 dark:text-gray-300' />
-              <span className='text-lg font-bold dark:text-white'>
-                Member Editor
-              </span>
-            </div>
-          </div>
-
-          {selectedNode ? (
-            <div className='space-y-6'>
-              {/* Gender Selection */}
-              <div>
-                <div className='flex items-center gap-4 mb-4'>
-                  <label className='flex items-center gap-2'>
-                    <input
-                      type='radio'
-                      name='gender'
-                      value='male'
-                      checked={editingNode.gender === "male"}
-                      onChange={(e) =>
-                        setEditingNode({ ...editingNode, gender: "male" })
-                      }
-                      className='text-blue-600'
-                    />
-                    <span className='text-sm dark:text-gray-300'>Male</span>
-                  </label>
-                  <label className='flex items-center gap-2'>
-                    <input
-                      type='radio'
-                      name='gender'
-                      value='female'
-                      checked={editingNode.gender === "female"}
-                      onChange={(e) =>
-                        setEditingNode({ ...editingNode, gender: "female" })
-                      }
-                      className='text-pink-600'
-                    />
-                    <span className='text-sm dark:text-gray-300'>Female</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Form Fields */}
-              <div className='space-y-4'>
-                {defaultFields.map((field) => (
-                  <div key={field.id}>
-                    <Label className='text-sm text-gray-600 dark:text-gray-300'>
-                      {field.name}
-                    </Label>
-                    <input
-                      type={field.type === "number" ? "number" : "text"}
-                      value={
-                        field.id === "name" && isAddingNewMember
-                          ? ""
-                          : editingNode[
-                              field.id as keyof Partial<TreeNodeData>
-                            ]?.toString() || ""
-                      }
-                      onChange={(e) => {
-                        let value: string | number = e.target.value;
-                        if (field.type === "number") {
-                          value = parseInt(value);
-                          if (isNaN(value)) value = "";
-                        }
-                        setEditingNode({
-                          ...editingNode,
-                          [field.id]: value,
-                        });
-                      }}
-                      disabled={!field.editable || detailSettings.viewOnly}
-                      className='mt-1 block w-full
-                      bg-gray-100 dark:bg-gray-700
-                      border border-gray-300 dark:border-gray-600
-                      rounded-md shadow-sm
-                      py-2 px-3
-                      text-gray-900 dark:text-gray-100
-                      focus:outline-none focus:ring-blue-500 focus:border-blue-500
-                      sm:text-sm'
-                    />
+                <div className='space-y-3'>
+                  <p>
+                    <Label>الاسم:</Label> {selectedNode.name}
+                  </p>
+                  <p>
+                    <Label>الجنس:</Label>{" "}
+                    {selectedNode.gender === "male" ? "ذكر" : "أنثى"}
+                  </p>
+                  <p>
+                    <Label>الميلاد:</Label> {selectedNode.birth_year}
+                  </p>
+                  {selectedNode.death_year && (
+                    <p>
+                      <Label>الوفاة:</Label> {selectedNode.death_year}
+                    </p>
+                  )}
+                  <div className='flex gap-2 pt-2'>
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='flex-1'
+                      onClick={() => setSidebarMode("edit")}>
+                      <Edit className='w-3 h-3 mr-1' />
+                      تحرير
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='destructive'
+                      className='flex-1'
+                      onClick={handleDeleteNode}>
+                      <Trash2 className='w-3 h-3 mr-1' />
+                      حذف
+                    </Button>
                   </div>
-                ))}
+                </div>
+              </Card>
+            ) : (
+              <div className='flex items-center justify-center h-full text-center'>
+                <p className='text-gray-500'>
+                  حدد عضوًا من الشجرة لعرض التفاصيل أو لإضافه قريب له
+                </p>
               </div>
+            )}
+          </div>
+        </aside>
 
-              {/* Action Buttons */}
-              <div className='flex justify-end gap-3'>
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    setSelectedNode(null);
-                    setEditingNode({});
-                    setIsAddingNewMember(false);
-                  }}
-                  className='flex-1'>
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmitForm} className='flex-1'>
-                  {isAddingNewMember ? "Add" : "Submit"}
-                </Button>
+        {/* Main Tree Visualization */}
+        <main className='relative bg-gray-100 dark:bg-gray-950'>
+          {tree.length > 0 ? (
+            <TreeSvg
+              ref={treeSvgRef}
+              isDarkMode={isDarkMode}
+              onNodeClick={handleNodeClick}
+              onAddRelative={handleAddRelativeClick}
+              selectedNodeId={selectedNode?.id}
+              className='w-full h-full'
+            />
+          ) : (
+            <div className='flex items-center justify-center h-full'>
+              <div
+                className={`text-lg ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}>
+                لا توجد بيانات لعرضها. ابدأ بإضافة شخص.
               </div>
             </div>
-          ) : (
-            <p className='text-center text-gray-500 dark:text-gray-400'>
-              Select a member to edit
-            </p>
           )}
-        </div>
-      </div>
+        </main>
 
-      <input
-        ref={fileInputRef}
-        type='file'
-        accept='.json'
-        onChange={importData}
-        className='hidden'
-      />
+        {/* Left Sidebar (was Right) - For Controls */}
+        <aside
+          className={`border-l overflow-y-auto transition-colors duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          }`}>
+          <div className='p-4 space-y-4'>
+            {/* Toolbar for file, history, and view controls */}
+            <Toolbar
+              isDarkMode={isDarkMode}
+              onSave={handleSaveToFile}
+              onLoad={handleLoadFromFile}
+              onExport={handleSaveToFile} // Note: Using save function for export
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onResetView={handleResetView}
+            />
+            {/* Tree Statistics */}
+            <Card
+              className={`p-4 ${
+                isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
+              }`}>
+              <h3
+                className={`font-semibold mb-3 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}>
+                إحصائيات الشجرة
+              </h3>
+              <div className='text-center'>
+                <div
+                  className={`text-2xl font-bold ${
+                    isDarkMode ? "text-blue-400" : "text-blue-600"
+                  }`}>
+                  {Object.keys(data).length}
+                </div>
+                <div
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}>
+                  إجمالي الأعضاء
+                </div>
+              </div>
+            </Card>
+          </div>
+        </aside>
+      </div>
+      <DebugComponent />
     </div>
   );
 }
