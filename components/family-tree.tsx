@@ -242,231 +242,228 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   }
 
   return (
-    <section
-      className={`w-full min-h-screen transition-colors duration-300 ${
-        isDarkMode
-          ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
-          : "bg-gradient-to-br from-amber-50 to-orange-50"
-      }`}>
-      <div className='relative w-full max-w-full'>
-        <Card
-          className={`border-2 shadow-xl backdrop-blur-sm transition-colors duration-300 ${
-            isDarkMode
-              ? "border-amber-600 bg-gray-800/90"
-              : "border-amber-200 bg-white/90"
-          }`}>
-          <div
-            className={`p-4 border-b transition-colors duration-300-300-300 ${
+    <section id='family-tree' className='py-16 transition-colors duration-300'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='relative w-full max-w-full'>
+          <Card
+            className={`border-2 shadow-xl backdrop-blur-sm transition-colors duration-300 ${
               isDarkMode
-                ? "border-amber-600 bg-gradient-to-r from-amber-900/50 to-orange-900/50"
-                : "border-amber-200 bg-gradient-to-r from-amber-100 to-orange-100"
+                ? "border-amber-600 bg-gray-800/90"
+                : "border-amber-200 bg-white/90"
             }`}>
-            <span
-              className={`font-semibold transition-colors duration-300 ${
-                isDarkMode ? "text-amber-300" : "text-amber-800"
-              }`}>
-              شجرة العائلة
-            </span>
-          </div>
-          {/* Toolbar */}
-          <div className='flex flex-wrap items-center gap-2 p-4 justify-end'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleZoomIn}
-              title='تكبير'>
-              <ZoomIn className='w-4 h-4' />
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleZoomOut}
-              title='تصغير'>
-              <ZoomOut className='w-4 h-4' />
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleResetView}
-              title='إعادة تعيين العرض'>
-              <RotateCcw className='w-4 h-4' />
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => setShowSettings((v) => !v)}
-              title='الإعدادات'>
-              <Settings className='w-4 h-4' />
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => handleExport("png")}
-              title='تصدير PNG'>
-              <Download className='w-4 h-4 mr-1' /> PNG
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => handleExport("pdf")}
-              title='تصدير PDF'>
-              <Download className='w-4 h-4 mr-1' /> PDF
-            </Button>
-          </div>
-          {/* Settings panel (toggle) */}
-          {showSettings && (
             <div
-              className={`p-4 border-b ${
+              className={`p-4 border-b transition-colors duration-300-300-300 ${
                 isDarkMode
-                  ? "border-amber-600 bg-gray-900"
-                  : "border-amber-200 bg-white"
+                  ? "border-amber-600 bg-gradient-to-r from-amber-900/50 to-orange-900/50"
+                  : "border-amber-200 bg-gradient-to-r from-amber-100 to-orange-100"
               }`}>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label>العرض</Label>
-                  <Slider
-                    value={[settings.cardWidth]}
-                    min={100}
-                    max={200}
-                    step={10}
-                    onValueChange={(v) => updateSettings("cardWidth", v[0])}
-                  />
-                </div>
-                <div>
-                  <Label>الارتفاع</Label>
-                  <Slider
-                    value={[settings.cardHeight]}
-                    min={50}
-                    max={150}
-                    step={10}
-                    onValueChange={(v) => updateSettings("cardHeight", v[0])}
-                  />
-                </div>
-                <div>
-                  <Label>المسافة الأفقية</Label>
-                  <Slider
-                    value={[settings.horizontalSpacing]}
-                    min={1}
-                    max={5}
-                    step={0.1}
-                    onValueChange={(v) =>
-                      updateSettings("horizontalSpacing", v[0])
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>المسافة العمودية</Label>
-                  <Slider
-                    value={[settings.verticalSpacing]}
-                    min={1}
-                    max={5}
-                    step={0.1}
-                    onValueChange={(v) =>
-                      updateSettings("verticalSpacing", v[0])
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>لون الذكر</Label>
-                  <input
-                    type='color'
-                    value={settings.maleColor}
-                    onChange={(e) =>
-                      updateSettings("maleColor", e.target.value)
-                    }
-                    className='w-full h-8 rounded cursor-pointer'
-                  />
-                </div>
-                <div>
-                  <Label>لون الأنثى</Label>
-                  <input
-                    type='color'
-                    value={settings.femaleColor}
-                    onChange={(e) =>
-                      updateSettings("femaleColor", e.target.value)
-                    }
-                    className='w-full h-8 rounded cursor-pointer'
-                  />
-                </div>
-                <div>
-                  <Label>لون الخط</Label>
-                  <input
-                    type='color'
-                    value={settings.linkColor}
-                    onChange={(e) =>
-                      updateSettings("linkColor", e.target.value)
-                    }
-                    className='w-full h-8 rounded cursor-pointer'
-                  />
-                </div>
-                <div>
-                  <Label>إظهار الاسم</Label>
-                  <Switch
-                    checked={settings.showLabels.name}
-                    onCheckedChange={(v) =>
-                      updateNestedSettings("showLabels", "name", v)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>إظهار سنة الميلاد</Label>
-                  <Switch
-                    checked={settings.showLabels.birthYear}
-                    onCheckedChange={(v) =>
-                      updateNestedSettings("showLabels", "birthYear", v)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>إظهار سنة الوفاة</Label>
-                  <Switch
-                    checked={settings.showLabels.deathYear}
-                    onCheckedChange={(v) =>
-                      updateNestedSettings("showLabels", "deathYear", v)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>إظهار الزوج/ة</Label>
-                  <Switch
-                    checked={settings.showLabels.spouse}
-                    onCheckedChange={(v) =>
-                      updateNestedSettings("showLabels", "spouse", v)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>إظهار رمز الجنس</Label>
-                  <Switch
-                    checked={settings.showLabels.genderIcon}
-                    onCheckedChange={(v) =>
-                      updateNestedSettings("showLabels", "genderIcon", v)
-                    }
-                  />
+              <span
+                className={`font-semibold transition-colors duration-300 ${
+                  isDarkMode ? "text-amber-300" : "text-amber-800"
+                }`}>
+                شجرة العائلة
+              </span>
+            </div>
+            {/* Toolbar */}
+            <div className='flex flex-wrap items-center gap-2 p-4 justify-end'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleZoomIn}
+                title='تكبير'>
+                <ZoomIn className='w-4 h-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleZoomOut}
+                title='تصغير'>
+                <ZoomOut className='w-4 h-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleResetView}
+                title='إعادة تعيين العرض'>
+                <RotateCcw className='w-4 h-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setShowSettings((v) => !v)}
+                title='الإعدادات'>
+                <Settings className='w-4 h-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => handleExport("png")}
+                title='تصدير PNG'>
+                <Download className='w-4 h-4 mr-1' /> PNG
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => handleExport("pdf")}
+                title='تصدير PDF'>
+                <Download className='w-4 h-4 mr-1' /> PDF
+              </Button>
+            </div>
+            {/* Settings panel (toggle) */}
+            {showSettings && (
+              <div
+                className={`p-4 border-b ${
+                  isDarkMode
+                    ? "border-amber-600 bg-gray-900"
+                    : "border-amber-200 bg-white"
+                }`}>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div>
+                    <Label>العرض</Label>
+                    <Slider
+                      value={[settings.cardWidth]}
+                      min={100}
+                      max={200}
+                      step={10}
+                      onValueChange={(v) => updateSettings("cardWidth", v[0])}
+                    />
+                  </div>
+                  <div>
+                    <Label>الارتفاع</Label>
+                    <Slider
+                      value={[settings.cardHeight]}
+                      min={50}
+                      max={150}
+                      step={10}
+                      onValueChange={(v) => updateSettings("cardHeight", v[0])}
+                    />
+                  </div>
+                  <div>
+                    <Label>المسافة الأفقية</Label>
+                    <Slider
+                      value={[settings.horizontalSpacing]}
+                      min={1}
+                      max={5}
+                      step={0.1}
+                      onValueChange={(v) =>
+                        updateSettings("horizontalSpacing", v[0])
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>المسافة العمودية</Label>
+                    <Slider
+                      value={[settings.verticalSpacing]}
+                      min={1}
+                      max={5}
+                      step={0.1}
+                      onValueChange={(v) =>
+                        updateSettings("verticalSpacing", v[0])
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>لون الذكر</Label>
+                    <input
+                      type='color'
+                      value={settings.maleColor}
+                      onChange={(e) =>
+                        updateSettings("maleColor", e.target.value)
+                      }
+                      className='w-full h-8 rounded cursor-pointer'
+                    />
+                  </div>
+                  <div>
+                    <Label>لون الأنثى</Label>
+                    <input
+                      type='color'
+                      value={settings.femaleColor}
+                      onChange={(e) =>
+                        updateSettings("femaleColor", e.target.value)
+                      }
+                      className='w-full h-8 rounded cursor-pointer'
+                    />
+                  </div>
+                  <div>
+                    <Label>لون الخط</Label>
+                    <input
+                      type='color'
+                      value={settings.linkColor}
+                      onChange={(e) =>
+                        updateSettings("linkColor", e.target.value)
+                      }
+                      className='w-full h-8 rounded cursor-pointer'
+                    />
+                  </div>
+                  <div>
+                    <Label>إظهار الاسم</Label>
+                    <Switch
+                      checked={settings.showLabels.name}
+                      onCheckedChange={(v) =>
+                        updateNestedSettings("showLabels", "name", v)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>إظهار سنة الميلاد</Label>
+                    <Switch
+                      checked={settings.showLabels.birthYear}
+                      onCheckedChange={(v) =>
+                        updateNestedSettings("showLabels", "birthYear", v)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>إظهار سنة الوفاة</Label>
+                    <Switch
+                      checked={settings.showLabels.deathYear}
+                      onCheckedChange={(v) =>
+                        updateNestedSettings("showLabels", "deathYear", v)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>إظهار الزوج/ة</Label>
+                    <Switch
+                      checked={settings.showLabels.spouse}
+                      onCheckedChange={(v) =>
+                        updateNestedSettings("showLabels", "spouse", v)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>إظهار رمز الجنس</Label>
+                    <Switch
+                      checked={settings.showLabels.genderIcon}
+                      onCheckedChange={(v) =>
+                        updateNestedSettings("showLabels", "genderIcon", v)
+                      }
+                    />
+                  </div>
                 </div>
               </div>
+            )}
+            <div className='family-tree-container'>
+              <BaseTree
+                data={familyData || {}}
+                tree={tree}
+                mainId={mainId}
+                settings={settings}
+                isDarkMode={isDarkMode}
+                onNodeClick={() => {}}
+                onAddRelative={() => {}}
+                isEditable={false}
+                exportable={true}
+                style={{ width: "100%", height: "80vh" }}
+                onZoomIn={(fn) => (zoomInRef.current = fn)}
+                onZoomOut={(fn) => (zoomOutRef.current = fn)}
+                onResetView={(fn) => (resetViewRef.current = fn)}
+                svgId={svgId}
+                showMiniTreeOnClick={true}
+              />
             </div>
-          )}
-          <div className='family-tree-container'>
-            <BaseTree
-              data={familyData || {}}
-              tree={tree}
-              mainId={mainId}
-              settings={settings}
-              isDarkMode={isDarkMode}
-              onNodeClick={() => {}}
-              onAddRelative={() => {}}
-              isEditable={false}
-              exportable={true}
-              style={{ width: "100%", height: "80vh" }}
-              onZoomIn={(fn) => (zoomInRef.current = fn)}
-              onZoomOut={(fn) => (zoomOutRef.current = fn)}
-              onResetView={(fn) => (resetViewRef.current = fn)}
-              svgId={svgId}
-              showMiniTreeOnClick={true}
-            />
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </section>
   );
