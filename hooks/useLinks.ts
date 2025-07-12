@@ -10,7 +10,6 @@ function createElbowPath(
   source: { x: number; y: number },
   target: { x: number; y: number }
 ): string {
-  const radius = 20;
   const sx = source.x;
   const sy = source.y;
   const tx = target.x;
@@ -19,25 +18,26 @@ function createElbowPath(
   const dx = tx - sx;
   const dy = ty - sy;
 
-  // If points are too close, draw a straight line
-  if (Math.abs(dx) < radius * 2 || Math.abs(dy) < radius * 2) {
+  // If points are very close, draw a straight line
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
     return `M ${sx} ${sy} L ${tx} ${ty}`;
   }
 
-  const xSign = dx > 0 ? 1 : -1;
-  const ySign = dy > 0 ? 1 : -1;
+  // For vertical parent-child relationships
+  if (Math.abs(dx) < 50) {
+    // Straight vertical line
+    return `M ${sx} ${sy} L ${tx} ${ty}`;
+  }
 
-  // Path with one bend: vertical then horizontal
-  return `M ${sx},${sy} L ${sx},${
-    ty - radius * ySign
-  } A ${radius},${radius} 0 0 ${xSign * ySign > 0 ? 1 : 0} ${
-    sx + radius * xSign
-  },${ty} L ${tx},${ty}`;
+  // For angled parent-child relationships, create an L-shaped path
+  const midY = sy + (ty - sy) * 0.7; // 70% of the way down
+  
+  return `M ${sx} ${sy} L ${sx} ${midY} L ${tx} ${midY} L ${tx} ${ty}`;
 }
 
 /**
  * A custom hook that generates an array of links (lines) to be drawn on the tree.
- * It creates links for parent-child, child-parent (ancestor), and spousal relationships.
+ * It creates links for parent-child, spouse, and sibling relationships.
  *
  * @param nodes - A flat array of all nodes currently displayed in the tree.
  * @param data - The raw dictionary of all family members, used for looking up relationships.
@@ -50,144 +50,218 @@ export function useLinks(
   settings: BaseTreeSettings
 ): LinkData[] {
   return useMemo(() => {
-    if (!Array.isArray(nodes) || !settings) {
+    if (!Array.isArray(nodes) || !settings || nodes.length === 0) {
       return [];
     }
+    
+    console.log(`[useLinks] Processing ${nodes.length} nodes for link generation`);
+    
     const links: LinkData[] = [];
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-    const processedChildren = new Set<string>(); // Track children linked via a family unit
+    const processedRelationships = new Set<string>(); // Track all processed relationships
+    
+    // Card dimensions for proper connection points
+    const cardWidth = settings.cardWidth;
+    const cardHeight = settings.cardHeight;
 
-    // 1. Process couples and draw their family-to-children links
+    // Helper function to add link with duplicate check
+    const addUniqueLink = (link: LinkData) => {
+      const existingLink = links.find(l => l.id === link.id);
+      if (!existingLink) {
+        links.push(link);
+        console.log(`[useLinks] Added link: ${link.id} (${link.relationshipType})`);
+      }
+    };
+    
+    // Helper function to get connection points for nodes
+    const getConnectionPoints = (node1: TreeNodeData, node2: TreeNodeData, relationshipType: string) => {
+      const node1Center = { x: node1.x, y: node1.y };
+      const node2Center = { x: node2.x, y: node2.y };
+      
+      if (relationshipType === 'spouse') {
+        // Horizontal connection between spouses
+        if (node1.x < node2.x) {
+          return {
+            start: { x: node1Center.x + cardWidth / 2, y: node1Center.y },
+            end: { x: node2Center.x - cardWidth / 2, y: node2Center.y }
+          };
+        } else {
+          return {
+            start: { x: node1Center.x - cardWidth / 2, y: node1Center.y },
+            end: { x: node2Center.x + cardWidth / 2, y: node2Center.y }
+          };
+        }
+      } else if (relationshipType === 'parent') {
+        // Vertical connection from parent to child
+        if (node1.y < node2.y) {
+          // node1 is parent, node2 is child
+          return {
+            start: { x: node1Center.x, y: node1Center.y + cardHeight / 2 },
+            end: { x: node2Center.x, y: node2Center.y - cardHeight / 2 }
+          };
+        } else {
+          // node2 is parent, node1 is child
+          return {
+            start: { x: node2Center.x, y: node2Center.y + cardHeight / 2 },
+            end: { x: node1Center.x, y: node1Center.y - cardHeight / 2 }
+          };
+        }
+      } else if (relationshipType === 'sibling') {
+        // Horizontal connection between siblings
+        if (node1.x < node2.x) {
+          return {
+            start: { x: node1Center.x + cardWidth / 2, y: node1Center.y },
+            end: { x: node2Center.x - cardWidth / 2, y: node2Center.y }
+          };
+        } else {
+          return {
+            start: { x: node1Center.x - cardWidth / 2, y: node1Center.y },
+            end: { x: node2Center.x + cardWidth / 2, y: node2Center.y }
+          };
+        }
+      }
+      
+      // Default: center to center
+      return {
+        start: node1Center,
+        end: node2Center
+      };
+    };
+
+    // 1. Process ALL spouse relationships first
     nodes.forEach((node) => {
       const person = data[node.id];
-      if (!person || !person.spouses) return;
+      if (!person?.spouses) return;
 
       person.spouses.forEach((spouseId) => {
         const spouseNode = nodeMap.get(spouseId);
-        // Process each couple once to avoid duplicate links
-        if (!spouseNode || node.id > spouseNode.id) return;
-
-        const p1 = node;
-        const p2 = spouseNode;
-        // Find common children who are visible in the tree
-        const childrenOfP1 = new Set(person.children || []);
-        const commonChildrenIds = (data[spouseId]?.children || []).filter(
-          (id) => childrenOfP1.has(id)
-        );
-        const childrenNodes = commonChildrenIds
-          .map((id) => nodeMap.get(id))
-          .filter((cn): cn is TreeNodeData => !!cn);
-
-        if (childrenNodes.length === 0) return;
-
-        // Mark these children as handled
-        childrenNodes.forEach((cn) => processedChildren.add(cn.id));
-
-        const parentMidPoint = { x: (p1.x + p2.x) / 2, y: p1.y };
-        const junctionY =
-          parentMidPoint.y + (childrenNodes[0].y - parentMidPoint.y) / 2;
-
-        // Vertical stem from parents' midpoint
-        links.push({
-          id: `stem-${p1.id}-${p2.id}`,
-          d: `M ${parentMidPoint.x} ${parentMidPoint.y} L ${parentMidPoint.x} ${junctionY}`,
-          type: "ancestry",
-          depth: 1,
+        if (!spouseNode) return;
+        
+        // Create unique relationship key (process each pair only once)
+        const relationshipKey = `spouse-${node.id < spouseId ? node.id : spouseId}-${node.id < spouseId ? spouseId : node.id}`;
+        if (processedRelationships.has(relationshipKey)) return;
+        processedRelationships.add(relationshipKey);
+        
+        // Get proper connection points
+        const connectionPoints = getConnectionPoints(node, spouseNode, 'spouse');
+        
+        // Create spouse link
+        addUniqueLink({
+          id: relationshipKey,
+          d: `M ${connectionPoints.start.x} ${connectionPoints.start.y} L ${connectionPoints.end.x} ${connectionPoints.end.y}`,
+          type: "spouse",
+          depth: 0,
           curve: "straight",
-        });
-
-        // Horizontal "bus" line, extends to connect the stem and all children
-        const allChildX = childrenNodes.map((c) => c.x);
-        const busMinX = Math.min(...allChildX);
-        const busMaxX = Math.max(...allChildX);
-
-        links.push({
-          id: `bus-${p1.id}-${p2.id}`,
-          d: `M ${busMinX} ${junctionY} L ${busMaxX} ${junctionY}`,
-          type: "ancestry",
-          depth: 1,
-          curve: "straight",
-        });
-
-        // Vertical connectors from bus/junction to each child
-        childrenNodes.forEach((childNode) => {
-          const radius = 10;
-          const childX = childNode.x;
-          const childY = childNode.y - settings.cardHeight / 2;
-          const xSign = childX > parentMidPoint.x ? 1 : -1;
-
-          let path;
-          // Path from parent mid-point stem to child
-          if (Math.abs(childX - parentMidPoint.x) > radius) {
-            path = `M ${parentMidPoint.x},${junctionY} L ${
-              childX - radius * xSign
-            },${junctionY} A ${radius},${radius} 0 0 ${
-              xSign > 0 ? 1 : 0
-            } ${childX},${junctionY + radius} L ${childX},${childY}`;
-          } else {
-            // Straight down if child is aligned with parent midpoint
-            path = `M ${childX},${junctionY} L ${childX},${childY}`;
-          }
-
-          links.push({
-            id: `connector-${childNode.id}`,
-            d: path,
-            type: "ancestry",
-            depth: 1,
-            curve: "curved",
-          });
+          personIds: [node.id, spouseId],
+          relationshipType: "spouse",
         });
       });
     });
 
-    // 2. Process remaining links (single parents and spouses)
+    // 2. Process ALL parent-child relationships
     nodes.forEach((node) => {
       const person = data[node.id];
       if (!person) return;
 
-      // Spouse links (this connects the parents from step 1)
-      if (person.spouses) {
-        person.spouses.forEach((spouseId) => {
-          const spouseNode = nodeMap.get(spouseId);
-          if (spouseNode && node.id < spouseNode.id) {
-            links.push({
-              id: `spouse-${node.id}-${spouseId}`,
-              d: `M ${node.x} ${node.y} L ${spouseNode.x} ${spouseNode.y}`,
-              type: "spouse",
-              depth: 0,
-              curve: "straight",
-            });
-          }
-        });
-      }
-
-      // Children who weren't processed (i.e., from single parents)
-      if (!processedChildren.has(node.id) && person.parents) {
-        const parentNodes = person.parents
-          .map((pId) => nodeMap.get(pId))
-          .filter((p): p is TreeNodeData => !!p);
-
-        if (parentNodes.length === 1) {
-          const p1 = parentNodes[0];
-          const sourcePoint = { x: p1.x, y: p1.y + settings.cardHeight / 2 };
-          const targetPoint = {
-            x: node.x,
-            y: node.y - settings.cardHeight / 2,
-          };
-          const midY = sourcePoint.y + (targetPoint.y - sourcePoint.y) / 2;
-
-          // Simple elbow path for single parents
-          links.push({
-            id: `link-${p1.id}-${node.id}`,
-            d: createElbowPath(sourcePoint, targetPoint),
+      // Process children (parent -> child connections)
+      if (person.children) {
+        person.children.forEach((childId) => {
+          const childNode = nodeMap.get(childId);
+          if (!childNode) return;
+          
+          const relationshipKey = `parent-${node.id}-${childId}`;
+          if (processedRelationships.has(relationshipKey)) return;
+          processedRelationships.add(relationshipKey);
+          
+          // Get proper connection points
+          const connectionPoints = getConnectionPoints(node, childNode, 'parent');
+          
+          // Create parent-child link
+          addUniqueLink({
+            id: relationshipKey,
+            d: createElbowPath(connectionPoints.start, connectionPoints.end),
             type: "ancestry",
             depth: 1,
             curve: "curved",
+            personIds: [node.id, childId],
+            relationshipType: "parent",
           });
-        }
+        });
+      }
+
+      // Process parents (child -> parent connections, to catch any missed from parent side)
+      if (person.parents) {
+        person.parents.forEach((parentId) => {
+          const parentNode = nodeMap.get(parentId);
+          if (!parentNode) return;
+          
+          const relationshipKey = `parent-${parentId}-${node.id}`;
+          if (processedRelationships.has(relationshipKey)) return;
+          processedRelationships.add(relationshipKey);
+          
+          // Get proper connection points
+          const connectionPoints = getConnectionPoints(parentNode, node, 'parent');
+          
+          // Create parent-child link
+          addUniqueLink({
+            id: relationshipKey,
+            d: createElbowPath(connectionPoints.start, connectionPoints.end),
+            type: "ancestry",
+            depth: 1,
+            curve: "curved",
+            personIds: [parentId, node.id],
+            relationshipType: "parent",
+          });
+        });
       }
     });
+    
+    // 3. Process sibling relationships (optional - only for closely positioned siblings)
+    nodes.forEach((node) => {
+      const person = data[node.id];
+      if (!person?.parents) return;
+      
+      // Find siblings in the tree
+      nodes.forEach((otherNode) => {
+        if (node.id >= otherNode.id) return; // Process each pair only once
+        
+        const otherPerson = data[otherNode.id];
+        if (!otherPerson?.parents) return;
+        
+        // Check if they share at least one parent
+        const sharedParents = person.parents?.filter(pid => otherPerson.parents?.includes(pid)) || [];
+        if (sharedParents.length === 0) return;
+        
+        const relationshipKey = `sibling-${node.id}-${otherNode.id}`;
+        if (processedRelationships.has(relationshipKey)) return;
+        
+        // Only create sibling links if they're on the same level and close enough
+        const distance = Math.abs(otherNode.x - node.x);
+        const sameLevel = Math.abs(otherNode.y - node.y) < 50; // Allow small Y differences
+        
+        if (sameLevel && distance <= cardWidth * 4) {
+          processedRelationships.add(relationshipKey);
+          
+          const connectionPoints = getConnectionPoints(node, otherNode, 'sibling');
+          
+          addUniqueLink({
+            id: relationshipKey,
+            d: `M ${connectionPoints.start.x} ${connectionPoints.start.y} L ${connectionPoints.end.x} ${connectionPoints.end.y}`,
+            type: "ancestry",
+            depth: 0,
+            curve: "straight",
+            personIds: [node.id, otherNode.id],
+            relationshipType: "sibling",
+          });
+        }
+      });
+    });
 
+    console.log(`[useLinks] Generated ${links.length} links for ${nodes.length} nodes:`);
+    links.forEach(link => {
+      console.log(`  - ${link.id}: ${link.relationshipType} (${link.personIds?.join(' -> ')})`);
+    });
+    
     return links;
   }, [nodes, data, settings]);
 }

@@ -15,10 +15,13 @@ import { TreeNodeData, FamilyMember } from "../../lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Moon, Sun, TreePine, Edit, Trash2, X } from "lucide-react";
+import { Moon, Sun, TreePine, Edit, Trash2, X, Sparkles, Focus, Maximize2 } from "lucide-react";
+import { RelationshipManager } from "@/components/tree-editor/RelationshipManager";
+import { DragDropProvider } from "@/components/tree-editor/DragDropProvider";
+import { SuggestedRelatives } from "@/components/tree-editor/SuggestedRelatives";
 
 // Defines the different modes for the sidebar panel.
-type SidebarMode = "stats" | "view" | "edit" | "add";
+type SidebarMode = "stats" | "view" | "edit" | "add" | "suggestions";
 
 export default function TreeEditor() {
   // UI state for dark mode, sidebar view, and loading status.
@@ -27,8 +30,9 @@ export default function TreeEditor() {
   const [selectedNode, setSelectedNode] = useState<FamilyMember | null>(null);
   const [addRelativeInfo, setAddRelativeInfo] = useState<{
     targetId: string;
-    type: "parent" | "spouse" | "child";
+    type: "parent" | "spouse" | "child" | "sibling";
   } | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Use the custom hook to interact with the Redux store.
@@ -36,11 +40,17 @@ export default function TreeEditor() {
     data,
     tree,
     mainId,
+    viewMode,
+    focusPersonId,
     updateDataAndMainId,
     setFocusNode,
+    setViewMode,
+    setFocusPerson,
     addNode,
     updateNode,
     deleteNode,
+    modifyRelationship,
+    fixRelationshipInconsistencies,
     undo,
     redo,
     canUndo,
@@ -100,7 +110,35 @@ export default function TreeEditor() {
       setSelectedNode(data[node.id]);
       setFocusNode(node.id);
       setSidebarMode("view");
+      // Auto-show suggestions for the selected person
+      setShowSuggestions(true);
     }
+  };
+
+  /**
+   * Toggle between full tree view and 3-level focus view
+   */
+  const handleToggleViewMode = () => {
+    if (viewMode === "full") {
+      // Switch to focus mode with currently selected person
+      if (selectedNode) {
+        setFocusPerson(selectedNode.id);
+      }
+    } else {
+      // Switch to full view
+      setViewMode("full");
+    }
+  };
+
+  /**
+   * Focus on a specific person in 3-level view
+   */
+  const handleFocusOnPerson = (personId: string) => {
+    setFocusPerson(personId);
+    // Also select this person in the UI
+    setSelectedNode(data[personId]);
+    setFocusNode(personId);
+    setSidebarMode("view");
   };
 
   /**
@@ -109,7 +147,7 @@ export default function TreeEditor() {
    */
   const handleAddRelativeClick = (
     nodeId: string,
-    type: "parent" | "spouse" | "child"
+    type: "parent" | "spouse" | "child" | "sibling"
   ) => {
     setAddRelativeInfo({ targetId: nodeId, type });
     setSidebarMode("add");
@@ -149,6 +187,54 @@ export default function TreeEditor() {
   const handleCancel = () => {
     setSidebarMode(selectedNode ? "view" : "stats");
     setAddRelativeInfo(null);
+  };
+
+  /**
+   * Handles relationship modifications (connect, disconnect, modify)
+   */
+  const handleModifyRelationship = (
+    personId1: string,
+    personId2: string,
+    action: "connect" | "disconnect" | "modify",
+    relationshipType: "parent" | "spouse" | "child" | "sibling"
+  ) => {
+    modifyRelationship(personId1, personId2, action, relationshipType);
+  };
+
+  /**
+   * Wrapper for drag/drop relationship operations
+   */
+  const handleRelationshipDrop = (
+    sourceId: string,
+    targetId: string,
+    relationshipType: "parent" | "spouse" | "child" | "sibling"
+  ) => {
+    handleModifyRelationship(sourceId, targetId, "connect", relationshipType);
+  };
+
+  /**
+   * Handle connecting existing people from suggestions
+   */
+  const handleConnectExisting = (
+    personId1: string,
+    personId2: string,
+    relationshipType: "parent" | "spouse" | "child" | "sibling"
+  ) => {
+    handleModifyRelationship(personId1, personId2, "connect", relationshipType);
+  };
+
+  /**
+   * Toggle suggestions panel
+   */
+  const handleToggleSuggestions = () => {
+    if (selectedNode) {
+      setShowSuggestions(!showSuggestions);
+      if (!showSuggestions) {
+        setSidebarMode("suggestions");
+      } else {
+        setSidebarMode("view");
+      }
+    }
   };
 
   /**
@@ -285,58 +371,113 @@ export default function TreeEditor() {
                 onCancel={handleCancel}
                 isDarkMode={isDarkMode}
               />
+            ) : sidebarMode === "suggestions" && selectedNode ? (
+              <SuggestedRelatives
+                selectedPerson={selectedNode}
+                allData={data}
+                onAddRelative={handleAddRelativeClick}
+                onConnectExisting={handleConnectExisting}
+                isDarkMode={isDarkMode}
+                onClose={() => {
+                  setShowSuggestions(false);
+                  setSidebarMode("view");
+                }}
+              />
             ) : sidebarMode === "view" && selectedNode ? (
-              <Card
-                className={`p-4 ${
-                  isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
-                }`}>
-                <div className='flex items-center justify-between mb-3'>
-                  <h3
-                    className={`font-semibold ${
-                      isDarkMode ? "text-white" : "text-gray-900"
-                    }`}>
-                    معلومات العضو
-                  </h3>
-                  <Button variant='ghost' size='sm' onClick={handleCancel}>
-                    <X className='w-4 h-4' />
-                  </Button>
-                </div>
-                <div className='space-y-3'>
-                  <p>
-                    <Label>الاسم:</Label> {selectedNode.name}
-                  </p>
-                  <p>
-                    <Label>الجنس:</Label>{" "}
-                    {selectedNode.gender === "male" ? "ذكر" : "أنثى"}
-                  </p>
-                  <p>
-                    <Label>الميلاد:</Label> {selectedNode.birth_year}
-                  </p>
-                  {selectedNode.death_year && (
-                    <p>
-                      <Label>الوفاة:</Label> {selectedNode.death_year}
-                    </p>
-                  )}
-                  <div className='flex gap-2 pt-2'>
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      className='flex-1'
-                      onClick={() => setSidebarMode("edit")}>
-                      <Edit className='w-3 h-3 mr-1' />
-                      تحرير
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant='destructive'
-                      className='flex-1'
-                      onClick={handleDeleteNode}>
-                      <Trash2 className='w-3 h-3 mr-1' />
-                      حذف
-                    </Button>
+              <div className='space-y-4'>
+                <Card
+                  className={`p-4 ${
+                    isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
+                  }`}>
+                  <div className='flex items-center justify-between mb-3'>
+                    <h3
+                      className={`font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}>
+                      معلومات العضو
+                    </h3>
+                    <div className='flex items-center space-x-2'>
+                      <Button 
+                        variant='ghost' 
+                        size='sm' 
+                        onClick={handleToggleViewMode}
+                        className={`${viewMode === 'focus' ? 'text-blue-500 hover:text-blue-600' : 'text-gray-500 hover:text-gray-600'}`}
+                        title={viewMode === 'focus' ? 'Switch to Full View' : 'Focus on This Person (3-Level View)'}
+                      >
+                        {viewMode === 'focus' ? <Maximize2 className='w-4 h-4' /> : <Focus className='w-4 h-4' />}
+                      </Button>
+                      <Button 
+                        variant='ghost' 
+                        size='sm' 
+                        onClick={handleToggleSuggestions}
+                        className='text-yellow-500 hover:text-yellow-600'
+                        title='Smart Suggestions'
+                      >
+                        <Sparkles className='w-4 h-4' />
+                      </Button>
+                      <Button variant='ghost' size='sm' onClick={handleCancel}>
+                        <X className='w-4 h-4' />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                  <div className='space-y-3'>
+                    <p>
+                      <Label>الاسم:</Label> {selectedNode.name}
+                    </p>
+                    <p>
+                      <Label>الجنس:</Label>{" "}
+                      {selectedNode.gender === "male" ? "ذكر" : "أنثى"}
+                    </p>
+                    <p>
+                      <Label>الميلاد:</Label> {selectedNode.birth_year}
+                    </p>
+                    {selectedNode.death_year && (
+                      <p>
+                        <Label>الوفاة:</Label> {selectedNode.death_year}
+                      </p>
+                    )}
+                    <div className='flex gap-2 pt-2'>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        className='flex-1'
+                        onClick={() => setSidebarMode("edit")}>
+                        <Edit className='w-3 h-3 mr-1' />
+                        تحرير
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='destructive'
+                        className='flex-1'
+                        onClick={handleDeleteNode}>
+                        <Trash2 className='w-3 h-3 mr-1' />
+                        حذف
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Suggestions Quick Preview */}
+                {showSuggestions && (
+                  <SuggestedRelatives
+                    selectedPerson={selectedNode}
+                    allData={data}
+                    onAddRelative={handleAddRelativeClick}
+                    onConnectExisting={handleConnectExisting}
+                    isDarkMode={isDarkMode}
+                    onClose={() => setShowSuggestions(false)}
+                  />
+                )}
+
+                {/* Relationship Manager */}
+                <RelationshipManager
+                  selectedPerson={selectedNode}
+                  allData={data}
+                  onAddRelative={handleAddRelativeClick}
+                  onModifyRelationship={handleModifyRelationship}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
             ) : (
               <div className='flex items-center justify-center h-full text-center'>
                 <p className='text-gray-500'>
@@ -350,14 +491,18 @@ export default function TreeEditor() {
         {/* Main Tree Visualization */}
         <main className='relative bg-gray-100 dark:bg-gray-950'>
           {tree.length > 0 ? (
-            <TreeSvg
-              ref={treeSvgRef}
-              isDarkMode={isDarkMode}
-              onNodeClick={handleNodeClick}
-              onAddRelative={handleAddRelativeClick}
-              selectedNodeId={selectedNode?.id}
-              className='w-full h-full'
-            />
+            <DragDropProvider onRelationshipDrop={handleRelationshipDrop}>
+              <TreeSvg
+                ref={treeSvgRef}
+                isDarkMode={isDarkMode}
+                onNodeClick={handleNodeClick}
+                onAddRelative={handleAddRelativeClick}
+                onRelationshipDrop={handleRelationshipDrop}
+                onModifyRelationship={handleModifyRelationship}
+                selectedNodeId={selectedNode?.id}
+                className='w-full h-full'
+              />
+            </DragDropProvider>
           ) : (
             <div className='flex items-center justify-center h-full'>
               <div
@@ -403,18 +548,49 @@ export default function TreeEditor() {
                 }`}>
                 إحصائيات الشجرة
               </h3>
-              <div className='text-center'>
-                <div
-                  className={`text-2xl font-bold ${
-                    isDarkMode ? "text-blue-400" : "text-blue-600"
-                  }`}>
-                  {Object.keys(data).length}
+              <div className='text-center space-y-3'>
+                <div>
+                  <div
+                    className={`text-2xl font-bold ${
+                      isDarkMode ? "text-blue-400" : "text-blue-600"
+                    }`}>
+                    {tree.length}
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}>
+                    العقد المعروضة
+                  </div>
                 </div>
-                <div
-                  className={`text-xs ${
+                <div>
+                  <div
+                    className={`text-lg font-medium ${
+                      isDarkMode ? "text-green-400" : "text-green-600"
+                    }`}>
+                    {Object.keys(data).length}
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}>
+                    إجمالي الأعضاء
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                  <div className={`flex items-center justify-center space-x-1 text-xs ${
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}>
-                  إجمالي الأعضاء
+                    {viewMode === 'focus' ? <Focus className='w-3 h-3' /> : <Maximize2 className='w-3 h-3' />}
+                    <span>{viewMode === 'focus' ? 'عرض مركز (3 مستويات)' : 'عرض كامل'}</span>
+                  </div>
+                  {viewMode === 'focus' && focusPersonId && (
+                    <div className={`text-xs mt-1 ${
+                      isDarkMode ? "text-blue-400" : "text-blue-600"
+                    }`}>
+                      التركيز على: {data[focusPersonId]?.name || 'غير محدد'}
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>

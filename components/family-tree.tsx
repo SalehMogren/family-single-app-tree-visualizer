@@ -242,7 +242,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   }
 
   return (
-    <section id='family-tree' className='py-16 transition-colors duration-300'>
+    <section id='family-tree' className={`py-16 transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='relative w-full max-w-full'>
           <Card

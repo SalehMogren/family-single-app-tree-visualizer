@@ -1,15 +1,15 @@
-import React from "react";
+import React, { useRef, forwardRef, useImperativeHandle } from "react";
 import { useTreeStore } from "../../hooks/useTreeStore";
 import { BaseTree, BaseTreeSettings } from "@/components/tree/BaseTree";
 import { TreeNodeData } from "../../lib/types";
 
 // You may want to define or import your default settings
 const defaultSettings: BaseTreeSettings = {
-  cardWidth: 140,
-  cardHeight: 80,
-  horizontalSpacing: 2.0,
-  verticalSpacing: 2.5,
-  margin: { top: 60, right: 60, bottom: 60, left: 60 },
+  cardWidth: 180,
+  cardHeight: 120,
+  horizontalSpacing: 2.2,
+  verticalSpacing: 2.8,
+  margin: { top: 80, right: 80, bottom: 80, left: 80 },
   maleColor: "#1E40AF",
   femaleColor: "#BE185D",
   linkColor: "#3B82F6",
@@ -30,37 +30,52 @@ const defaultSettings: BaseTreeSettings = {
 export interface TreeSvgProps {
   isDarkMode?: boolean;
   onNodeClick?: (node: TreeNodeData) => void;
-  onAddRelative?: (nodeId: string, type: "parent" | "spouse" | "child") => void;
+  onAddRelative?: (nodeId: string, type: "parent" | "spouse" | "child" | "sibling") => void;
+  onRelationshipDrop?: (sourceId: string, targetId: string, relationshipType: 'parent' | 'spouse' | 'child' | 'sibling') => void;
+  onModifyRelationship?: (personId1: string, personId2: string, action: 'connect' | 'disconnect' | 'modify', relationshipType: 'parent' | 'spouse' | 'child' | 'sibling') => void;
   className?: string;
   selectedNodeId?: string;
   [key: string]: any;
 }
 
-export function TreeSvg({
+export const TreeSvg = forwardRef<any, TreeSvgProps>(({
   isDarkMode = false,
   onNodeClick = () => {},
   onAddRelative = () => {},
+  onRelationshipDrop,
+  onModifyRelationship,
   className = "",
   selectedNodeId,
   ...rest
-}: TreeSvgProps) {
+}, ref) => {
   const { tree, data, mainId } = useTreeStore();
-  // Compose flat data for BaseTree
-  const flatData = { data, tree, mainId };
+  const baseTreeRef = useRef<any>(null);
+
+  // Expose zoom methods to parent component
+  useImperativeHandle(ref, () => ({
+    onZoomIn: () => baseTreeRef.current?.onZoomIn?.(),
+    onZoomOut: () => baseTreeRef.current?.onZoomOut?.(),
+    onResetView: () => baseTreeRef.current?.onResetView?.(),
+  }));
 
   return (
-    <BaseTree
-      data={data}
-      tree={tree}
-      mainId={mainId}
-      settings={defaultSettings}
-      isEditable={true}
-      isDarkMode={isDarkMode}
-      onNodeClick={onNodeClick}
-      onAddRelative={onAddRelative}
-      className={className}
-      selectedNodeId={selectedNodeId}
-      {...rest}
-    />
+    <div className={`w-full h-full ${className}`}>
+      <BaseTree
+        ref={baseTreeRef}
+        data={data}
+        tree={tree}
+        mainId={mainId}
+        settings={defaultSettings}
+        isEditable={true}
+        isDarkMode={isDarkMode}
+        onNodeClick={onNodeClick}
+        onAddRelative={onAddRelative}
+        onRelationshipDrop={onRelationshipDrop}
+        onModifyRelationship={onModifyRelationship}
+        className="w-full h-full"
+        selectedNodeId={selectedNodeId}
+        {...rest}
+      />
+    </div>
   );
-}
+});

@@ -15,8 +15,10 @@ const initialState: TreeState = {
   mainId: "", // The ID of the root member of the tree
   focusNodeId: null, // The ID of the currently focused node
   nodeSeparation: 200, // Horizontal separation between nodes
-  levelSeparation: 150, // Vertical separation between levels
+  levelSeparation: 120, // Vertical separation between levels
   showSpouses: true,
+  viewMode: "full", // "full" or "focus" (3-level view)
+  focusPersonId: null, // For 3-level focus view
   past: [], // History stack for undo
   future: [], // History stack for redo
 };
@@ -43,6 +45,8 @@ const treeSlice = createSlice({
           nodeSeparation: state.nodeSeparation,
           levelSeparation: state.levelSeparation,
           showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
         });
       }
     },
@@ -58,6 +62,8 @@ const treeSlice = createSlice({
           nodeSeparation: state.nodeSeparation,
           levelSeparation: state.levelSeparation,
           showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
         });
       }
     },
@@ -82,6 +88,8 @@ const treeSlice = createSlice({
         nodeSeparation: state.nodeSeparation,
         levelSeparation: state.levelSeparation,
         showSpouses: state.showSpouses,
+        viewMode: state.viewMode,
+        focusPersonId: state.focusPersonId,
       });
     },
     /**
@@ -96,6 +104,8 @@ const treeSlice = createSlice({
         nodeSeparation: state.nodeSeparation,
         levelSeparation: state.levelSeparation,
         showSpouses: state.showSpouses,
+        viewMode: state.viewMode,
+        focusPersonId: state.focusPersonId,
       });
     },
     /**
@@ -116,6 +126,8 @@ const treeSlice = createSlice({
           nodeSeparation: state.nodeSeparation,
           levelSeparation: state.levelSeparation,
           showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
         });
       }
     },
@@ -131,6 +143,8 @@ const treeSlice = createSlice({
           nodeSeparation: state.nodeSeparation,
           levelSeparation: state.levelSeparation,
           showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
         });
       }
     },
@@ -141,6 +155,43 @@ const treeSlice = createSlice({
       state.showSpouses = action.payload;
       if (state.mainId) {
         recalculateTree();
+      }
+    },
+    /**
+     * Sets the view mode (full or focus) and recalculates the tree.
+     */
+    setViewMode(state, action: PayloadAction<"full" | "focus">) {
+      state.viewMode = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the focus person for 3-level view and switches to focus mode.
+     */
+    setFocusPerson(state, action: PayloadAction<string | null>) {
+      state.focusPersonId = action.payload;
+      if (action.payload) {
+        state.viewMode = "focus";
+      }
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
       }
     },
     /**
@@ -186,7 +237,7 @@ const treeSlice = createSlice({
       state,
       action: PayloadAction<{
         targetId: string;
-        relationType: "parent" | "spouse" | "child";
+        relationType: "parent" | "spouse" | "child" | "sibling";
         data: Partial<FamilyMember>;
       }>
     ) {
@@ -248,6 +299,28 @@ const treeSlice = createSlice({
           }
         }
         state.mainId = newId;
+      } else if (relationType === "sibling") {
+        // For siblings, we need to share the same parents
+        if (targetNode.parents && targetNode.parents.length > 0) {
+          // Add the new sibling to the same parents
+          newNode.parents = [...targetNode.parents];
+
+          // Add the new sibling as a child to each parent
+          targetNode.parents.forEach((parentId) => {
+            const parent = state.data[parentId];
+            if (parent) {
+              parent.children = [...(parent.children || []), newId];
+            }
+          });
+        } else {
+          // If target has no parents, we can't create a sibling relationship
+          console.warn(
+            "Cannot create sibling relationship: target has no parents."
+          );
+          // Remove the node we just created
+          delete state.data[newId];
+          return;
+        }
       }
     },
     /**
@@ -291,6 +364,132 @@ const treeSlice = createSlice({
     toggleAllRels(state) {
       // Implement relationship toggling logic if needed
     },
+    /**
+     * Modify relationship between two people
+     */
+    modifyRelationship(
+      state,
+      action: PayloadAction<{
+        personId1: string;
+        personId2: string;
+        relationshipType: "parent" | "spouse" | "child" | "sibling";
+        operation: "connect" | "disconnect" | "modify";
+        metadata?: any;
+      }>
+    ) {
+      const { personId1, personId2, relationshipType, operation } = action.payload;
+      const person1 = state.data[personId1];
+      const person2 = state.data[personId2];
+      
+      if (!person1 || !person2) {
+        console.error('One or both persons not found for relationship modification');
+        return;
+      }
+
+      if (operation === 'disconnect') {
+        // Remove relationship connections
+        if (relationshipType === 'parent') {
+          // Remove parent-child connection
+          person1.children = person1.children?.filter(id => id !== personId2) || [];
+          person2.parents = person2.parents?.filter(id => id !== personId1) || [];
+        } else if (relationshipType === 'spouse') {
+          // Remove spouse connection
+          person1.spouses = person1.spouses?.filter(id => id !== personId2) || [];
+          person2.spouses = person2.spouses?.filter(id => id !== personId1) || [];
+        } else if (relationshipType === 'child') {
+          // Remove child-parent connection
+          person1.parents = person1.parents?.filter(id => id !== personId2) || [];
+          person2.children = person2.children?.filter(id => id !== personId1) || [];
+        } else if (relationshipType === 'sibling') {
+          // For siblings, we need to check if they share parents
+          // This is complex and may require updating parent relationships
+          console.warn('Sibling relationship disconnection requires complex logic');
+        }
+      } else if (operation === 'connect') {
+        // Add relationship connections (ensuring no duplicates)
+        if (relationshipType === 'parent') {
+          // Add parent-child connection (person1 is parent, person2 is child)
+          if (!person1.children?.includes(personId2)) {
+            person1.children = [...(person1.children || []), personId2];
+          }
+          if (!person2.parents?.includes(personId1)) {
+            person2.parents = [...(person2.parents || []), personId1];
+          }
+        } else if (relationshipType === 'spouse') {
+          // Add spouse connection (bidirectional)
+          if (!person1.spouses?.includes(personId2)) {
+            person1.spouses = [...(person1.spouses || []), personId2];
+          }
+          if (!person2.spouses?.includes(personId1)) {
+            person2.spouses = [...(person2.spouses || []), personId1];
+          }
+        } else if (relationshipType === 'child') {
+          // Add child-parent connection (person1 is child, person2 is parent)
+          if (!person1.parents?.includes(personId2)) {
+            person1.parents = [...(person1.parents || []), personId2];
+          }
+          if (!person2.children?.includes(personId1)) {
+            person2.children = [...(person2.children || []), personId1];
+          }
+        } else if (relationshipType === 'sibling') {
+          // For siblings, they should share the same parents
+          // We'll connect them through their parents if they exist
+          if (person1.parents && person1.parents.length > 0) {
+            // Make person2 a child of person1's parents
+            person1.parents.forEach(parentId => {
+              const parent = state.data[parentId];
+              if (parent && !parent.children?.includes(personId2)) {
+                parent.children = [...(parent.children || []), personId2];
+              }
+              if (!person2.parents?.includes(parentId)) {
+                person2.parents = [...(person2.parents || []), parentId];
+              }
+            });
+          } else if (person2.parents && person2.parents.length > 0) {
+            // Make person1 a child of person2's parents
+            person2.parents.forEach(parentId => {
+              const parent = state.data[parentId];
+              if (parent && !parent.children?.includes(personId1)) {
+                parent.children = [...(parent.children || []), personId1];
+              }
+              if (!person1.parents?.includes(parentId)) {
+                person1.parents = [...(person1.parents || []), parentId];
+              }
+            });
+          }
+        }
+      }
+    },
+    /**
+     * Fix relationship inconsistencies automatically
+     */
+    fixRelationshipInconsistencies(state) {
+      Object.values(state.data).forEach(person => {
+        // Fix missing reciprocal parent-child relationships
+        person.parents?.forEach(parentId => {
+          const parent = state.data[parentId];
+          if (parent && !parent.children?.includes(person.id)) {
+            parent.children = [...(parent.children || []), person.id];
+          }
+        });
+        
+        // Fix missing reciprocal child-parent relationships
+        person.children?.forEach(childId => {
+          const child = state.data[childId];
+          if (child && !child.parents?.includes(person.id)) {
+            child.parents = [...(child.parents || []), person.id];
+          }
+        });
+        
+        // Fix missing reciprocal spouse relationships
+        person.spouses?.forEach(spouseId => {
+          const spouse = state.data[spouseId];
+          if (spouse && !spouse.spouses?.includes(person.id)) {
+            spouse.spouses = [...(spouse.spouses || []), person.id];
+          }
+        });
+      });
+    },
   },
 });
 
@@ -303,6 +502,8 @@ export const {
   setNodeSeparation,
   setLevelSeparation,
   setShowSpouses,
+  setViewMode,
+  setFocusPerson,
   undo,
   redo,
   toggleAllRels,
@@ -310,6 +511,8 @@ export const {
   addNode,
   updateNode,
   deleteNode,
+  modifyRelationship,
+  fixRelationshipInconsistencies,
 } = treeSlice.actions;
 
 export default treeSlice.reducer;

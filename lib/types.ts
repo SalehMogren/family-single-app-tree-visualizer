@@ -32,6 +32,7 @@ export interface TreeNodeData
   parents?: TreeNodeData[];
   spouses?: TreeNodeData[];
   psx?: number; // Spouse position X
+  level?: number; // Hierarchical level in tree
   isAncestry?: boolean;
   isSpouse?: boolean;
   hasSpouse?: boolean;
@@ -54,6 +55,8 @@ export interface TreeState {
   nodeSeparation: number;
   levelSeparation: number;
   showSpouses: boolean;
+  viewMode: "full" | "focus"; // View mode: full tree or 3-level focus
+  focusPersonId: string | null; // Person to focus on in 3-level view
   past: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
   future: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
 }
@@ -68,6 +71,8 @@ export interface LinkData {
   curve: string;
   depth: number;
   type: "ancestry" | "progeny" | "spouse";
+  personIds?: string[]; // Array of connected person IDs
+  relationshipType?: "parent" | "spouse" | "child" | "sibling";
 }
 
 export interface PlaceholderNode extends Omit<TreeNodeData, "id" | "gender"> {
@@ -97,7 +102,40 @@ export type TreeAction =
 export interface AddRelativeOverlayState {
   isVisible: boolean;
   targetId: string | null;
-  relationType: "parent" | "spouse" | "child" | null;
+  relationType: "parent" | "spouse" | "child" | "sibling" | null;
   tree: TreeNodeData[];
   placeholders: PlaceholderNode[];
+}
+
+export interface SmartSuggestion {
+  id: string;
+  type: "parent" | "spouse" | "child" | "sibling";
+  label: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+  reason: string;
+  targetPersonId: string;
+  suggestedPersonId?: string;
+  icon: string;
+}
+
+export interface RelationshipConnection {
+  id: string;
+  fromId: string;
+  toId: string;
+  type: "parent-child" | "spouse" | "sibling";
+  bidirectional: boolean;
+  metadata?: {
+    marriageYear?: number;
+    divorceYear?: number;
+    adoptionType?: "biological" | "adopted" | "step";
+  };
+}
+
+export interface DragDropContext {
+  isDragging: boolean;
+  draggedNodeId: string | null;
+  dropTargetId: string | null;
+  dragType: "relationship" | "position";
+  validDropTargets: string[];
 }

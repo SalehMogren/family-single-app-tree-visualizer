@@ -12,6 +12,8 @@ import {
   setFocusNode,
   setNodeSeparation,
   setLevelSeparation,
+  setViewMode,
+  setFocusPerson,
   undo,
   redo,
   toggleAllRels,
@@ -19,6 +21,8 @@ import {
   addNode,
   updateNode,
   deleteNode,
+  modifyRelationship,
+  fixRelationshipInconsistencies,
 } from "../lib/store/treeSlice";
 import { FamilyMember } from "../lib/types";
 
@@ -50,7 +54,7 @@ export function useTreeStore() {
     },
     addNode: (
       targetId: string,
-      relationType: "parent" | "spouse" | "child",
+      relationType: "parent" | "spouse" | "child" | "sibling",
       data: Partial<FamilyMember>
     ) => {
       dispatch(saveState());
@@ -67,6 +71,22 @@ export function useTreeStore() {
       dispatch(deleteNode({ nodeId }));
       dispatch(recalculateTree());
     },
+    modifyRelationship: (
+      personId1: string,
+      personId2: string,
+      operation: "connect" | "disconnect" | "modify",
+      relationshipType: "parent" | "spouse" | "child" | "sibling",
+      metadata?: any
+    ) => {
+      dispatch(saveState());
+      dispatch(modifyRelationship({ personId1, personId2, relationshipType, operation, metadata }));
+      dispatch(recalculateTree());
+    },
+    fixRelationshipInconsistencies: () => {
+      dispatch(saveState());
+      dispatch(fixRelationshipInconsistencies());
+      dispatch(recalculateTree());
+    },
 
     // Expose other utility and history actions directly.
     recalculateTree: () => dispatch(recalculateTree()),
@@ -75,6 +95,8 @@ export function useTreeStore() {
       dispatch(setNodeSeparation(separation)),
     setLevelSeparation: (separation: number) =>
       dispatch(setLevelSeparation(separation)),
+    setViewMode: (mode: "full" | "focus") => dispatch(setViewMode(mode)),
+    setFocusPerson: (personId: string | null) => dispatch(setFocusPerson(personId)),
     undo: () => dispatch(undo()),
     redo: () => dispatch(redo()),
     toggleAllRels: () => dispatch(toggleAllRels()),

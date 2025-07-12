@@ -22,6 +22,7 @@ export function DebugComponent() {
           mainId,
           nodeSeparation: 200,
           levelSeparation: 150,
+          showSpouses: true,
         });
         console.log("Manual tree calculation result:", testTree);
         console.log("Manual tree length:", testTree.length);

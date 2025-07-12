@@ -14,7 +14,7 @@ import { FamilyMember } from "../../lib/types";
 
 interface AddOrEditNodeFormProps {
   nodeToEdit?: FamilyMember | null;
-  relationType?: "parent" | "spouse" | "child" | null;
+  relationType?: "parent" | "spouse" | "child" | "sibling" | null;
   onSave: (data: Partial<FamilyMember>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
@@ -61,6 +61,8 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
           ? "والد/والدة"
           : relationType === "spouse"
           ? "زوج/زوجة"
+          : relationType === "sibling"
+          ? "أخ/أخت"
           : "ابن/ابنة"
       }`;
 
