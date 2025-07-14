@@ -362,33 +362,61 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
           </Card>
         ))}
         
-        {/* Relationship Connection Tool */}
-        <Card className='p-4'>
-          <h5 className='font-medium mb-3'>Connect Existing People</h5>
+        {/* Enhanced Relationship Connection Tool */}
+        <Card className='p-4 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'>
+          <div className='flex items-center space-x-2 mb-3'>
+            <ArrowRightLeft size={18} className='text-blue-600' />
+            <h5 className='font-semibold text-blue-800 dark:text-blue-300'>ربط الأشخاص الموجودين</h5>
+          </div>
           <div className='space-y-3'>
-            <div className='flex items-center space-x-2'>
-              <ArrowRightLeft size={16} className='text-blue-500' />
-              <span className='text-sm'>Drag and drop to connect relationships</span>
+            <div className='text-sm text-blue-700 dark:text-blue-300 leading-relaxed'>
+              <p className='mb-2'>يمكنك ربط الأشخاص الموجودين بطرق مختلفة:</p>
+              <ul className='list-disc list-inside space-y-1 text-xs'>
+                <li>استخدم السحب والإفلات بين العقد</li>
+                <li>تحقق من علامة التبويب "اقتراحات" للروابط الذكية</li>
+                <li>استخدم الأزرار أدناه للربط اليدوي</li>
+              </ul>
             </div>
-            <Button
-              size='sm'
-              variant='outline'
-              className='w-full'
-              onClick={() => {
-                if (onConnectExisting) {
-                  // For now, we'll use the suggestions system for connecting
-                  // In the future, this could open a modal to select a person
-                  console.log('Connect existing person functionality - check suggestions tab');
-                } else {
-                  console.warn('onConnectExisting callback not provided');
-                }
-              }}
-              disabled={!onConnectExisting}
-              title={onConnectExisting ? 'Use suggestions tab for smart connections' : 'Connect function not available'}
-            >
-              <Link size={14} className='mr-1' />
-              Connect Existing Person
-            </Button>
+            
+            <div className='grid grid-cols-2 gap-2'>
+              <Button
+                size='sm'
+                variant='default'
+                className='bg-blue-600 hover:bg-blue-700'
+                onClick={() => setActiveTab('suggestions')}
+                title='عرض الاقتراحات الذكية للربط'
+              >
+                <Sparkles size={14} className='mr-1' />
+                عرض الاقتراحات
+              </Button>
+              <Button
+                size='sm'
+                variant='outline'
+                className='border-blue-300 text-blue-700 hover:bg-blue-100'
+                onClick={() => {
+                  if (onConnectExisting) {
+                    alert('ملاحظة: استخدم السحب والإفلات أو علامة التبويب "اقتراحات" لربط الأشخاص. سيتم إضافة واجهة ربط أكثر تفصيلاً قريباً.');
+                  } else {
+                    console.warn('onConnectExisting callback not provided');
+                  }
+                }}
+                disabled={!onConnectExisting}
+                title='ربط يدوي للأشخاص'
+              >
+                <Link size={14} className='mr-1' />
+                ربط يدوي
+              </Button>
+            </div>
+            
+            {/* Connection Instructions */}
+            <div className='bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-700'>
+              <h6 className='font-medium text-xs text-blue-800 dark:text-blue-300 mb-2'>كيفية الاستخدام:</h6>
+              <div className='text-xs text-gray-600 dark:text-gray-400 space-y-1'>
+                <p>• اسحب من شخص إلى آخر لإنشاء علاقة</p>
+                <p>• انقر على "عرض الاقتراحات" للحصول على اقتراحات ذكية</p>
+                <p>• استخدم علامة التبويب "تعديل" لإدارة العلاقات الحالية</p>
+              </div>
+            </div>
           </div>
         </Card>
       </div>

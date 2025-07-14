@@ -8,7 +8,7 @@ const defaultSettings: BaseTreeSettings = {
   cardWidth: 180,
   cardHeight: 120,
   horizontalSpacing: 2.2,
-  verticalSpacing: 2.8,
+  verticalSpacing: 1.8,
   margin: { top: 80, right: 80, bottom: 80, left: 80 },
   maleColor: "#1E40AF",
   femaleColor: "#BE185D",
@@ -30,52 +30,101 @@ const defaultSettings: BaseTreeSettings = {
 export interface TreeSvgProps {
   isDarkMode?: boolean;
   onNodeClick?: (node: TreeNodeData) => void;
-  onAddRelative?: (nodeId: string, type: "parent" | "spouse" | "child" | "sibling") => void;
-  onRelationshipDrop?: (sourceId: string, targetId: string, relationshipType: 'parent' | 'spouse' | 'child' | 'sibling') => void;
-  onModifyRelationship?: (personId1: string, personId2: string, action: 'connect' | 'disconnect' | 'modify', relationshipType: 'parent' | 'spouse' | 'child' | 'sibling') => void;
+  onAddRelative?: (
+    nodeId: string,
+    type: "parent" | "spouse" | "child" | "sibling"
+  ) => void;
+  onRelationshipDrop?: (
+    sourceId: string,
+    targetId: string,
+    relationshipType: "parent" | "spouse" | "child" | "sibling"
+  ) => void;
+  onModifyRelationship?: (
+    personId1: string,
+    personId2: string,
+    action: "connect" | "disconnect" | "modify",
+    relationshipType: "parent" | "spouse" | "child" | "sibling"
+  ) => void;
   className?: string;
   selectedNodeId?: string;
   [key: string]: any;
 }
 
-export const TreeSvg = forwardRef<any, TreeSvgProps>(({
-  isDarkMode = false,
-  onNodeClick = () => {},
-  onAddRelative = () => {},
-  onRelationshipDrop,
-  onModifyRelationship,
-  className = "",
-  selectedNodeId,
-  ...rest
-}, ref) => {
-  const { tree, data, mainId } = useTreeStore();
-  const baseTreeRef = useRef<any>(null);
+export const TreeSvg = forwardRef<any, TreeSvgProps>(
+  (
+    {
+      isDarkMode = false,
+      onNodeClick = () => {},
+      onAddRelative = () => {},
+      onRelationshipDrop,
+      onModifyRelationship,
+      className = "",
+      selectedNodeId,
+      ...rest
+    },
+    ref
+  ) => {
+    const {
+      tree,
+      data,
+      mainId,
+      cardWidth,
+      cardHeight,
+      nodeSeparation,
+      levelSeparation,
+      horizontalSpacing,
+      verticalSpacing,
+      maleColor,
+      femaleColor,
+      linkColor,
+      lineShape,
+      showLabels,
+      showSpouses,
+    } = useTreeStore();
+    const baseTreeRef = useRef<any>(null);
 
-  // Expose zoom methods to parent component
-  useImperativeHandle(ref, () => ({
-    onZoomIn: () => baseTreeRef.current?.onZoomIn?.(),
-    onZoomOut: () => baseTreeRef.current?.onZoomOut?.(),
-    onResetView: () => baseTreeRef.current?.onResetView?.(),
-  }));
+    // Create dynamic settings based on store values
+    const dynamicSettings: BaseTreeSettings = {
+      ...defaultSettings,
+      cardWidth,
+      cardHeight,
+      horizontalSpacing,
+      verticalSpacing,
+      maleColor,
+      femaleColor,
+      linkColor,
+      lineShape,
+      showLabels,
+      // Optionally include showSpouses if BaseTreeSettings supports it
+      // showSpouses,
+    };
 
-  return (
-    <div className={`w-full h-full ${className}`}>
-      <BaseTree
-        ref={baseTreeRef}
-        data={data}
-        tree={tree}
-        mainId={mainId}
-        settings={defaultSettings}
-        isEditable={true}
-        isDarkMode={isDarkMode}
-        onNodeClick={onNodeClick}
-        onAddRelative={onAddRelative}
-        onRelationshipDrop={onRelationshipDrop}
-        onModifyRelationship={onModifyRelationship}
-        className="w-full h-full"
-        selectedNodeId={selectedNodeId}
-        {...rest}
-      />
-    </div>
-  );
-});
+    // Expose zoom methods to parent component
+    useImperativeHandle(ref, () => ({
+      onZoomIn: () => baseTreeRef.current?.onZoomIn?.(),
+      onZoomOut: () => baseTreeRef.current?.onZoomOut?.(),
+      onResetView: () => baseTreeRef.current?.onResetView?.(),
+    }));
+
+    return (
+      <div className={`w-full h-full ${className}`}>
+        <BaseTree
+          ref={baseTreeRef}
+          data={data}
+          tree={tree}
+          mainId={mainId}
+          settings={dynamicSettings}
+          isEditable={true}
+          isDarkMode={isDarkMode}
+          onNodeClick={onNodeClick}
+          onAddRelative={onAddRelative}
+          onRelationshipDrop={onRelationshipDrop}
+          onModifyRelationship={onModifyRelationship}
+          className='w-full h-full'
+          selectedNodeId={selectedNodeId}
+          {...rest}
+        />
+      </div>
+    );
+  }
+);

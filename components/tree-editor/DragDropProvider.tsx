@@ -87,7 +87,7 @@ export const useDragDrop = () => {
   return context;
 };
 
-// Helper hook for making nodes draggable
+// Helper hook for making nodes draggable with enhanced UX like Miro/Draw.io
 export const useDraggableNode = (nodeId: string) => {
   const context = useDragDrop();
   
@@ -106,12 +106,45 @@ export const useDraggableNode = (nodeId: string) => {
   const dragHandlers = {
     draggable: true,
     onDragStart: (e: React.DragEvent) => {
+      e.stopPropagation(); // Prevent event bubbling to SVG
+      
+      // Create a custom drag image that shows connection intent
+      const dragImage = document.createElement('div');
+      dragImage.innerHTML = `
+        <div style="
+          background: rgba(59, 130, 246, 0.9); 
+          color: white; 
+          padding: 8px 12px; 
+          border-radius: 6px; 
+          font-size: 14px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          white-space: nowrap;
+        ">
+          🔗 إنشاء علاقة جديدة
+        </div>
+      `;
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px';
+      document.body.appendChild(dragImage);
+      
       e.dataTransfer.effectAllowed = 'copy';
       e.dataTransfer.setData('text/plain', nodeId);
+      e.dataTransfer.setDragImage(dragImage, 0, 0);
+      
+      // Clean up drag image after a short delay
+      setTimeout(() => {
+        document.body.removeChild(dragImage);
+      }, 0);
+      
       startDrag(nodeId, 'relationship');
     },
-    onDragEnd: () => {
+    onDragEnd: (e: React.DragEvent) => {
+      e.stopPropagation();
       endDrag();
+    },
+    onMouseDown: (e: React.MouseEvent) => {
+      // Add visual feedback on mouse down
+      e.stopPropagation();
     }
   };
   
@@ -143,20 +176,44 @@ export const useDropTargetNode = (
   const canAcceptDrop = isDragging && draggedNodeId !== nodeId;
   
   const getRelationshipType = (sourceId: string, targetId: string): 'parent' | 'spouse' | 'child' | 'sibling' => {
-    // This could be enhanced with more sophisticated logic
-    // For now, return a default or let the user choose
-    return 'spouse'; // Default relationship type
+    // Show a modal or use intelligent detection
+    // For now, we'll prompt the user to choose
+    const relationships = [
+      { value: 'parent', label: 'والد/والدة' },
+      { value: 'spouse', label: 'زوج/زوجة' },
+      { value: 'child', label: 'طفل' },
+      { value: 'sibling', label: 'شقيق/شقيقة' }
+    ];
+    
+    // Use a simple prompt for now - can be enhanced with a proper modal later
+    const choice = prompt(
+      'اختر نوع العلاقة:\n' + 
+      relationships.map((r, i) => `${i + 1}. ${r.label}`).join('\n'),
+      '2'
+    );
+    
+    const index = parseInt(choice || '2') - 1;
+    return relationships[index]?.value as 'parent' | 'spouse' | 'child' | 'sibling' || 'spouse';
   };
   
   const dropHandlers = {
     onDragOver: (e: React.DragEvent) => {
       if (canAcceptDrop) {
         e.preventDefault();
+        e.stopPropagation();
         e.dataTransfer.dropEffect = 'copy';
         setDropTarget(nodeId);
       }
     },
+    onDragEnter: (e: React.DragEvent) => {
+      if (canAcceptDrop) {
+        e.preventDefault();
+        e.stopPropagation();
+        setDropTarget(nodeId);
+      }
+    },
     onDragLeave: (e: React.DragEvent) => {
+      e.stopPropagation();
       // Only clear if we're actually leaving this element
       if (!e.currentTarget.contains(e.relatedTarget as Node)) {
         setDropTarget(null);
@@ -164,8 +221,10 @@ export const useDropTargetNode = (
     },
     onDrop: (e: React.DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       const sourceId = e.dataTransfer.getData('text/plain');
       if (sourceId && sourceId !== nodeId) {
+        // Show relationship selection modal or use smart detection
         const relationshipType = getRelationshipType(sourceId, nodeId);
         onDrop(sourceId, nodeId, relationshipType);
       }

@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTreeStore } from "../../hooks/useTreeStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Undo,
   Redo,
@@ -48,14 +49,29 @@ export function Toolbar({
   className = "",
 }: ToolbarProps) {
   const {
-    nodeSeparation,
-    levelSeparation,
-    setNodeSeparation,
-    setLevelSeparation,
+    horizontalSpacing,
+    verticalSpacing,
+    showSpouses,
+    cardWidth,
+    cardHeight,
+    maleColor,
+    femaleColor,
+    linkColor,
+    lineShape,
+    showLabels,
+    setHorizontalSpacing,
+    setVerticalSpacing,
+    setShowSpouses,
+    setCardWidth,
+    setCardHeight,
+    setMaleColor,
+    setFemaleColor,
+    setLinkColor,
+    setLineShape,
+    setShowLabel,
     focusNodeId,
     setFocusNode,
   } = useTreeStore();
-
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -200,14 +216,14 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            المسافة الأفقية: {nodeSeparation}px
+            التباعد الأفقي: {horizontalSpacing.toFixed(1)}x
           </Label>
           <Slider
-            value={[nodeSeparation]}
-            onValueChange={(value) => setNodeSeparation(value[0])}
-            min={100}
-            max={400}
-            step={20}
+            value={[horizontalSpacing]}
+            onValueChange={(value) => setHorizontalSpacing(value[0])}
+            min={1.5}
+            max={3.5}
+            step={0.2}
             className='w-full'
           />
         </div>
@@ -217,16 +233,164 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            المسافة العمودية: {levelSeparation}px
+            التباعد العمودي: {verticalSpacing.toFixed(1)}x
           </Label>
           <Slider
-            value={[levelSeparation]}
-            onValueChange={(value) => setLevelSeparation(value[0])}
-            min={80}
-            max={300}
-            step={20}
+            value={[verticalSpacing]}
+            onValueChange={(value) => setVerticalSpacing(value[0])}
+            min={1.0}
+            max={4.0}
+            step={0.2}
             className='w-full'
           />
+        </div>
+
+        {/* Card Dimensions */}
+        <div className='space-y-2'>
+          <Label
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
+            عرض البطاقة: {cardWidth}px
+          </Label>
+          <Slider
+            value={[cardWidth]}
+            onValueChange={(value) => setCardWidth(value[0])}
+            min={100}
+            max={250}
+            step={10}
+            className='w-full'
+          />
+        </div>
+
+        <div className='space-y-2'>
+          <Label
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
+            ارتفاع البطاقة: {cardHeight}px
+          </Label>
+          <Slider
+            value={[cardHeight]}
+            onValueChange={(value) => setCardHeight(value[0])}
+            min={60}
+            max={150}
+            step={10}
+            className='w-full'
+          />
+        </div>
+
+        {/* Colors */}
+        <div className='space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600'>
+          <Label
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
+            الألوان
+          </Label>
+          
+          <div className='space-y-2'>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                لون الذكر
+              </Label>
+              <input
+                type='color'
+                value={maleColor}
+                onChange={(e) => setMaleColor(e.target.value)}
+                className='w-8 h-6 rounded cursor-pointer border'
+              />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                لون الأنثى
+              </Label>
+              <input
+                type='color'
+                value={femaleColor}
+                onChange={(e) => setFemaleColor(e.target.value)}
+                className='w-8 h-6 rounded cursor-pointer border'
+              />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                لون الخطوط
+              </Label>
+              <input
+                type='color'
+                value={linkColor}
+                onChange={(e) => setLinkColor(e.target.value)}
+                className='w-8 h-6 rounded cursor-pointer border'
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Label Visibility */}
+        <div className='space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600'>
+          <Label
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
+            إظهار المعلومات
+          </Label>
+          
+          <div className='space-y-2'>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                الاسم
+              </Label>
+              <Switch
+                checked={showLabels.name}
+                onCheckedChange={(checked) => setShowLabel("name", checked)}
+              />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                سنة الميلاد
+              </Label>
+              <Switch
+                checked={showLabels.birthYear}
+                onCheckedChange={(checked) => setShowLabel("birthYear", checked)}
+              />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                سنة الوفاة
+              </Label>
+              <Switch
+                checked={showLabels.deathYear}
+                onCheckedChange={(checked) => setShowLabel("deathYear", checked)}
+              />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                رمز الجنس
+              </Label>
+              <Switch
+                checked={showLabels.genderIcon}
+                onCheckedChange={(checked) => setShowLabel("genderIcon", checked)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Spouse Visibility Toggle */}
+        <div className='space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600'>
+          <div className='flex items-center justify-between'>
+            <Label
+              htmlFor='spouse-toggle'
+              className={`text-xs ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}>
+              عرض الأزواج
+            </Label>
+            <Switch
+              id='spouse-toggle'
+              checked={showSpouses}
+              onCheckedChange={setShowSpouses}
+            />
+          </div>
         </div>
       </div>
 

@@ -54,9 +54,27 @@ export interface TreeState {
   focusNodeId: string | null;
   nodeSeparation: number;
   levelSeparation: number;
+  // Visual spacing controls for tree layout
+  horizontalSpacing: number; // Controls visual horizontal spacing multiplier
+  verticalSpacing: number; // Controls visual vertical spacing multiplier
   showSpouses: boolean;
   viewMode: "full" | "focus"; // View mode: full tree or 3-level focus
   focusPersonId: string | null; // Person to focus on in 3-level view
+  // Visual appearance settings
+  cardWidth: number;
+  cardHeight: number;
+  maleColor: string;
+  femaleColor: string;
+  linkColor: string;
+  lineShape: "straight" | "curved";
+  // Label visibility toggles
+  showLabels: {
+    name: boolean;
+    birthYear: boolean;
+    deathYear: boolean;
+    spouse: boolean;
+    genderIcon: boolean;
+  };
   past: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
   future: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
 }

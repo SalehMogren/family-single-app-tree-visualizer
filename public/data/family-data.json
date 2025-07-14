@@ -14,7 +14,8 @@
       "children": [
         "c1-1",
         "c1-2",
-        "c1-3"
+        "c1-3",
+        "c1-4"
       ],
       "parents": []
     },
@@ -22,13 +23,16 @@
       "id": "s1",
       "name": "فاطمة علي السالم",
       "gender": "female",
+      "birth_year": 1925,
+      "death_year": 2000,
       "spouses": [
         "p1"
       ],
       "children": [
         "c1-1",
         "c1-2",
-        "c1-3"
+        "c1-3",
+        "c1-4"
       ],
       "parents": []
     },
@@ -43,7 +47,8 @@
       ],
       "children": [
         "c2-1",
-        "c2-2"
+        "c2-2",
+        "c2-3"
       ],
       "parents": [
         "p1",
@@ -54,12 +59,14 @@
       "id": "s2",
       "name": "عائشة حسن المحمد",
       "gender": "female",
+      "birth_year": 1950,
       "spouses": [
         "c1-1"
       ],
       "children": [
         "c2-1",
-        "c2-2"
+        "c2-2",
+        "c2-3"
       ],
       "parents": []
     },
@@ -73,8 +80,9 @@
         "s3"
       ],
       "children": [
-        "c2-3",
-        "c2-4"
+        "c2-4",
+        "c2-5",
+        "c2-6"
       ],
       "parents": [
         "p1",
@@ -85,12 +93,14 @@
       "id": "s3",
       "name": "مريم يوسف الغامدي",
       "gender": "female",
+      "birth_year": 1952,
       "spouses": [
         "c1-2"
       ],
       "children": [
-        "c2-3",
-        "c2-4"
+        "c2-4",
+        "c2-5",
+        "c2-6"
       ],
       "parents": []
     },
@@ -104,7 +114,8 @@
         "s4"
       ],
       "children": [
-        "c2-5"
+        "c2-7",
+        "c2-8"
       ],
       "parents": [
         "p1",
@@ -115,11 +126,43 @@
       "id": "s4",
       "name": "عبدالرحمن سالم الدوسري",
       "gender": "male",
+      "birth_year": 1948,
       "spouses": [
         "c1-3"
       ],
       "children": [
-        "c2-5"
+        "c2-7",
+        "c2-8"
+      ],
+      "parents": []
+    },
+    "c1-4": {
+      "id": "c1-4",
+      "name": "نورا أحمد الأحمد",
+      "gender": "female",
+      "birth_year": 1955,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
+      "spouses": [
+        "s5"
+      ],
+      "children": [
+        "c2-9"
+      ],
+      "parents": [
+        "p1",
+        "s1"
+      ]
+    },
+    "s5": {
+      "id": "s5",
+      "name": "سعد عبدالله القحطاني",
+      "gender": "male",
+      "birth_year": 1953,
+      "spouses": [
+        "c1-4"
+      ],
+      "children": [
+        "c2-9"
       ],
       "parents": []
     },
@@ -130,27 +173,30 @@
       "birth_year": 1975,
       "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
       "spouses": [
-        "s5"
+        "s6"
       ],
       "children": [
         "c3-1",
-        "c3-2"
+        "c3-2",
+        "c3-3"
       ],
       "parents": [
         "c1-1",
         "s2"
       ]
     },
-    "s5": {
-      "id": "s5",
+    "s6": {
+      "id": "s6",
       "name": "نورا سالم الخالد",
       "gender": "female",
+      "birth_year": 1978,
       "spouses": [
         "c2-1"
       ],
       "children": [
         "c3-1",
-        "c3-2"
+        "c3-2",
+        "c3-3"
       ],
       "parents": []
     },
@@ -161,90 +207,225 @@
       "birth_year": 1978,
       "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
       "spouses": [
-        "s6"
+        "s7"
       ],
       "children": [
-        "c3-3"
+        "c3-4",
+        "c3-5"
       ],
       "parents": [
         "c1-1",
         "s2"
       ]
     },
-    "s6": {
-      "id": "s6",
+    "s7": {
+      "id": "s7",
       "name": "خالد عبدالله الزهراني",
       "gender": "male",
+      "birth_year": 1976,
       "spouses": [
         "c2-2"
       ],
       "children": [
-        "c3-3"
+        "c3-4",
+        "c3-5"
       ],
       "parents": []
     },
     "c2-3": {
       "id": "c2-3",
+      "name": "علي محمد الأحمد",
+      "gender": "male",
+      "birth_year": 1980,
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+      "spouses": [
+        "s8"
+      ],
+      "children": [
+        "c3-6"
+      ],
+      "parents": [
+        "c1-1",
+        "s2"
+      ]
+    },
+    "s8": {
+      "id": "s8",
+      "name": "هند محمد القحطاني",
+      "gender": "female",
+      "birth_year": 1982,
+      "spouses": [
+        "c2-3"
+      ],
+      "children": [
+        "c3-6"
+      ],
+      "parents": []
+    },
+    "c2-4": {
+      "id": "c2-4",
       "name": "يوسف علي الأحمد",
       "gender": "male",
       "birth_year": 1980,
       "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
       "spouses": [
-        "s7"
+        "s9"
       ],
-      "children": [],
+      "children": [
+        "c3-7",
+        "c3-8"
+      ],
       "parents": [
         "c1-2",
         "s3"
       ]
     },
-    "s7": {
-      "id": "s7",
-      "name": "هند محمد القحطاني",
+    "s9": {
+      "id": "s9",
+      "name": "سارة عبدالرحمن المطيري",
       "gender": "female",
+      "birth_year": 1983,
       "spouses": [
-        "c2-3"
+        "c2-4"
       ],
-      "children": [],
+      "children": [
+        "c3-7",
+        "c3-8"
+      ],
       "parents": []
     },
-    "c2-4": {
-      "id": "c2-4",
+    "c2-5": {
+      "id": "c2-5",
       "name": "نورا علي الأحمد",
       "gender": "female",
       "birth_year": 1983,
       "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
       "spouses": [
-        "s8"
+        "s10"
       ],
+      "children": [
+        "c3-9"
+      ],
+      "parents": [
+        "c1-2",
+        "s3"
+      ]
+    },
+    "s10": {
+      "id": "s10",
+      "name": "سعد عبدالرحمن المطيري",
+      "gender": "male",
+      "birth_year": 1981,
+      "spouses": [
+        "c2-5"
+      ],
+      "children": [
+        "c3-9"
+      ],
+      "parents": []
+    },
+    "c2-6": {
+      "id": "c2-6",
+      "name": "عبدالله علي الأحمد",
+      "gender": "male",
+      "birth_year": 1985,
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
       "children": [],
       "parents": [
         "c1-2",
         "s3"
       ]
     },
-    "s8": {
-      "id": "s8",
-      "name": "سعد عبدالرحمن المطيري",
-      "gender": "male",
-      "spouses": [
-        "c2-4"
-      ],
-      "children": [],
-      "parents": []
-    },
-    "c2-5": {
-      "id": "c2-5",
+    "c2-7": {
+      "id": "c2-7",
       "name": "سالم عبدالرحمن الدوسري",
       "gender": "male",
       "birth_year": 1985,
       "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
+      "spouses": [
+        "s11"
+      ],
+      "children": [
+        "c3-10"
+      ],
       "parents": [
         "c1-3",
         "s4"
       ]
+    },
+    "s11": {
+      "id": "s11",
+      "name": "ليلى أحمد السبيعي",
+      "gender": "female",
+      "birth_year": 1987,
+      "spouses": [
+        "c2-7"
+      ],
+      "children": [
+        "c3-10"
+      ],
+      "parents": []
+    },
+    "c2-8": {
+      "id": "c2-8",
+      "name": "ريم عبدالرحمن الدوسري",
+      "gender": "female",
+      "birth_year": 1988,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
+      "spouses": [
+        "s12"
+      ],
+      "children": [
+        "c3-11"
+      ],
+      "parents": [
+        "c1-3",
+        "s4"
+      ]
+    },
+    "s12": {
+      "id": "s12",
+      "name": "محمد عبدالله الشمري",
+      "gender": "male",
+      "birth_year": 1986,
+      "spouses": [
+        "c2-8"
+      ],
+      "children": [
+        "c3-11"
+      ],
+      "parents": []
+    },
+    "c2-9": {
+      "id": "c2-9",
+      "name": "عبدالله سعد القحطاني",
+      "gender": "male",
+      "birth_year": 1990,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [
+        "s13"
+      ],
+      "children": [
+        "c3-12"
+      ],
+      "parents": [
+        "c1-4",
+        "s5"
+      ]
+    },
+    "s13": {
+      "id": "s13",
+      "name": "نوف عبدالرحمن العتيبي",
+      "gender": "female",
+      "birth_year": 1992,
+      "spouses": [
+        "c2-9"
+      ],
+      "children": [
+        "c3-12"
+      ],
+      "parents": []
     },
     "c3-1": {
       "id": "c3-1",
@@ -256,7 +437,7 @@
       "children": [],
       "parents": [
         "c2-1",
-        "s5"
+        "s6"
       ]
     },
     "c3-2": {
@@ -269,11 +450,24 @@
       "children": [],
       "parents": [
         "c2-1",
-        "s5"
+        "s6"
       ]
     },
     "c3-3": {
       "id": "c3-3",
+      "name": "علي أحمد الأحمد",
+      "gender": "male",
+      "birth_year": 2010,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-1",
+        "s6"
+      ]
+    },
+    "c3-4": {
+      "id": "c3-4",
       "name": "عبدالله خالد الزهراني",
       "gender": "male",
       "birth_year": 2010,
@@ -282,7 +476,111 @@
       "children": [],
       "parents": [
         "c2-2",
-        "s6"
+        "s7"
+      ]
+    },
+    "c3-5": {
+      "id": "c3-5",
+      "name": "نورا خالد الزهراني",
+      "gender": "female",
+      "birth_year": 2012,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-2",
+        "s7"
+      ]
+    },
+    "c3-6": {
+      "id": "c3-6",
+      "name": "أحمد علي الأحمد",
+      "gender": "male",
+      "birth_year": 2015,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-3",
+        "s8"
+      ]
+    },
+    "c3-7": {
+      "id": "c3-7",
+      "name": "محمد يوسف الأحمد",
+      "gender": "male",
+      "birth_year": 2012,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-4",
+        "s9"
+      ]
+    },
+    "c3-8": {
+      "id": "c3-8",
+      "name": "فاطمة يوسف الأحمد",
+      "gender": "female",
+      "birth_year": 2014,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-4",
+        "s9"
+      ]
+    },
+    "c3-9": {
+      "id": "c3-9",
+      "name": "عبدالله سعد المطيري",
+      "gender": "male",
+      "birth_year": 2016,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-5",
+        "s10"
+      ]
+    },
+    "c3-10": {
+      "id": "c3-10",
+      "name": "أحمد سالم الدوسري",
+      "gender": "male",
+      "birth_year": 2018,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-7",
+        "s11"
+      ]
+    },
+    "c3-11": {
+      "id": "c3-11",
+      "name": "نورا محمد الشمري",
+      "gender": "female",
+      "birth_year": 2019,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-8",
+        "s12"
+      ]
+    },
+    "c3-12": {
+      "id": "c3-12",
+      "name": "سعد عبدالله القحطاني",
+      "gender": "male",
+      "birth_year": 2020,
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "spouses": [],
+      "children": [],
+      "parents": [
+        "c2-9",
+        "s13"
       ]
     }
   }

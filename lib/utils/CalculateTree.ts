@@ -382,73 +382,6 @@ function buildSingleFamilyTree(data: { [id: string]: FamilyMember }, rootId: str
 }
 
 /**
- * Build a hierarchical data structure suitable for D3 tree layout
- * Starting from the root ancestor and building downward
- * @deprecated Use buildMultipleFamilyTrees instead
- */
-function buildHierarchy(data: { [id: string]: FamilyMember }, mainId: string, showSpouses: boolean): any | null {
-  // Find the root of the family tree (person with no parents)
-  const findRoot = (startId: string): string => {
-    let current = startId;
-    const visited = new Set<string>();
-    
-    while (current && !visited.has(current)) {
-      visited.add(current);
-      const person = data[current];
-      if (!person || !person.parents || person.parents.length === 0) {
-        break;
-      }
-      // Go up to the first parent
-      current = person.parents[0];
-    }
-    
-    return current;
-  };
-  
-  const rootId = findRoot(mainId);
-  if (!rootId || !data[rootId]) {
-    console.warn(`[CalculateTree] Could not find root for ${mainId}`);
-    return null;
-  }
-  
-  console.log(`[CalculateTree] Building hierarchy from root: ${rootId}`);
-  
-  function buildNode(personId: string, level: number = 0): any {
-    const person = data[personId];
-    if (!person) return null;
-    
-    const node: any = {
-      id: personId,
-      name: person.name,
-      level: level,
-      children: []
-    };
-
-    // Add children to the hierarchy
-    if (person.children && person.children.length > 0) {
-      person.children.forEach(childId => {
-        if (data[childId]) {
-          const childNode = buildNode(childId, level + 1);
-          if (childNode) {
-            node.children.push(childNode);
-          }
-        }
-      });
-    }
-
-    return node;
-  }
-
-  const hierarchicalTree = buildNode(rootId, 0);
-  
-  if (hierarchicalTree) {
-    console.log(`[CalculateTree] Built hierarchy with ${countNodes(hierarchicalTree)} nodes`);
-  }
-  
-  return hierarchicalTree;
-}
-
-/**
  * Count total nodes in hierarchy tree
  */
 function countNodes(node: any): number {
@@ -529,34 +462,18 @@ function resolveCollisions(nodes: TreeNodeData[], minSeparation: number) {
 }
 
 /**
- * This function is no longer needed as placeholders are added directly in the BaseTree component.
- * It is kept for reference but should be considered deprecated.
- * @deprecated
+ * Get node dimensions for layout calculations
  */
-export function calculateAddRelativeTree(
-  baseTree: TreeNodeData[],
-  targetId: string,
-  relationType: "parent" | "spouse" | "child"
-): TreeNodeData[] {
-  // ... (implementation remains for reference)
-  return baseTree;
-}
-
 export function getNodeDimensions() {
   return {
-    width: 180, // Match TreeSvg default settings
-    height: 120, // Match TreeSvg default settings
+    width: 180,
+    height: 120,
     margin: 10,
   };
 }
 
 /**
- * Utility functions for deriving extended family relationships
- * from the basic parent/child/spouse data model
- */
-
-/**
- * Get all siblings of a person (people with same parents)
+ * Utility functions for family relationships
  */
 export const getSiblings = (
   personId: string,
@@ -572,9 +489,6 @@ export const getSiblings = (
   );
 };
 
-/**
- * Get grandparents of a person (parents of parents)
- */
 export const getGrandparents = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -589,22 +503,6 @@ export const getGrandparents = (
   return grandparentIds.map((id) => data[id]).filter(Boolean);
 };
 
-/**
- * Get great-grandparents of a person
- */
-export const getGreatGrandparents = (
-  personId: string,
-  data: { [id: string]: FamilyMember }
-): FamilyMember[] => {
-  const grandparents = getGrandparents(personId, data);
-  return grandparents
-    .flatMap((grandparent) => grandparent.parents?.map((id) => data[id]) || [])
-    .filter(Boolean);
-};
-
-/**
- * Get aunts and uncles of a person (siblings of parents)
- */
 export const getAuntsUncles = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -615,9 +513,6 @@ export const getAuntsUncles = (
   return person.parents.flatMap((parentId) => getSiblings(parentId, data));
 };
 
-/**
- * Get cousins of a person (children of aunts/uncles)
- */
 export const getCousins = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -628,9 +523,6 @@ export const getCousins = (
   );
 };
 
-/**
- * Get nieces and nephews of a person (children of siblings)
- */
 export const getNiecesNephews = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -641,9 +533,6 @@ export const getNiecesNephews = (
   );
 };
 
-/**
- * Get in-laws of a person (parents and siblings of spouses)
- */
 export const getInLaws = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -660,38 +549,6 @@ export const getInLaws = (
   });
 };
 
-/**
- * Get step-siblings (children of step-parents)
- */
-export const getStepSiblings = (
-  personId: string,
-  data: { [id: string]: FamilyMember }
-): FamilyMember[] => {
-  const person = data[personId];
-  if (!person?.parents?.length) return [];
-
-  // Get all step-parents (spouses of biological parents)
-  const stepParentIds = person.parents.flatMap(
-    (parentId) =>
-      data[parentId]?.spouses?.filter(
-        (spouseId) => !person.parents!.includes(spouseId)
-      ) || []
-  );
-
-  // Get children of step-parents (excluding self and full siblings)
-  return stepParentIds.flatMap((stepParentId) =>
-    Object.values(data).filter(
-      (p) =>
-        p.parents?.includes(stepParentId) &&
-        p.id !== personId &&
-        !getSiblings(personId, data).some((sibling) => sibling.id === p.id)
-    )
-  );
-};
-
-/**
- * Get all extended family members (up to 3 generations)
- */
 export const getExtendedFamily = (
   personId: string,
   data: { [id: string]: FamilyMember }
@@ -711,12 +568,12 @@ export const getExtendedFamily = (
     cousins: getCousins(personId, data),
     niecesNephews: getNiecesNephews(personId, data),
     inLaws: getInLaws(personId, data),
-    stepSiblings: getStepSiblings(personId, data),
+    stepSiblings: [], // Placeholder for stepSiblings functionality
   };
 };
 
 /**
- * Validate relationship logic (age, duplicates, etc.)
+ * Validation functions
  */
 export const validateRelationship = (
   person1: FamilyMember,
@@ -725,7 +582,6 @@ export const validateRelationship = (
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Age validation
   if (relationshipType === "parent") {
     if (person1.birth_year >= person2.birth_year) {
       errors.push("Parent cannot be born in the same year or after child");
@@ -738,321 +594,44 @@ export const validateRelationship = (
     }
   }
 
-  if (relationshipType === "sibling") {
-    const ageDiff = Math.abs(person1.birth_year - person2.birth_year);
-    if (ageDiff > 50) {
-      errors.push("Siblings should have a reasonable age difference");
-    }
-  }
-
-  // Death year validation
-  if (person1.death_year && person2.death_year) {
-    if (
-      relationshipType === "parent" &&
-      person1.death_year < person2.birth_year
-    ) {
-      errors.push("Parent died before child was born");
-    }
-  }
-
   return {
     isValid: errors.length === 0,
     errors,
   };
 };
 
-/**
- * Detect potential duplicate people based on name and birth year
- */
 export const detectDuplicates = (
   newPerson: Partial<FamilyMember>,
   data: { [id: string]: FamilyMember }
 ): FamilyMember[] => {
-  return Object.values(data).filter(
-    (existing) =>
-      existing.name?.toLowerCase() === newPerson.name?.toLowerCase() &&
-      existing.birth_year === newPerson.birth_year
-  );
+  const potentialDuplicates: FamilyMember[] = [];
+
+  Object.values(data).forEach((existingPerson) => {
+    if (newPerson.name && existingPerson.name === newPerson.name) {
+      potentialDuplicates.push(existingPerson);
+    }
+
+    if (
+      newPerson.name &&
+      newPerson.birth_year &&
+      existingPerson.birth_year &&
+      Math.abs(newPerson.birth_year - existingPerson.birth_year) <= 2 &&
+      existingPerson.name.includes(newPerson.name.split(" ")[0])
+    ) {
+      potentialDuplicates.push(existingPerson);
+    }
+  });
+
+  return potentialDuplicates;
 };
 
 /**
- * Comprehensive data validation for family tree integrity
+ * Legacy function - kept for compatibility
  */
-export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
+export function calculateAddRelativeTree(
+  baseTree: TreeNodeData[],
+  targetId: string,
+  relationType: "parent" | "spouse" | "child"
+): TreeNodeData[] {
+  return baseTree;
 }
-
-export interface ValidationError {
-  type: 'orphaned_reference' | 'circular_relationship' | 'invalid_relationship' | 'missing_data';
-  personId: string;
-  relatedPersonId?: string;
-  message: string;
-  severity: 'error' | 'warning';
-}
-
-export interface ValidationWarning {
-  type: 'age_inconsistency' | 'missing_spouse_reciprocal' | 'large_age_gap' | 'potential_duplicate';
-  personId: string;
-  relatedPersonId?: string;
-  message: string;
-}
-
-/**
- * Validate the entire family tree data structure
- */
-export const validateFamilyTreeData = (data: { [id: string]: FamilyMember }): ValidationResult => {
-  const errors: ValidationError[] = [];
-  const warnings: ValidationWarning[] = [];
-  
-  // Check each person's relationships
-  Object.values(data).forEach(person => {
-    // Validate parent references
-    person.parents?.forEach(parentId => {
-      if (!data[parentId]) {
-        errors.push({
-          type: 'orphaned_reference',
-          personId: person.id,
-          relatedPersonId: parentId,
-          message: `${person.name} references non-existent parent: ${parentId}`,
-          severity: 'error'
-        });
-      } else {
-        // Check reciprocal relationship
-        const parent = data[parentId];
-        if (!parent.children?.includes(person.id)) {
-          warnings.push({
-            type: 'missing_spouse_reciprocal',
-            personId: person.id,
-            relatedPersonId: parentId,
-            message: `Parent ${parent.name} doesn't list ${person.name} as child`
-          });
-        }
-        
-        // Age validation
-        if (parent.birth_year >= person.birth_year) {
-          errors.push({
-            type: 'invalid_relationship',
-            personId: person.id,
-            relatedPersonId: parentId,
-            message: `Parent ${parent.name} (${parent.birth_year}) cannot be born same year or after child ${person.name} (${person.birth_year})`,
-            severity: 'error'
-          });
-        }
-      }
-    });
-    
-    // Validate children references
-    person.children?.forEach(childId => {
-      if (!data[childId]) {
-        errors.push({
-          type: 'orphaned_reference',
-          personId: person.id,
-          relatedPersonId: childId,
-          message: `${person.name} references non-existent child: ${childId}`,
-          severity: 'error'
-        });
-      } else {
-        // Check reciprocal relationship
-        const child = data[childId];
-        if (!child.parents?.includes(person.id)) {
-          warnings.push({
-            type: 'missing_spouse_reciprocal',
-            personId: person.id,
-            relatedPersonId: childId,
-            message: `Child ${child.name} doesn't list ${person.name} as parent`
-          });
-        }
-      }
-    });
-    
-    // Validate spouse references
-    person.spouses?.forEach(spouseId => {
-      if (!data[spouseId]) {
-        errors.push({
-          type: 'orphaned_reference',
-          personId: person.id,
-          relatedPersonId: spouseId,
-          message: `${person.name} references non-existent spouse: ${spouseId}`,
-          severity: 'error'
-        });
-      } else {
-        // Check reciprocal relationship
-        const spouse = data[spouseId];
-        if (!spouse.spouses?.includes(person.id)) {
-          warnings.push({
-            type: 'missing_spouse_reciprocal',
-            personId: person.id,
-            relatedPersonId: spouseId,
-            message: `Spouse ${spouse.name} doesn't list ${person.name} as spouse`
-          });
-        }
-      }
-    });
-    
-    // Check for circular relationships (person being their own ancestor/descendant)
-    if (isCircularRelationship(person.id, data)) {
-      errors.push({
-        type: 'circular_relationship',
-        personId: person.id,
-        message: `${person.name} has circular family relationships`,
-        severity: 'error'
-      });
-    }
-    
-    // Check for potential duplicates
-    const duplicates = detectDuplicates(person, data).filter(p => p.id !== person.id);
-    if (duplicates.length > 0) {
-      warnings.push({
-        type: 'potential_duplicate',
-        personId: person.id,
-        message: `${person.name} might be duplicate of: ${duplicates.map(d => d.name).join(', ')}`
-      });
-    }
-  });
-  
-  return {
-    isValid: errors.length === 0,
-    errors,
-    warnings
-  };
-};
-
-/**
- * Check if a person has circular relationships (is their own ancestor/descendant)
- */
-function isCircularRelationship(personId: string, data: { [id: string]: FamilyMember }): boolean {
-  const visited = new Set<string>();
-  
-  function checkAncestors(currentId: string): boolean {
-    if (visited.has(currentId)) return currentId === personId;
-    visited.add(currentId);
-    
-    const person = data[currentId];
-    if (!person) return false;
-    
-    return person.parents?.some(parentId => checkAncestors(parentId)) || false;
-  }
-  
-  function checkDescendants(currentId: string): boolean {
-    if (visited.has(currentId)) return currentId === personId;
-    visited.add(currentId);
-    
-    const person = data[currentId];
-    if (!person) return false;
-    
-    return person.children?.some(childId => checkDescendants(childId)) || false;
-  }
-  
-  // Check if person is their own ancestor
-  visited.clear();
-  if (data[personId]?.parents?.some(parentId => checkAncestors(parentId))) {
-    return true;
-  }
-  
-  // Check if person is their own descendant
-  visited.clear();
-  if (data[personId]?.children?.some(childId => checkDescendants(childId))) {
-    return true;
-  }
-  
-  return false;
-}
-
-/**
- * Auto-fix common relationship inconsistencies
- */
-export const autoFixRelationships = (data: { [id: string]: FamilyMember }): { [id: string]: FamilyMember } => {
-  const fixedData = JSON.parse(JSON.stringify(data)); // Deep clone
-  
-  Object.values(fixedData).forEach(person => {
-    // Fix missing reciprocal parent-child relationships
-    person.parents?.forEach(parentId => {
-      const parent = fixedData[parentId];
-      if (parent && !parent.children?.includes(person.id)) {
-        parent.children = [...(parent.children || []), person.id];
-      }
-    });
-    
-    // Fix missing reciprocal child-parent relationships
-    person.children?.forEach(childId => {
-      const child = fixedData[childId];
-      if (child && !child.parents?.includes(person.id)) {
-        child.parents = [...(child.parents || []), person.id];
-      }
-    });
-    
-    // Fix missing reciprocal spouse relationships
-    person.spouses?.forEach(spouseId => {
-      const spouse = fixedData[spouseId];
-      if (spouse && !spouse.spouses?.includes(person.id)) {
-        spouse.spouses = [...(spouse.spouses || []), person.id];
-      }
-    });
-  });
-  
-  return fixedData;
-};
-
-/**
- * Compare two family tree datasets and identify differences
- */
-export const compareTreeData = (
-  data1: { [id: string]: FamilyMember },
-  data2: { [id: string]: FamilyMember }
-): {
-  added: FamilyMember[];
-  removed: FamilyMember[];
-  modified: { person: FamilyMember; changes: string[] }[];
-} => {
-  const ids1 = new Set(Object.keys(data1));
-  const ids2 = new Set(Object.keys(data2));
-  
-  const added: FamilyMember[] = [];
-  const removed: FamilyMember[] = [];
-  const modified: { person: FamilyMember; changes: string[] }[] = [];
-  
-  // Find added people
-  ids2.forEach(id => {
-    if (!ids1.has(id)) {
-      added.push(data2[id]);
-    }
-  });
-  
-  // Find removed people
-  ids1.forEach(id => {
-    if (!ids2.has(id)) {
-      removed.push(data1[id]);
-    }
-  });
-  
-  // Find modified people
-  ids1.forEach(id => {
-    if (ids2.has(id)) {
-      const person1 = data1[id];
-      const person2 = data2[id];
-      const changes: string[] = [];
-      
-      if (person1.name !== person2.name) changes.push('name');
-      if (person1.gender !== person2.gender) changes.push('gender');
-      if (person1.birth_year !== person2.birth_year) changes.push('birth_year');
-      if (person1.death_year !== person2.death_year) changes.push('death_year');
-      
-      // Compare arrays
-      const parentsChanged = JSON.stringify(person1.parents?.sort()) !== JSON.stringify(person2.parents?.sort());
-      const spousesChanged = JSON.stringify(person1.spouses?.sort()) !== JSON.stringify(person2.spouses?.sort());
-      const childrenChanged = JSON.stringify(person1.children?.sort()) !== JSON.stringify(person2.children?.sort());
-      
-      if (parentsChanged) changes.push('parents');
-      if (spousesChanged) changes.push('spouses');
-      if (childrenChanged) changes.push('children');
-      
-      if (changes.length > 0) {
-        modified.push({ person: person2, changes });
-      }
-    }
-  });
-  
-  return { added, removed, modified };
-};

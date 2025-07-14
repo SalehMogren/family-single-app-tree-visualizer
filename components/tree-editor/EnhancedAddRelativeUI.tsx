@@ -52,43 +52,43 @@ export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
   const relativeOptions: RelativeOption[] = [
     {
       type: 'parent',
-      label: 'Add Parent',
+      label: 'إضافة والد/والدة',
       icon: <Crown className="w-6 h-6" />,
       color: 'bg-gradient-to-br from-amber-500 to-orange-600',
       hoverColor: 'hover:from-amber-600 hover:to-orange-700',
-      description: 'Add mother or father',
-      placeholder: 'Father/Mother Position',
-      suggestions: ['Dad', 'Mom', 'Father', 'Mother', 'Step-Father', 'Step-Mother']
+      description: 'إضافة الأم أو الأب',
+      placeholder: 'موقع الوالد/الوالدة',
+      suggestions: ['أب', 'أم', 'والد', 'والدة', 'زوج الأم', 'زوجة الأب']
     },
     {
       type: 'spouse',
-      label: 'Add Spouse',
+      label: 'إضافة زوج/زوجة',
       icon: <RingIcon className="w-6 h-6" />,
       color: 'bg-gradient-to-br from-pink-500 to-rose-600',
       hoverColor: 'hover:from-pink-600 hover:to-rose-700',
-      description: 'Add husband or wife',
-      placeholder: 'Spouse Position',
-      suggestions: ['Wife', 'Husband', 'Partner', 'Ex-Wife', 'Ex-Husband']
+      description: 'إضافة الزوج أو الزوجة',
+      placeholder: 'موقع الزوج/الزوجة',
+      suggestions: ['زوجة', 'زوج', 'شريك', 'طليقة', 'طليق']
     },
     {
       type: 'child',
-      label: 'Add Child',
+      label: 'إضافة طفل',
       icon: <Baby className="w-6 h-6" />,
       color: 'bg-gradient-to-br from-green-500 to-emerald-600',
       hoverColor: 'hover:from-green-600 hover:to-emerald-700',
-      description: 'Add son or daughter',
-      placeholder: 'Child Position',
-      suggestions: ['Son', 'Daughter', 'Adopted Son', 'Adopted Daughter', 'Step-Son', 'Step-Daughter']
+      description: 'إضافة ابن أو ابنة',
+      placeholder: 'موقع الطفل',
+      suggestions: ['ابن', 'ابنة', 'ابن بالتبني', 'ابنة بالتبني', 'ربيب', 'ربيبة']
     },
     {
       type: 'sibling',
-      label: 'Add Sibling',
+      label: 'إضافة شقيق/شقيقة',
       icon: <Users2 className="w-6 h-6" />,
       color: 'bg-gradient-to-br from-purple-500 to-indigo-600',
       hoverColor: 'hover:from-purple-600 hover:to-indigo-700',
-      description: 'Add brother or sister',
-      placeholder: 'Sibling Position',
-      suggestions: ['Brother', 'Sister', 'Half-Brother', 'Half-Sister', 'Step-Brother', 'Step-Sister']
+      description: 'إضافة أخ أو أخت',
+      placeholder: 'موقع الشقيق/الشقيقة',
+      suggestions: ['أخ', 'أخت', 'أخ غير شقيق', 'أخت غير شقيقة', 'أخ بالزواج', 'أخت بالزواج']
     }
   ];
 
@@ -296,7 +296,7 @@ export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
     <Card className={`p-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50'}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Add Relatives to {selectedPerson.name}
+          إضافة أقارب لـ {selectedPerson.name}
         </h3>
         <Badge variant="outline">{selectedPerson.name.split(' ')[0]}</Badge>
       </div>
@@ -304,9 +304,9 @@ export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
       {/* Tab Navigation */}
       <div className="flex space-x-1 mb-4 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
         {[
-          { id: 'quick', label: 'Quick Add', icon: <UserPlus size={14} /> },
-          { id: 'smart', label: 'Smart', icon: <Sparkles size={14} /> },
-          { id: 'advanced', label: 'Advanced', icon: <User size={14} /> }
+          { id: 'quick', label: 'إضافة سريعة', icon: <UserPlus size={14} /> },
+          { id: 'smart', label: 'ذكي', icon: <Sparkles size={14} /> },
+          { id: 'advanced', label: 'متقدم', icon: <User size={14} /> }
         ].map((tab) => (
           <button
             key={tab.id}

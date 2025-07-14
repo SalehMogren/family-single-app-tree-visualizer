@@ -16,9 +16,26 @@ const initialState: TreeState = {
   focusNodeId: null, // The ID of the currently focused node
   nodeSeparation: 200, // Horizontal separation between nodes
   levelSeparation: 120, // Vertical separation between levels
+  horizontalSpacing: 2.2, // Visual horizontal spacing multiplier
+  verticalSpacing: 1.8, // Visual vertical spacing multiplier
   showSpouses: true,
   viewMode: "full", // "full" or "focus" (3-level view)
   focusPersonId: null, // For 3-level focus view
+  // Visual appearance settings
+  cardWidth: 160,
+  cardHeight: 90,
+  maleColor: "hsl(var(--primary))",
+  femaleColor: "#DC2626",
+  linkColor: "hsl(var(--muted-foreground))",
+  lineShape: "curved",
+  // Label visibility toggles
+  showLabels: {
+    name: true,
+    birthYear: true,
+    deathYear: true,
+    spouse: true,
+    genderIcon: true,
+  },
   past: [], // History stack for undo
   future: [], // History stack for redo
 };
@@ -149,12 +166,60 @@ const treeSlice = createSlice({
       }
     },
     /**
+     * Updates the visual horizontal spacing multiplier and recalculates tree.
+     */
+    setHorizontalSpacing(state, action: PayloadAction<number>) {
+      state.horizontalSpacing = action.payload;
+      // Update node separation based on spacing multiplier
+      const baseNodeSeparation = 200; // Base separation
+      state.nodeSeparation = baseNodeSeparation * state.horizontalSpacing;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Updates the visual vertical spacing multiplier and recalculates tree.
+     */
+    setVerticalSpacing(state, action: PayloadAction<number>) {
+      state.verticalSpacing = action.payload;
+      // Update level separation based on spacing multiplier
+      const baseLevelSeparation = 120; // Base separation
+      state.levelSeparation = baseLevelSeparation * state.verticalSpacing;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
      * Toggles the visibility of spouses and recalculates the tree.
      */
     setShowSpouses(state, action: PayloadAction<boolean>) {
       state.showSpouses = action.payload;
       if (state.mainId) {
-        recalculateTree();
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
       }
     },
     /**
@@ -256,6 +321,22 @@ const treeSlice = createSlice({
       };
 
       state.data[newId] = newNode;
+
+      // Handle the case where this is the first person (no target)
+      if (!targetId || targetId === "") {
+        state.mainId = newId;
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+        return;
+      }
+
       const targetNode = state.data[targetId];
 
       if (!targetNode) {
@@ -298,7 +379,10 @@ const treeSlice = createSlice({
             newNode.spouses = [...(newNode.spouses || []), existingParentId];
           }
         }
-        state.mainId = newId;
+        // Update mainId to the new parent for better tree visualization
+        if (!state.mainId || state.mainId === "") {
+          state.mainId = newId;
+        }
       } else if (relationType === "sibling") {
         // For siblings, we need to share the same parents
         if (targetNode.parents && targetNode.parents.length > 0) {
@@ -322,12 +406,36 @@ const treeSlice = createSlice({
           return;
         }
       }
+
+      // Recalculate tree after adding node
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
     },
     /**
      * Updates the data for a specific node.
      */
     updateNode(state, action: PayloadAction<FamilyMember>) {
       state.data[action.payload.id] = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
     },
     /**
      * Deletes a node and all references to it from the tree.
@@ -357,6 +465,19 @@ const treeSlice = createSlice({
       if (state.mainId === nodeId) {
         state.mainId = Object.keys(state.data)[0] || "";
       }
+
+      // Recalculate tree after deletion
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
     },
     /**
      * Placeholder for future relationship toggling logic.
@@ -377,37 +498,48 @@ const treeSlice = createSlice({
         metadata?: any;
       }>
     ) {
-      const { personId1, personId2, relationshipType, operation } = action.payload;
+      const { personId1, personId2, relationshipType, operation } =
+        action.payload;
       const person1 = state.data[personId1];
       const person2 = state.data[personId2];
-      
+
       if (!person1 || !person2) {
-        console.error('One or both persons not found for relationship modification');
+        console.error(
+          "One or both persons not found for relationship modification"
+        );
         return;
       }
 
-      if (operation === 'disconnect') {
+      if (operation === "disconnect") {
         // Remove relationship connections
-        if (relationshipType === 'parent') {
+        if (relationshipType === "parent") {
           // Remove parent-child connection
-          person1.children = person1.children?.filter(id => id !== personId2) || [];
-          person2.parents = person2.parents?.filter(id => id !== personId1) || [];
-        } else if (relationshipType === 'spouse') {
+          person1.children =
+            person1.children?.filter((id) => id !== personId2) || [];
+          person2.parents =
+            person2.parents?.filter((id) => id !== personId1) || [];
+        } else if (relationshipType === "spouse") {
           // Remove spouse connection
-          person1.spouses = person1.spouses?.filter(id => id !== personId2) || [];
-          person2.spouses = person2.spouses?.filter(id => id !== personId1) || [];
-        } else if (relationshipType === 'child') {
+          person1.spouses =
+            person1.spouses?.filter((id) => id !== personId2) || [];
+          person2.spouses =
+            person2.spouses?.filter((id) => id !== personId1) || [];
+        } else if (relationshipType === "child") {
           // Remove child-parent connection
-          person1.parents = person1.parents?.filter(id => id !== personId2) || [];
-          person2.children = person2.children?.filter(id => id !== personId1) || [];
-        } else if (relationshipType === 'sibling') {
+          person1.parents =
+            person1.parents?.filter((id) => id !== personId2) || [];
+          person2.children =
+            person2.children?.filter((id) => id !== personId1) || [];
+        } else if (relationshipType === "sibling") {
           // For siblings, we need to check if they share parents
           // This is complex and may require updating parent relationships
-          console.warn('Sibling relationship disconnection requires complex logic');
+          console.warn(
+            "Sibling relationship disconnection requires complex logic"
+          );
         }
-      } else if (operation === 'connect') {
+      } else if (operation === "connect") {
         // Add relationship connections (ensuring no duplicates)
-        if (relationshipType === 'parent') {
+        if (relationshipType === "parent") {
           // Add parent-child connection (person1 is parent, person2 is child)
           if (!person1.children?.includes(personId2)) {
             person1.children = [...(person1.children || []), personId2];
@@ -415,7 +547,7 @@ const treeSlice = createSlice({
           if (!person2.parents?.includes(personId1)) {
             person2.parents = [...(person2.parents || []), personId1];
           }
-        } else if (relationshipType === 'spouse') {
+        } else if (relationshipType === "spouse") {
           // Add spouse connection (bidirectional)
           if (!person1.spouses?.includes(personId2)) {
             person1.spouses = [...(person1.spouses || []), personId2];
@@ -423,7 +555,7 @@ const treeSlice = createSlice({
           if (!person2.spouses?.includes(personId1)) {
             person2.spouses = [...(person2.spouses || []), personId1];
           }
-        } else if (relationshipType === 'child') {
+        } else if (relationshipType === "child") {
           // Add child-parent connection (person1 is child, person2 is parent)
           if (!person1.parents?.includes(personId2)) {
             person1.parents = [...(person1.parents || []), personId2];
@@ -431,12 +563,12 @@ const treeSlice = createSlice({
           if (!person2.children?.includes(personId1)) {
             person2.children = [...(person2.children || []), personId1];
           }
-        } else if (relationshipType === 'sibling') {
+        } else if (relationshipType === "sibling") {
           // For siblings, they should share the same parents
           // We'll connect them through their parents if they exist
           if (person1.parents && person1.parents.length > 0) {
             // Make person2 a child of person1's parents
-            person1.parents.forEach(parentId => {
+            person1.parents.forEach((parentId) => {
               const parent = state.data[parentId];
               if (parent && !parent.children?.includes(personId2)) {
                 parent.children = [...(parent.children || []), personId2];
@@ -447,7 +579,7 @@ const treeSlice = createSlice({
             });
           } else if (person2.parents && person2.parents.length > 0) {
             // Make person1 a child of person2's parents
-            person2.parents.forEach(parentId => {
+            person2.parents.forEach((parentId) => {
               const parent = state.data[parentId];
               if (parent && !parent.children?.includes(personId1)) {
                 parent.children = [...(parent.children || []), personId1];
@@ -459,36 +591,192 @@ const treeSlice = createSlice({
           }
         }
       }
+
+      // Recalculate tree after relationship modification
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the card width and recalculates tree if needed.
+     */
+    setCardWidth(state, action: PayloadAction<number>) {
+      state.cardWidth = action.payload;
+      // Optionally recalculate nodeSeparation based on new card width
+      state.nodeSeparation = state.cardWidth * state.horizontalSpacing;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the card height and recalculates tree if needed.
+     */
+    setCardHeight(state, action: PayloadAction<number>) {
+      state.cardHeight = action.payload;
+      // Optionally recalculate levelSeparation based on new card height
+      state.levelSeparation = state.cardHeight * state.verticalSpacing;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the male color.
+     */
+    setMaleColor(state, action: PayloadAction<string>) {
+      state.maleColor = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the female color.
+     */
+    setFemaleColor(state, action: PayloadAction<string>) {
+      state.femaleColor = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the link color.
+     */
+    setLinkColor(state, action: PayloadAction<string>) {
+      state.linkColor = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the line shape.
+     */
+    setLineShape(state, action: PayloadAction<"straight" | "curved">) {
+      state.lineShape = action.payload;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
+    },
+    /**
+     * Sets the visibility of a specific label type.
+     */
+    setShowLabel(
+      state,
+      action: PayloadAction<{
+        labelType: "name" | "birthYear" | "deathYear" | "spouse" | "genderIcon";
+        visible: boolean;
+      }>
+    ) {
+      const { labelType, visible } = action.payload;
+      state.showLabels[labelType] = visible;
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
     },
     /**
      * Fix relationship inconsistencies automatically
      */
     fixRelationshipInconsistencies(state) {
-      Object.values(state.data).forEach(person => {
+      Object.values(state.data).forEach((person) => {
         // Fix missing reciprocal parent-child relationships
-        person.parents?.forEach(parentId => {
+        person.parents?.forEach((parentId) => {
           const parent = state.data[parentId];
           if (parent && !parent.children?.includes(person.id)) {
             parent.children = [...(parent.children || []), person.id];
           }
         });
-        
+
         // Fix missing reciprocal child-parent relationships
-        person.children?.forEach(childId => {
+        person.children?.forEach((childId) => {
           const child = state.data[childId];
           if (child && !child.parents?.includes(person.id)) {
             child.parents = [...(child.parents || []), person.id];
           }
         });
-        
+
         // Fix missing reciprocal spouse relationships
-        person.spouses?.forEach(spouseId => {
+        person.spouses?.forEach((spouseId) => {
           const spouse = state.data[spouseId];
           if (spouse && !spouse.spouses?.includes(person.id)) {
             spouse.spouses = [...(spouse.spouses || []), person.id];
           }
         });
       });
+
+      // Recalculate tree after fixing inconsistencies
+      if (state.mainId) {
+        state.tree = calculateTree({
+          data: state.data,
+          mainId: state.mainId,
+          nodeSeparation: state.nodeSeparation,
+          levelSeparation: state.levelSeparation,
+          showSpouses: state.showSpouses,
+          viewMode: state.viewMode,
+          focusPersonId: state.focusPersonId,
+        });
+      }
     },
   },
 });
@@ -501,9 +789,18 @@ export const {
   setFocusNode,
   setNodeSeparation,
   setLevelSeparation,
+  setHorizontalSpacing,
+  setVerticalSpacing,
   setShowSpouses,
   setViewMode,
   setFocusPerson,
+  setCardWidth,
+  setCardHeight,
+  setMaleColor,
+  setFemaleColor,
+  setLinkColor,
+  setLineShape,
+  setShowLabel,
   undo,
   redo,
   toggleAllRels,
