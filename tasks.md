@@ -77,7 +77,15 @@ This document tracks the development progress of the Family Tree Visualizer appl
 
 #### 1.8 Edge Case Implementation
 - [x] Complete button visibility logic (hide "Add Parent" when 2 parents exist)
-- [ ] Implement comprehensive relationship validation
+- [ ] Refactor relationship model to use RelationshipConnection array
+    - Description: Move all relationship logic and data to a single relationships array (RelationshipConnection), removing parents/children/spouses arrays from FamilyMember and updating all code, helpers, and UI to use the new model. No migration script is needed as all data is mock data; simply update the mock data and code directly.
+    - Sub-tasks:
+        - [ ] Add relationships array to Redux state and update types
+        - [ ] Remove parents/children/spouses from FamilyMember type and mock data
+        - [ ] Update all mock data to use only members and relationships
+        - [ ] Implement relationship selectors/helpers
+        - [ ] Refactor all logic and UI to use new model
+        - [ ] Update validation and test
 - [ ] Add confirmation dialogs for destructive operations
 - [ ] Enhance error handling and user feedback
 - [ ] Test all edge cases from PRD Section 6
