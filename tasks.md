@@ -76,7 +76,7 @@ This document tracks the development progress of the Family Tree Visualizer appl
 ### 🔄 In Progress Tasks
 
 #### 1.8 Edge Case Implementation
-- [ ] Complete button visibility logic (hide "Add Parent" when 2 parents exist)
+- [x] Complete button visibility logic (hide "Add Parent" when 2 parents exist)
 - [ ] Implement comprehensive relationship validation
 - [ ] Add confirmation dialogs for destructive operations
 - [ ] Enhance error handling and user feedback
