@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { RelationshipManager } from "@/components/tree-editor/RelationshipManager";
 import { DragDropProvider } from "@/components/tree-editor/DragDropProvider";
+import { getParentIds } from "../../lib/utils/relationshipHelpers";
 
 // Defines the different modes for the sidebar panel.
 type SidebarMode = "stats" | "view" | "edit" | "add";
@@ -50,19 +51,24 @@ export default function TreeEditor() {
     mainId,
     viewMode,
     focusPersonId,
-    updateDataAndMainId,
+    updateMembersAndRelationships,
+    updateMainId,
     setFocusNode,
     setViewMode,
     setFocusPerson,
-    addNode,
-    updateNode,
-    deleteNode,
+    addMember,
+    updateMember,
+    deleteMember,
+    addRelationship,
+    removeRelationship,
     modifyRelationship,
     fixRelationshipInconsistencies,
+    relationships,
     undo,
     redo,
     canUndo,
     canRedo,
+    addRelative,
   } = useTreeStore();
 
   // A ref to access methods on the TreeSvg component (e.g., for zoom).
@@ -70,10 +76,8 @@ export default function TreeEditor() {
 
   // Initialize with empty tree - start from scratch
   useEffect(() => {
-    console.log("[TreeEditor] Initializing empty tree...");
-    // Start with an empty tree - users will build it from scratch
-    const emptyData = {};
-    updateDataAndMainId(emptyData, "");
+    updateMembersAndRelationships({ members: {}, relationships: [] });
+    updateMainId("");
     setIsLoading(false);
   }, []); // Empty dependency array to run only once on mount
 
@@ -162,11 +166,20 @@ export default function TreeEditor() {
    */
   const handleSaveNode = (formData: Partial<FamilyMember>) => {
     if (sidebarMode === "edit" && selectedNode) {
-      updateNode({ ...selectedNode, ...formData } as FamilyMember);
+      updateMember({ ...selectedNode, ...formData } as FamilyMember);
     } else if (sidebarMode === "add" && addRelativeInfo) {
-      addNode(addRelativeInfo.targetId, addRelativeInfo.type, formData);
+      const newId = `m_${Date.now()}`;
+      const newMember: FamilyMember = {
+        id: newId,
+        ...formData,
+      } as FamilyMember;
+      addRelative({
+        targetId: addRelativeInfo.targetId,
+        newMember,
+        type: addRelativeInfo.type,
+      });
+      if (!mainId) updateMainId(newId);
     }
-    // Reset the sidebar to its default state.
     setSidebarMode("stats");
     setSelectedNode(null);
     setAddRelativeInfo(null);
@@ -177,7 +190,7 @@ export default function TreeEditor() {
    */
   const handleDeleteNode = () => {
     if (selectedNode) {
-      deleteNode(selectedNode.id);
+      deleteMember(selectedNode.id);
       setSidebarMode("stats");
       setSelectedNode(null);
     }
@@ -222,7 +235,15 @@ export default function TreeEditor() {
     targetId: string,
     relationshipType: "parent" | "spouse" | "child" | "sibling"
   ) => {
-    handleModifyRelationship(sourceId, targetId, "connect", relationshipType);
+    if (relationshipType === "parent") {
+      // source is parent, target is child
+      modifyRelationship(targetId, sourceId, "connect", "parent");
+    } else if (relationshipType === "child") {
+      // source is child, target is parent
+      modifyRelationship(sourceId, targetId, "connect", "child");
+    } else {
+      modifyRelationship(sourceId, targetId, "connect", relationshipType);
+    }
   };
 
   /**
@@ -240,7 +261,12 @@ export default function TreeEditor() {
    * Triggers a browser download of the current tree data as a JSON file.
    */
   const handleSaveToFile = () => {
-    const dataStr = JSON.stringify(data, null, 2);
+    const exportData = {
+      members: data,
+      relationships,
+      mainId,
+    };
+    const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
@@ -264,9 +290,18 @@ export default function TreeEditor() {
         reader.onload = (ev) => {
           try {
             const loadedData = JSON.parse(ev.target?.result as string);
-            const firstPersonId = Object.keys(loadedData)[0] || "";
-            if (firstPersonId) {
-              updateDataAndMainId(loadedData, firstPersonId);
+            if (
+              loadedData.members &&
+              loadedData.relationships &&
+              loadedData.mainId !== undefined
+            ) {
+              updateMembersAndRelationships({
+                members: loadedData.members,
+                relationships: loadedData.relationships,
+              });
+              updateMainId(loadedData.mainId);
+            } else {
+              throw new Error("Invalid data format in loaded file.");
             }
           } catch (error) {
             console.error("Failed to parse JSON file.", error);
@@ -453,6 +488,7 @@ export default function TreeEditor() {
                 <RelationshipManager
                   selectedPerson={selectedNode}
                   allData={data}
+                  relationships={relationships}
                   onAddRelative={handleAddRelativeClick}
                   onConnectExisting={handleConnectExisting}
                   onModifyRelationship={handleModifyRelationship}

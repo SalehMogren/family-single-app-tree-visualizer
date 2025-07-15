@@ -5,9 +5,8 @@
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../lib/store/store";
 import {
-  updateData,
   updateMainId,
-  updateDataAndMainId,
+  updateMembersAndRelationships,
   recalculateTree,
   setFocusNode,
   setNodeSeparation,
@@ -28,11 +27,14 @@ import {
   redo,
   toggleAllRels,
   saveState,
-  addNode,
-  updateNode,
-  deleteNode,
+  addMember,
+  updateMember,
+  deleteMember,
+  addRelationship,
+  removeRelationship,
   modifyRelationship,
   fixRelationshipInconsistencies,
+  addRelative,
 } from "../lib/store/treeSlice";
 import { FamilyMember } from "../lib/types";
 
@@ -44,7 +46,7 @@ import { FamilyMember } from "../lib/types";
  */
 export function useTreeStore() {
   // Select individual state properties to avoid unnecessary re-renders
-  const data = useSelector((state: RootState) => state.tree.data);
+  const data = useSelector((state: RootState) => state.tree.members);
   const tree = useSelector((state: RootState) => state.tree.tree);
   const mainId = useSelector((state: RootState) => state.tree.mainId);
   const focusNodeId = useSelector((state: RootState) => state.tree.focusNodeId);
@@ -74,6 +76,9 @@ export function useTreeStore() {
   const showLabels = useSelector((state: RootState) => state.tree.showLabels);
   const past = useSelector((state: RootState) => state.tree.past);
   const future = useSelector((state: RootState) => state.tree.future);
+  const relationships = useSelector(
+    (state: RootState) => state.tree.relationships
+  );
 
   // Get the dispatch function to send actions to the store.
   const dispatch = useDispatch<AppDispatch>();
@@ -100,32 +105,36 @@ export function useTreeStore() {
     showLabels,
     past,
     future,
+    relationships,
 
     // Expose action dispatchers, wrapped to handle side effects like saving history.
-    updateData: (data: { [id: string]: any }) => {
-      dispatch(saveState());
-      dispatch(updateData(data));
-    },
     updateMainId: (mainId: string) => dispatch(updateMainId(mainId)),
-    updateDataAndMainId: (data: { [id: string]: any }, mainId: string) => {
+    updateMembersAndRelationships: (payload: {
+      members: { [id: string]: FamilyMember };
+      relationships: any[];
+    }) => {
       dispatch(saveState());
-      dispatch(updateDataAndMainId({ data, mainId }));
+      dispatch(updateMembersAndRelationships(payload));
     },
-    addNode: (
-      targetId: string,
-      relationType: "parent" | "spouse" | "child" | "sibling",
-      data: Partial<FamilyMember>
-    ) => {
+    addMember: (member: FamilyMember) => {
       dispatch(saveState());
-      dispatch(addNode({ targetId, relationType, data }));
+      dispatch(addMember(member));
     },
-    updateNode: (node: FamilyMember) => {
+    updateMember: (member: FamilyMember) => {
       dispatch(saveState());
-      dispatch(updateNode(node));
+      dispatch(updateMember(member));
     },
-    deleteNode: (nodeId: string) => {
+    deleteMember: (memberId: string) => {
       dispatch(saveState());
-      dispatch(deleteNode({ nodeId }));
+      dispatch(deleteMember({ memberId }));
+    },
+    addRelationship: (rel: any) => {
+      dispatch(saveState());
+      dispatch(addRelationship(rel));
+    },
+    removeRelationship: (id: string) => {
+      dispatch(saveState());
+      dispatch(removeRelationship({ id }));
     },
     modifyRelationship: (
       personId1: string,
@@ -145,11 +154,18 @@ export function useTreeStore() {
         })
       );
     },
+    addRelative: (payload: {
+      targetId: string;
+      newMember: FamilyMember;
+      type: "parent" | "spouse" | "child" | "sibling";
+    }) => {
+      dispatch(saveState());
+      dispatch(addRelative(payload));
+    },
     fixRelationshipInconsistencies: () => {
       dispatch(saveState());
       dispatch(fixRelationshipInconsistencies());
     },
-
     // Expose other utility and history actions directly.
     recalculateTree: () => dispatch(recalculateTree()),
     setFocusNode: (nodeId: string | null) => dispatch(setFocusNode(nodeId)),
@@ -171,14 +187,16 @@ export function useTreeStore() {
     setMaleColor: (color: string) => dispatch(setMaleColor(color)),
     setFemaleColor: (color: string) => dispatch(setFemaleColor(color)),
     setLinkColor: (color: string) => dispatch(setLinkColor(color)),
-    setLineShape: (shape: "straight" | "curved") => dispatch(setLineShape(shape)),
-    setShowLabel: (labelType: "name" | "birthYear" | "deathYear" | "spouse" | "genderIcon", visible: boolean) =>
-      dispatch(setShowLabel({ labelType, visible })),
+    setLineShape: (shape: "straight" | "curved") =>
+      dispatch(setLineShape(shape)),
+    setShowLabel: (
+      labelType: "name" | "birthYear" | "deathYear" | "spouse" | "genderIcon",
+      visible: boolean
+    ) => dispatch(setShowLabel({ labelType, visible })),
     undo: () => dispatch(undo()),
     redo: () => dispatch(redo()),
     toggleAllRels: () => dispatch(toggleAllRels()),
     saveState: () => dispatch(saveState()),
-
     // Provide boolean flags for UI components to check if undo/redo is possible.
     canUndo: past.length > 0,
     canRedo: future.length > 0,

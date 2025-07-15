@@ -13,10 +13,20 @@ import * as d3 from "d3";
 import { Card } from "@/components/ui/card";
 import { useLinks } from "@/hooks/useLinks";
 import { NodeCard } from "@/components/tree/NodeCard";
-import { TreeNodeData, FamilyMember } from "@/lib/types";
+import {
+  TreeNodeData,
+  FamilyMember,
+  RelationshipConnection,
+} from "@/lib/types";
 import { SmartSuggestionsEngine } from "@/lib/utils/SmartSuggestions";
 import { InteractiveLink } from "@/components/tree-editor/InteractiveLink";
 import { PlaceholderNode } from "@/components/tree-editor/PlaceholderNode";
+import {
+  getChildIds,
+  getParentIds,
+  getSiblingIds,
+  getSpouseIds,
+} from "@/lib/utils/relationshipHelpers";
 
 /**
  * @interface BaseTreeSettings
@@ -59,6 +69,7 @@ export interface BaseTreeProps {
   tree: TreeNodeData[];
   mainId: string;
   settings: BaseTreeSettings;
+  relationships: RelationshipConnection[];
   isEditable?: boolean;
   exportable?: boolean;
   isDarkMode?: boolean;
@@ -89,6 +100,7 @@ export interface BaseTreeProps {
   svgId?: string;
   showMiniTreeOnClick?: boolean;
   selectedNodeId?: string;
+  setFocusPerson?: (personId: string) => void;
 }
 
 /**
@@ -103,6 +115,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
       tree,
       mainId,
       settings,
+      relationships,
       isEditable = false,
       exportable = false,
       isDarkMode = false,
@@ -121,11 +134,12 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
       svgId = "family-tree-svg",
       showMiniTreeOnClick = false,
       selectedNodeId,
+      setFocusPerson,
     },
     ref
   ) => {
     const svgRef = useRef<SVGSVGElement>(null);
-    const links = useLinks(tree, data, settings);
+    const links = useLinks(tree, data, settings, relationships);
     const [zoom, setZoom] = useState(1);
     const [miniTreeData, setMiniTreeData] = useState<any | null>(null);
     const [selectedLink, setSelectedLink] = useState<{
@@ -153,21 +167,27 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
      */
     useEffect(() => {
       if (!svgRef.current) return;
-      
+
       // Wait for SVG to have concrete dimensions before initializing D3
       const checkDimensions = () => {
         const svgElement = svgRef.current;
         if (!svgElement) return false;
-        
+
         const rect = svgElement.getBoundingClientRect();
         const hasValidDimensions = rect.width > 0 && rect.height > 0;
-        
+
         // Also check for computed style dimensions
         const computedStyle = window.getComputedStyle(svgElement);
         const computedWidth = parseFloat(computedStyle.width);
         const computedHeight = parseFloat(computedStyle.height);
-        
-        return hasValidDimensions && !isNaN(computedWidth) && !isNaN(computedHeight) && computedWidth > 0 && computedHeight > 0;
+
+        return (
+          hasValidDimensions &&
+          !isNaN(computedWidth) &&
+          !isNaN(computedHeight) &&
+          computedWidth > 0 &&
+          computedHeight > 0
+        );
       };
 
       // If dimensions aren't ready, wait a bit and try again
@@ -190,13 +210,16 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
         .scaleExtent([0.1, 3])
         .filter((event) => {
           // Prevent zoom/pan on drag events from nodes
-          if (event.type === 'mousedown' || event.type === 'touchstart') {
+          if (event.type === "mousedown" || event.type === "touchstart") {
             const target = event.target as Element;
             // Check if the event target is a draggable node or its child
-            const isDraggableNode = target.closest('[draggable="true"]') !== null;
-            const isNodeCard = target.closest('.cursor-grab, .cursor-grabbing') !== null;
-            const isPlaceholderNode = target.closest('[data-placeholder="true"]') !== null;
-            
+            const isDraggableNode =
+              target.closest('[draggable="true"]') !== null;
+            const isNodeCard =
+              target.closest(".cursor-grab, .cursor-grabbing") !== null;
+            const isPlaceholderNode =
+              target.closest('[data-placeholder="true"]') !== null;
+
             // Disable zoom/pan if it's a draggable element
             return !isDraggableNode && !isNodeCard && !isPlaceholderNode;
           }
@@ -206,7 +229,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
           g.attr("transform", event.transform);
           setZoom(event.transform.k);
         });
-      
+
       // Apply zoom behavior with error handling
       try {
         svg.call(zoomBehavior);
@@ -222,18 +245,18 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
         // Get SVG dimensions with fallback and error handling
         let svgWidth: number;
         let svgHeight: number;
-        
+
         try {
           const rect = svgRef.current.getBoundingClientRect();
           svgWidth = rect.width;
           svgHeight = rect.height;
-          
+
           // Fallback to clientWidth/Height if getBoundingClientRect fails
           if (svgWidth === 0 || svgHeight === 0) {
             svgWidth = svgRef.current.clientWidth;
             svgHeight = svgRef.current.clientHeight;
           }
-          
+
           // Final fallback to default dimensions
           if (svgWidth === 0 || svgHeight === 0) {
             svgWidth = 800;
@@ -343,14 +366,20 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
      */
     const handleNodeClick = (node: any) => {
       if (showMiniTreeOnClick) {
+        // Use relationship helpers to get family members
+        const parentIds = getParentIds(node.id, relationships);
+        const siblingIds = getSiblingIds(node.id, relationships);
+        const childIds = getChildIds(node.id, relationships);
+        
         setMiniTreeData({
           self: node,
-          parents: node.parent ? [node.parent] : null,
-          siblings: node.parent
-            ? (node.parent.children || []).filter((s: any) => s !== node)
-            : null,
-          children: node.children || [],
+          parents: parentIds.length > 0 ? parentIds.map(id => ({ data: data[id] })) : null,
+          siblings: siblingIds.length > 0 ? siblingIds.map(id => ({ data: data[id] })) : null,
+          children: childIds.length > 0 ? childIds.map(id => ({ data: data[id] })) : [],
         });
+      }
+      if (typeof node.id === "string" && setFocusPerson) {
+        setFocusPerson(node.id);
       }
       onNodeClick?.(node.data);
     };
@@ -447,163 +476,165 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
             }}>
             <g>
               {/* Render links */}
-              {links.filter(link => link.relationshipType !== "sibling").map((link, i) => {
-                // Calculate midpoint of the link for button placement
-                let midPoint = { x: 0, y: 0 };
+              {links
+                .filter((link) => link.relationshipType !== "sibling")
+                .map((link, i) => {
+                  // Calculate midpoint of the link for button placement
+                  let midPoint = { x: 0, y: 0 };
 
-                // Only calculate midpoint on client side to avoid SSR issues
-                if (typeof window !== "undefined") {
-                  try {
-                    const pathEl = document.createElementNS(
-                      "http://www.w3.org/2000/svg",
-                      "path"
-                    );
-                    pathEl.setAttribute("d", link.d);
-                    const pathLength = pathEl.getTotalLength
-                      ? pathEl.getTotalLength()
-                      : 0;
-                    if (pathLength > 0 && pathEl.getPointAtLength) {
-                      midPoint = pathEl.getPointAtLength(pathLength / 2);
+                  // Only calculate midpoint on client side to avoid SSR issues
+                  if (typeof window !== "undefined") {
+                    try {
+                      const pathEl = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "path"
+                      );
+                      pathEl.setAttribute("d", link.d);
+                      const pathLength = pathEl.getTotalLength
+                        ? pathEl.getTotalLength()
+                        : 0;
+                      if (pathLength > 0 && pathEl.getPointAtLength) {
+                        midPoint = pathEl.getPointAtLength(pathLength / 2);
+                      }
+                    } catch (error) {
+                      console.warn("Error calculating path midpoint:", error);
+                      // Fallback: estimate midpoint from link data
+                      midPoint = { x: 0, y: 0 };
                     }
-                  } catch (error) {
-                    console.warn("Error calculating path midpoint:", error);
-                    // Fallback: estimate midpoint from link data
-                    midPoint = { x: 0, y: 0 };
                   }
-                }
 
-                return (
-                  <g key={link.id} className='link-group'>
-                    {/* Main link path */}
-                    <path
-                      d={link.d}
-                      fill='none'
-                      stroke={
-                        link.relationshipType === "spouse"
-                          ? "#EC4899"
-                          : link.relationshipType === "sibling"
-                          ? "#8B5CF6"
-                          : settings.linkColor
-                      }
-                      strokeWidth={
-                        link.relationshipType === "spouse"
-                          ? 2
-                          : link.relationshipType === "sibling"
-                          ? 1.5
-                          : 2
-                      }
-                      className='transition-all duration-200'
-                    />
-                    {/* Interactive overlay path (wider, invisible) */}
-                    <path
-                      d={link.d}
-                      fill='none'
-                      stroke='transparent'
-                      strokeWidth={12}
-                      className='cursor-pointer hover:stroke-blue-400 hover:stroke-opacity-30 transition-all duration-200'
-                      onClick={(e) => handleLinkClick(e, link)}
-                      style={{ pointerEvents: isEditable ? "auto" : "none" }}
-                    />
-                    {/* Visual hover indicator */}
-                    <path
-                      d={link.d}
-                      fill='none'
-                      stroke={
-                        link.relationshipType === "spouse"
-                          ? "#EC4899"
-                          : link.relationshipType === "sibling"
-                          ? "#8B5CF6"
-                          : settings.linkColor
-                      }
-                      strokeWidth={
-                        link.relationshipType === "spouse"
-                          ? 3
-                          : link.relationshipType === "sibling"
-                          ? 2.5
-                          : 3
-                      }
-                      className='opacity-0 hover:opacity-50 transition-opacity duration-200 pointer-events-none'
-                      strokeDasharray='4,4'
-                    />
+                  return (
+                    <g key={link.id} className='link-group'>
+                      {/* Main link path */}
+                      <path
+                        d={link.d}
+                        fill='none'
+                        stroke={
+                          link.relationshipType === "spouse"
+                            ? "#EC4899"
+                            : link.relationshipType === "sibling"
+                            ? "#8B5CF6"
+                            : settings.linkColor
+                        }
+                        strokeWidth={
+                          link.relationshipType === "spouse"
+                            ? 2
+                            : link.relationshipType === "sibling"
+                            ? 1.5
+                            : 2
+                        }
+                        className='transition-all duration-200'
+                      />
+                      {/* Interactive overlay path (wider, invisible) */}
+                      <path
+                        d={link.d}
+                        fill='none'
+                        stroke='transparent'
+                        strokeWidth={12}
+                        className='cursor-pointer hover:stroke-blue-400 hover:stroke-opacity-30 transition-all duration-200'
+                        onClick={(e) => handleLinkClick(e, link)}
+                        style={{ pointerEvents: isEditable ? "auto" : "none" }}
+                      />
+                      {/* Visual hover indicator */}
+                      <path
+                        d={link.d}
+                        fill='none'
+                        stroke={
+                          link.relationshipType === "spouse"
+                            ? "#EC4899"
+                            : link.relationshipType === "sibling"
+                            ? "#8B5CF6"
+                            : settings.linkColor
+                        }
+                        strokeWidth={
+                          link.relationshipType === "spouse"
+                            ? 3
+                            : link.relationshipType === "sibling"
+                            ? 2.5
+                            : 3
+                        }
+                        className='opacity-0 hover:opacity-50 transition-opacity duration-200 pointer-events-none'
+                        strokeDasharray='4,4'
+                      />
 
-                    {/* Link Control Buttons - only show in edit mode */}
-                    {isEditable && (
-                      <g className='link-controls opacity-0 hover:opacity-100 transition-opacity duration-200'>
-                        {/* Remove relationship button (X) */}
-                        <circle
-                          cx={midPoint.x - 12}
-                          cy={midPoint.y}
-                          r='8'
-                          fill='rgba(239, 68, 68, 0.9)'
-                          stroke='white'
-                          strokeWidth='1'
-                          className='cursor-pointer hover:fill-red-600 transition-colors'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (
-                              onModifyRelationship &&
-                              link.personIds &&
-                              link.personIds.length >= 2
-                            ) {
-                              onModifyRelationship(
-                                link.personIds[0],
-                                link.personIds[1],
-                                "disconnect",
-                                link.relationshipType || "parent"
-                              );
-                            }
-                          }}
-                        />
-                        <text
-                          x={midPoint.x - 12}
-                          y={midPoint.y + 3}
-                          textAnchor='middle'
-                          fontSize='10'
-                          fill='white'
-                          className='pointer-events-none select-none'
-                          fontWeight='bold'>
-                          ×
-                        </text>
+                      {/* Link Control Buttons - only show in edit mode */}
+                      {isEditable && (
+                        <g className='link-controls opacity-0 hover:opacity-100 transition-opacity duration-200'>
+                          {/* Remove relationship button (X) */}
+                          <circle
+                            cx={midPoint.x - 12}
+                            cy={midPoint.y}
+                            r='8'
+                            fill='rgba(239, 68, 68, 0.9)'
+                            stroke='white'
+                            strokeWidth='1'
+                            className='cursor-pointer hover:fill-red-600 transition-colors'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                onModifyRelationship &&
+                                link.personIds &&
+                                link.personIds.length >= 2
+                              ) {
+                                onModifyRelationship(
+                                  link.personIds[0],
+                                  link.personIds[1],
+                                  "disconnect",
+                                  link.relationshipType || "parent"
+                                );
+                              }
+                            }}
+                          />
+                          <text
+                            x={midPoint.x - 12}
+                            y={midPoint.y + 3}
+                            textAnchor='middle'
+                            fontSize='10'
+                            fill='white'
+                            className='pointer-events-none select-none'
+                            fontWeight='bold'>
+                            ×
+                          </text>
 
-                        {/* Add sibling/additional relationship button (+) - only for parent-child links */}
-                        {link.relationshipType === "parent" && (
-                          <>
-                            <circle
-                              cx={midPoint.x + 12}
-                              cy={midPoint.y}
-                              r='8'
-                              fill='rgba(34, 197, 94, 0.9)'
-                              stroke='white'
-                              strokeWidth='1'
-                              className='cursor-pointer hover:fill-green-600 transition-colors'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (
-                                  link.personIds &&
-                                  link.personIds.length >= 2
-                                ) {
-                                  // Add sibling to the child
-                                  onAddRelative(link.personIds[1], "sibling");
-                                }
-                              }}
-                            />
-                            <text
-                              x={midPoint.x + 12}
-                              y={midPoint.y + 3}
-                              textAnchor='middle'
-                              fontSize='10'
-                              fill='white'
-                              className='pointer-events-none select-none'
-                              fontWeight='bold'>
-                              +
-                            </text>
-                          </>
-                        )}
-                      </g>
-                    )}
-                  </g>
-                );
-              })}
+                          {/* Add sibling/additional relationship button (+) - only for parent-child links */}
+                          {link.relationshipType === "parent" && (
+                            <>
+                              <circle
+                                cx={midPoint.x + 12}
+                                cy={midPoint.y}
+                                r='8'
+                                fill='rgba(34, 197, 94, 0.9)'
+                                stroke='white'
+                                strokeWidth='1'
+                                className='cursor-pointer hover:fill-green-600 transition-colors'
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (
+                                    link.personIds &&
+                                    link.personIds.length >= 2
+                                  ) {
+                                    // Add sibling to the child
+                                    onAddRelative(link.personIds[1], "sibling");
+                                  }
+                                }}
+                              />
+                              <text
+                                x={midPoint.x + 12}
+                                y={midPoint.y + 3}
+                                textAnchor='middle'
+                                fontSize='10'
+                                fill='white'
+                                className='pointer-events-none select-none'
+                                fontWeight='bold'>
+                                +
+                              </text>
+                            </>
+                          )}
+                        </g>
+                      )}
+                    </g>
+                  );
+                })}
 
               {/* Render nodes */}
               {tree.map((node) => {
@@ -647,7 +678,8 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
                           data[node.id]
                             ? SmartSuggestionsEngine.generateSuggestions(
                                 data[node.id],
-                                data
+                                data,
+                                relationships
                               ).length > 0
                             : false
                         }
@@ -667,86 +699,198 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
               })}
 
               {/* Render placeholder nodes for adding relatives - only for selected node */}
-              {isEditable && selectedNodeId && tree.filter(node => node.id === selectedNodeId).map((node) => {
-                const nodeX = typeof node.x === "number" && !isNaN(node.x) ? node.x : 0;
-                const nodeY = typeof node.y === "number" && !isNaN(node.y) ? node.y : 0;
-                const placeholders: JSX.Element[] = [];
-                
-                // Get the actual family member data (not just tree node data)
-                const familyMember = data[node.id];
-                if (!familyMember) return []; // Skip if no family data
-                
-                // Calculate placeholder positions based on node position
-                const spacing = settings.cardWidth * 1.5;
-                const verticalSpacing = settings.cardHeight * 1.2;
+              {isEditable &&
+                selectedNodeId &&
+                tree
+                  .filter((node) => node.id === selectedNodeId)
+                  .map((node) => {
+                    const nodeX =
+                      typeof node.x === "number" && !isNaN(node.x) ? node.x : 0;
+                    const nodeY =
+                      typeof node.y === "number" && !isNaN(node.y) ? node.y : 0;
+                    const placeholders: JSX.Element[] = [];
 
-                // Smart conditional logic for placeholder visibility using actual family data
-                
-                // Parent placeholder (above) - only show if person has fewer than 2 parents
-                const hasMaxParents = familyMember.parents && familyMember.parents.length >= 2;
-                if (!hasMaxParents) {
-                  placeholders.push(
-                    <PlaceholderNode
-                      key={`${node.id}-parent`}
-                      type="parent"
-                      isDarkMode={isDarkMode}
-                      onClick={() => onAddRelative(node.id, "parent")}
-                      x={nodeX}
-                      y={nodeY - verticalSpacing}
-                      targetPersonName={familyMember.name}
-                    />
-                  );
-                }
+                    // Get the actual family member data (not just tree node data)
+                    const familyMember = data[node.id];
+                    if (!familyMember) return [];
+                    // Calculate placeholder positions based on node position
+                    const spacing = settings.cardWidth * 1.5;
+                    const verticalSpacing = settings.cardHeight * 1.2;
 
-                // Smart positioning: Check what relationships exist to avoid conflicts
-                const hasSpouse = familyMember.spouses && familyMember.spouses.length > 0;
-                const hasParentsForSiblings = familyMember.parents && familyMember.parents.length > 0;
-                
-                // Spouse placeholder (LEFT side) - show if no spouse exists
-                if (!hasSpouse) {
-                  placeholders.push(
-                    <PlaceholderNode
-                      key={`${node.id}-spouse`}
-                      type="spouse"
-                      isDarkMode={isDarkMode}
-                      onClick={() => onAddRelative(node.id, "spouse")}
-                      x={nodeX - spacing}
-                      y={nodeY}
-                      targetPersonName={familyMember.name}
-                    />
-                  );
-                }
+                    // Use helpers with relationships array
+                    const parentIds = getParentIds(node.id, relationships);
+                    const spouseIds = getSpouseIds(node.id, relationships);
+                    // Parent placeholder (above) - only show if person has fewer than 2 parents
+                    const hasMaxParents = parentIds.length >= 2;
+                    if (!hasMaxParents) {
+                      placeholders.push(
+                        <PlaceholderNode
+                          key={`${node.id}-parent`}
+                          type='parent'
+                          isDarkMode={isDarkMode}
+                          onClick={() => onAddRelative(node.id, "parent")}
+                          x={nodeX}
+                          y={nodeY - verticalSpacing}
+                          targetPersonName={familyMember.name}
+                        />
+                      );
+                    }
+                    // Spouse placeholder (LEFT side) - show if no spouse exists
+                    const hasSpouse = spouseIds.length > 0;
+                    if (!hasSpouse) {
+                      placeholders.push(
+                        <PlaceholderNode
+                          key={`${node.id}-spouse`}
+                          type='spouse'
+                          isDarkMode={isDarkMode}
+                          onClick={() => onAddRelative(node.id, "spouse")}
+                          x={nodeX - spacing}
+                          y={nodeY}
+                          targetPersonName={familyMember.name}
+                        />
+                      );
+                    }
+                    // Child placeholder (below or at end of children row)
+                    // Find children nodes - using both tree hierarchy and relationship data
+                    const childrenFromRelationships = getChildIds(
+                      node.id,
+                      relationships
+                    );
+                    const childrenNodes = tree.filter((n) =>
+                      childrenFromRelationships.includes(n.id)
+                    );
 
-                // Child placeholder (below) - always show (no limit on children)
-                placeholders.push(
-                  <PlaceholderNode
-                    key={`${node.id}-child`}
-                    type="child"
-                    isDarkMode={isDarkMode}
-                    onClick={() => onAddRelative(node.id, "child")}
-                    x={nodeX}
-                    y={nodeY + verticalSpacing}
-                    targetPersonName={familyMember.name}
-                  />
-                );
+                    if (childrenNodes.length > 0) {
+                      // Sort children by x position to find the rightmost one
+                      const sortedChildren = [...childrenNodes].sort(
+                        (a, b) => a.x - b.x
+                      );
+                      const rightmostChild =
+                        sortedChildren[sortedChildren.length - 1];
 
-                // Sibling placeholder (RIGHT side) - only show if person has at least one parent
-                if (hasParentsForSiblings) {
-                  placeholders.push(
-                    <PlaceholderNode
-                      key={`${node.id}-sibling`}
-                      type="sibling"
-                      isDarkMode={isDarkMode}
-                      onClick={() => onAddRelative(node.id, "sibling")}
-                      x={nodeX + spacing}
-                      y={nodeY}
-                      targetPersonName={familyMember.name}
-                    />
-                  );
-                }
+                      // Calculate position next to the rightmost child
+                      const childPlaceholderX = rightmostChild.x + spacing;
+                      const childPlaceholderY = rightmostChild.y;
 
-                return placeholders;
-              }).flat()}
+                      // Ensure we don't overlap with other nodes at the same level
+                      const sameYNodes = tree.filter(
+                        (n) =>
+                          Math.abs(n.y - childPlaceholderY) <
+                            verticalSpacing * 0.3 && n.id !== node.id
+                      );
+
+                      let finalChildX = childPlaceholderX;
+
+                      // Check for potential conflicts and adjust position if necessary
+                      let hasConflict = true;
+                      let attempts = 0;
+                      while (hasConflict && attempts < 10) {
+                        hasConflict = sameYNodes.some(
+                          (n) => Math.abs(n.x - finalChildX) < spacing * 0.8
+                        );
+                        if (hasConflict) {
+                          finalChildX += spacing * 0.5;
+                        }
+                        attempts++;
+                      }
+
+                      placeholders.push(
+                        <PlaceholderNode
+                          key={`${node.id}-child`}
+                          type='child'
+                          isDarkMode={isDarkMode}
+                          onClick={() => onAddRelative(node.id, "child")}
+                          x={finalChildX}
+                          y={childPlaceholderY}
+                          targetPersonName={familyMember.name}
+                        />
+                      );
+                    } else {
+                      // No children exist, place directly below the parent
+                      placeholders.push(
+                        <PlaceholderNode
+                          key={`${node.id}-child`}
+                          type='child'
+                          isDarkMode={isDarkMode}
+                          onClick={() => onAddRelative(node.id, "child")}
+                          x={nodeX}
+                          y={nodeY + verticalSpacing}
+                          targetPersonName={familyMember.name}
+                        />
+                      );
+                    }
+                    // Sibling placeholder (opposite side of spouse)
+                    const hasParentsForSiblings = parentIds.length > 0;
+                    if (hasParentsForSiblings) {
+                      // Default: right side
+                      let siblingX = nodeX + spacing;
+
+                      // If spouse exists, place sibling on opposite side
+                      if (hasSpouse) {
+                        // Find spouse node (if present in tree)
+                        const spouseNode = tree.find((n) =>
+                          spouseIds.includes(n.id)
+                        );
+                        if (spouseNode) {
+                          const spouseDistance = Math.abs(spouseNode.x - nodeX);
+                          // Only consider it positioned if there's significant distance
+                          if (spouseDistance > spacing * 0.3) {
+                            if (spouseNode.x > nodeX) {
+                              // Spouse is on the right, place sibling on the left
+                              siblingX = nodeX - spacing;
+                            } else {
+                              // Spouse is on the left, place sibling on the right
+                              siblingX = nodeX + spacing;
+                            }
+                          } else {
+                            // Spouse is very close or at same position, default to right
+                            siblingX = nodeX + spacing;
+                          }
+                        }
+                      }
+
+                      // Check for existing siblings to avoid overlaps
+                      const existingSiblings = tree.filter((n) => {
+                        const siblingIds = getSiblingIds(
+                          node.id,
+                          relationships
+                        );
+                        return siblingIds.includes(n.id);
+                      });
+
+                      // If there are existing siblings, find a good position
+                      if (existingSiblings.length > 0) {
+                        // Check if our calculated position conflicts with existing siblings
+                        const hasConflict = existingSiblings.some(
+                          (sibling) =>
+                            Math.abs(sibling.x - siblingX) < spacing * 0.8
+                        );
+
+                        if (hasConflict) {
+                          // Find the rightmost sibling and place after it
+                          const rightmostSibling = existingSiblings.reduce(
+                            (max, sibling) =>
+                              sibling.x > max.x ? sibling : max
+                          );
+                          siblingX = rightmostSibling.x + spacing;
+                        }
+                      }
+
+                      placeholders.push(
+                        <PlaceholderNode
+                          key={`${node.id}-sibling`}
+                          type='sibling'
+                          isDarkMode={isDarkMode}
+                          onClick={() => onAddRelative(node.id, "sibling")}
+                          x={siblingX}
+                          y={nodeY}
+                          targetPersonName={familyMember.name}
+                        />
+                      );
+                    }
+                    return placeholders;
+                  })
+                  .flat()}
             </g>
           </svg>
           {/* Mini tree overlay */}
@@ -846,6 +990,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
             <InteractiveLink
               linkData={selectedLink}
               position={selectedLink.position}
+              relationships={relationships}
               isDarkMode={isDarkMode}
               onModifyRelationship={handleLinkRelationshipModify}
               onClose={() => setSelectedLink(null)}

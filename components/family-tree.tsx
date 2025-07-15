@@ -44,7 +44,6 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     linkColor,
     lineShape,
     showLabels,
-    updateDataAndMainId,
     setCardWidth,
     setCardHeight,
     setHorizontalSpacing,
@@ -54,6 +53,11 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     setLinkColor,
     setShowLabel,
     setShowSpouses,
+    updateMembersAndRelationships,
+    updateMainId,
+    relationships,
+    focusPersonId,
+    setFocusPerson,
   } = useTreeStore();
 
   // Only local UI state that's not tree-related
@@ -112,9 +116,13 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
         return response.json();
       })
       .then((jsonData) => {
-        if (jsonData.data && jsonData.mainId) {
+        if (jsonData.members && jsonData.relationships && jsonData.mainId) {
           // Update Redux store with loaded data
-          updateDataAndMainId(jsonData.data, jsonData.mainId);
+          updateMembersAndRelationships({
+            members: jsonData.members,
+            relationships: jsonData.relationships,
+          });
+          updateMainId(jsonData.mainId);
           setError(null);
         } else {
           throw new Error("Invalid data format in family-data.json.");
@@ -127,7 +135,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
       .finally(() => {
         setLoading(false);
       });
-  }, [data, mainId, updateDataAndMainId]);
+  }, [data, mainId, updateMembersAndRelationships, updateMainId]);
 
   // Handlers for zoom/export - memoized for performance
   const handleZoomIn = useCallback(() => {
@@ -446,17 +454,13 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   tree={tree}
                   mainId={mainId}
                   settings={settings}
-                  isDarkMode={isDarkMode}
-                  onNodeClick={() => {}}
-                  onAddRelative={() => {}}
+                  relationships={relationships}
                   isEditable={false}
-                  exportable={true}
-                  style={{ width: "100%", height: "80vh" }}
-                  onZoomIn={(fn) => (zoomInRef.current = fn)}
-                  onZoomOut={(fn) => (zoomOutRef.current = fn)}
-                  onResetView={(fn) => (resetViewRef.current = fn)}
-                  svgId={svgId}
-                  showMiniTreeOnClick={true}
+                  isDarkMode={isDarkMode}
+                  onNodeClick={(node) => setFocusPerson(node.id)}
+                  onAddRelative={() => {}}
+                  selectedNodeId={focusPersonId || mainId}
+                  setFocusPerson={setFocusPerson}
                 />
               ) : (
                 <div className='flex items-center justify-center h-96'>

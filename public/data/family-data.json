@@ -1,23 +1,13 @@
 {
   "mainId": "p1",
-  "data": {
+  "members": {
     "p1": {
       "id": "p1",
       "name": "أحمد محمد الأحمد",
       "gender": "male",
       "birth_year": 1920,
       "death_year": 1995,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s1"
-      ],
-      "children": [
-        "c1-1",
-        "c1-2",
-        "c1-3",
-        "c1-4"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "s1": {
       "id": "s1",
@@ -25,563 +15,646 @@
       "gender": "female",
       "birth_year": 1925,
       "death_year": 2000,
-      "spouses": [
-        "p1"
-      ],
-      "children": [
-        "c1-1",
-        "c1-2",
-        "c1-3",
-        "c1-4"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c1-1": {
       "id": "c1-1",
       "name": "محمد أحمد الأحمد",
       "gender": "male",
       "birth_year": 1945,
-      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s2"
-      ],
-      "children": [
-        "c2-1",
-        "c2-2",
-        "c2-3"
-      ],
-      "parents": [
-        "p1",
-        "s1"
-      ]
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face"
     },
     "s2": {
       "id": "s2",
       "name": "عائشة حسن المحمد",
       "gender": "female",
       "birth_year": 1950,
-      "spouses": [
-        "c1-1"
-      ],
-      "children": [
-        "c2-1",
-        "c2-2",
-        "c2-3"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c1-2": {
       "id": "c1-2",
       "name": "علي أحمد الأحمد",
       "gender": "male",
       "birth_year": 1948,
-      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s3"
-      ],
-      "children": [
-        "c2-4",
-        "c2-5",
-        "c2-6"
-      ],
-      "parents": [
-        "p1",
-        "s1"
-      ]
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face"
     },
     "s3": {
       "id": "s3",
       "name": "مريم يوسف الغامدي",
       "gender": "female",
       "birth_year": 1952,
-      "spouses": [
-        "c1-2"
-      ],
-      "children": [
-        "c2-4",
-        "c2-5",
-        "c2-6"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c1-3": {
       "id": "c1-3",
       "name": "خديجة أحمد الأحمد",
       "gender": "female",
       "birth_year": 1950,
-      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s4"
-      ],
-      "children": [
-        "c2-7",
-        "c2-8"
-      ],
-      "parents": [
-        "p1",
-        "s1"
-      ]
+      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face"
     },
     "s4": {
       "id": "s4",
       "name": "عبدالرحمن سالم الدوسري",
       "gender": "male",
       "birth_year": 1948,
-      "spouses": [
-        "c1-3"
-      ],
-      "children": [
-        "c2-7",
-        "c2-8"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c1-4": {
       "id": "c1-4",
       "name": "نورا أحمد الأحمد",
       "gender": "female",
       "birth_year": 1955,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s5"
-      ],
-      "children": [
-        "c2-9"
-      ],
-      "parents": [
-        "p1",
-        "s1"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "s5": {
       "id": "s5",
       "name": "سعد عبدالله القحطاني",
       "gender": "male",
       "birth_year": 1953,
-      "spouses": [
-        "c1-4"
-      ],
-      "children": [
-        "c2-9"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-1": {
       "id": "c2-1",
       "name": "أحمد محمد الأحمد",
       "gender": "male",
       "birth_year": 1975,
-      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s6"
-      ],
-      "children": [
-        "c3-1",
-        "c3-2",
-        "c3-3"
-      ],
-      "parents": [
-        "c1-1",
-        "s2"
-      ]
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face"
     },
     "s6": {
       "id": "s6",
       "name": "نورا سالم الخالد",
       "gender": "female",
       "birth_year": 1978,
-      "spouses": [
-        "c2-1"
-      ],
-      "children": [
-        "c3-1",
-        "c3-2",
-        "c3-3"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-2": {
       "id": "c2-2",
       "name": "فاطمة محمد الأحمد",
       "gender": "female",
       "birth_year": 1978,
-      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s7"
-      ],
-      "children": [
-        "c3-4",
-        "c3-5"
-      ],
-      "parents": [
-        "c1-1",
-        "s2"
-      ]
+      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face"
     },
     "s7": {
       "id": "s7",
       "name": "خالد عبدالله الزهراني",
       "gender": "male",
       "birth_year": 1976,
-      "spouses": [
-        "c2-2"
-      ],
-      "children": [
-        "c3-4",
-        "c3-5"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-3": {
       "id": "c2-3",
       "name": "علي محمد الأحمد",
       "gender": "male",
       "birth_year": 1980,
-      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s8"
-      ],
-      "children": [
-        "c3-6"
-      ],
-      "parents": [
-        "c1-1",
-        "s2"
-      ]
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face"
     },
     "s8": {
       "id": "s8",
       "name": "هند محمد القحطاني",
       "gender": "female",
       "birth_year": 1982,
-      "spouses": [
-        "c2-3"
-      ],
-      "children": [
-        "c3-6"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-4": {
       "id": "c2-4",
       "name": "يوسف علي الأحمد",
       "gender": "male",
       "birth_year": 1980,
-      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s9"
-      ],
-      "children": [
-        "c3-7",
-        "c3-8"
-      ],
-      "parents": [
-        "c1-2",
-        "s3"
-      ]
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face"
     },
     "s9": {
       "id": "s9",
       "name": "سارة عبدالرحمن المطيري",
       "gender": "female",
       "birth_year": 1983,
-      "spouses": [
-        "c2-4"
-      ],
-      "children": [
-        "c3-7",
-        "c3-8"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-5": {
       "id": "c2-5",
       "name": "نورا علي الأحمد",
       "gender": "female",
       "birth_year": 1983,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s10"
-      ],
-      "children": [
-        "c3-9"
-      ],
-      "parents": [
-        "c1-2",
-        "s3"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "s10": {
       "id": "s10",
       "name": "سعد عبدالرحمن المطيري",
       "gender": "male",
       "birth_year": 1981,
-      "spouses": [
-        "c2-5"
-      ],
-      "children": [
-        "c3-9"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-6": {
       "id": "c2-6",
       "name": "عبدالله علي الأحمد",
       "gender": "male",
       "birth_year": 1985,
-      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c1-2",
-        "s3"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-7": {
       "id": "c2-7",
       "name": "سالم عبدالرحمن الدوسري",
       "gender": "male",
       "birth_year": 1985,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s11"
-      ],
-      "children": [
-        "c3-10"
-      ],
-      "parents": [
-        "c1-3",
-        "s4"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "s11": {
       "id": "s11",
       "name": "ليلى أحمد السبيعي",
       "gender": "female",
       "birth_year": 1987,
-      "spouses": [
-        "c2-7"
-      ],
-      "children": [
-        "c3-10"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-8": {
       "id": "c2-8",
       "name": "ريم عبدالرحمن الدوسري",
       "gender": "female",
       "birth_year": 1988,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s12"
-      ],
-      "children": [
-        "c3-11"
-      ],
-      "parents": [
-        "c1-3",
-        "s4"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "s12": {
       "id": "s12",
       "name": "محمد عبدالله الشمري",
       "gender": "male",
       "birth_year": 1986,
-      "spouses": [
-        "c2-8"
-      ],
-      "children": [
-        "c3-11"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c2-9": {
       "id": "c2-9",
       "name": "عبدالله سعد القحطاني",
       "gender": "male",
       "birth_year": 1990,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [
-        "s13"
-      ],
-      "children": [
-        "c3-12"
-      ],
-      "parents": [
-        "c1-4",
-        "s5"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "s13": {
       "id": "s13",
       "name": "نوف عبدالرحمن العتيبي",
       "gender": "female",
       "birth_year": 1992,
-      "spouses": [
-        "c2-9"
-      ],
-      "children": [
-        "c3-12"
-      ],
-      "parents": []
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-1": {
       "id": "c3-1",
       "name": "محمد أحمد الأحمد",
       "gender": "male",
       "birth_year": 2005,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-1",
-        "s6"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-2": {
       "id": "c3-2",
       "name": "فاطمة أحمد الأحمد",
       "gender": "female",
       "birth_year": 2008,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-1",
-        "s6"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "c3-3": {
       "id": "c3-3",
       "name": "علي أحمد الأحمد",
       "gender": "male",
       "birth_year": 2010,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-1",
-        "s6"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-4": {
       "id": "c3-4",
       "name": "عبدالله خالد الزهراني",
       "gender": "male",
       "birth_year": 2010,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-2",
-        "s7"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-5": {
       "id": "c3-5",
       "name": "نورا خالد الزهراني",
       "gender": "female",
       "birth_year": 2012,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-2",
-        "s7"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "c3-6": {
       "id": "c3-6",
       "name": "أحمد علي الأحمد",
       "gender": "male",
       "birth_year": 2015,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-3",
-        "s8"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-7": {
       "id": "c3-7",
       "name": "محمد يوسف الأحمد",
       "gender": "male",
       "birth_year": 2012,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-4",
-        "s9"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-8": {
       "id": "c3-8",
       "name": "فاطمة يوسف الأحمد",
       "gender": "female",
       "birth_year": 2014,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-4",
-        "s9"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "c3-9": {
       "id": "c3-9",
       "name": "عبدالله سعد المطيري",
       "gender": "male",
       "birth_year": 2016,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-5",
-        "s10"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-10": {
       "id": "c3-10",
       "name": "أحمد سالم الدوسري",
       "gender": "male",
       "birth_year": 2018,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-7",
-        "s11"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     },
     "c3-11": {
       "id": "c3-11",
       "name": "نورا محمد الشمري",
       "gender": "female",
       "birth_year": 2019,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-8",
-        "s12"
-      ]
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
     },
     "c3-12": {
       "id": "c3-12",
       "name": "سعد عبدالله القحطاني",
       "gender": "male",
       "birth_year": 2020,
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      "spouses": [],
-      "children": [],
-      "parents": [
-        "c2-9",
-        "s13"
-      ]
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
     }
-  }
+  },
+  "relationships": [
+    {
+      "id": "r1",
+      "fromId": "p1",
+      "toId": "s1",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r2",
+      "fromId": "p1",
+      "toId": "c1-1",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r3",
+      "fromId": "s1",
+      "toId": "c1-1",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r4",
+      "fromId": "s2",
+      "toId": "c1-1",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r5",
+      "fromId": "c1-1",
+      "toId": "s2",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r6",
+      "fromId": "c1-1",
+      "toId": "s3",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r7",
+      "fromId": "c1-1",
+      "toId": "s4",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r8",
+      "fromId": "c1-1",
+      "toId": "s5",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r9",
+      "fromId": "c1-2",
+      "toId": "s3",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r10",
+      "fromId": "c1-2",
+      "toId": "s10",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r11",
+      "fromId": "c1-3",
+      "toId": "s4",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r12",
+      "fromId": "c1-4",
+      "toId": "s5",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r13",
+      "fromId": "c2-1",
+      "toId": "s6",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r14",
+      "fromId": "s6",
+      "toId": "c2-1",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r15",
+      "fromId": "c2-2",
+      "toId": "s7",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r16",
+      "fromId": "s7",
+      "toId": "c2-2",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r17",
+      "fromId": "c2-3",
+      "toId": "s8",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r18",
+      "fromId": "s8",
+      "toId": "c2-3",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r19",
+      "fromId": "c2-4",
+      "toId": "s9",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r20",
+      "fromId": "s9",
+      "toId": "c2-4",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r21",
+      "fromId": "c2-5",
+      "toId": "s10",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r22",
+      "fromId": "s10",
+      "toId": "c2-5",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r23",
+      "fromId": "c2-6",
+      "toId": "s11",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r24",
+      "fromId": "s11",
+      "toId": "c2-6",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r25",
+      "fromId": "c2-7",
+      "toId": "s12",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r26",
+      "fromId": "s12",
+      "toId": "c2-7",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r27",
+      "fromId": "c2-8",
+      "toId": "s12",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r28",
+      "fromId": "s12",
+      "toId": "c2-8",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r29",
+      "fromId": "c2-9",
+      "toId": "s13",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r30",
+      "fromId": "s13",
+      "toId": "c2-9",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r31",
+      "fromId": "c3-1",
+      "toId": "s6",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r32",
+      "fromId": "s6",
+      "toId": "c3-1",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r33",
+      "fromId": "c3-2",
+      "toId": "s6",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r34",
+      "fromId": "s6",
+      "toId": "c3-2",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r35",
+      "fromId": "c3-3",
+      "toId": "s6",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r36",
+      "fromId": "s6",
+      "toId": "c3-3",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r37",
+      "fromId": "c3-4",
+      "toId": "s7",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r38",
+      "fromId": "s7",
+      "toId": "c3-4",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r39",
+      "fromId": "c3-5",
+      "toId": "s7",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r40",
+      "fromId": "s7",
+      "toId": "c3-5",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r41",
+      "fromId": "c3-6",
+      "toId": "s8",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r42",
+      "fromId": "s8",
+      "toId": "c3-6",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r43",
+      "fromId": "c3-7",
+      "toId": "s9",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r44",
+      "fromId": "s9",
+      "toId": "c3-7",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r45",
+      "fromId": "c3-8",
+      "toId": "s9",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r46",
+      "fromId": "s9",
+      "toId": "c3-8",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r47",
+      "fromId": "c3-9",
+      "toId": "s13",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r48",
+      "fromId": "s13",
+      "toId": "c3-9",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r49",
+      "fromId": "c3-10",
+      "toId": "s11",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r50",
+      "fromId": "s11",
+      "toId": "c3-10",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r51",
+      "fromId": "c3-11",
+      "toId": "s12",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r52",
+      "fromId": "s12",
+      "toId": "c3-11",
+      "type": "spouse",
+      "bidirectional": true
+    },
+    {
+      "id": "r53",
+      "fromId": "c3-12",
+      "toId": "s13",
+      "type": "parent",
+      "bidirectional": false
+    },
+    {
+      "id": "r54",
+      "fromId": "s13",
+      "toId": "c3-12",
+      "type": "spouse",
+      "bidirectional": true
+    }
+  ]
 }

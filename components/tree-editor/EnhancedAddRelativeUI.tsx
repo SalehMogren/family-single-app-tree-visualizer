@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   UserPlus, 
-  Heart, 
   Baby, 
   Users2, 
   Sparkles,
@@ -13,12 +12,19 @@ import {
   Crown,
   Heart as RingIcon
 } from 'lucide-react';
-import { FamilyMember, SmartSuggestion } from '../../lib/types';
+import { FamilyMember, SmartSuggestion, RelationshipConnection } from '../../lib/types';
 import { SmartSuggestionsEngine } from '../../lib/utils/SmartSuggestions';
+import { 
+  getParentIds, 
+  getChildIds, 
+  getSpouseIds, 
+  getSiblingIds 
+} from '../../lib/utils/relationshipHelpers';
 
 interface EnhancedAddRelativeUIProps {
   selectedPerson: FamilyMember;
   allData: { [id: string]: FamilyMember };
+  relationships: RelationshipConnection[];
   onAddRelative: (nodeId: string, type: "parent" | "spouse" | "child" | "sibling") => void;
   isDarkMode: boolean;
 }
@@ -37,6 +43,7 @@ interface RelativeOption {
 export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
   selectedPerson,
   allData,
+  relationships,
   onAddRelative,
   isDarkMode
 }) => {
@@ -44,10 +51,10 @@ export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
   const [activeTab, setActiveTab] = useState<'quick' | 'smart' | 'advanced'>('quick');
 
   useEffect(() => {
-    const suggestions = SmartSuggestionsEngine.generateSuggestions(selectedPerson, allData);
-    const fixes = SmartSuggestionsEngine.suggestRelationshipFixes(selectedPerson, allData);
+    const suggestions = SmartSuggestionsEngine.generateSuggestions(selectedPerson, allData, relationships);
+    const fixes = SmartSuggestionsEngine.suggestRelationshipFixes(selectedPerson, allData, relationships);
     setSmartSuggestions([...suggestions, ...fixes]);
-  }, [selectedPerson, allData]);
+  }, [selectedPerson, allData, relationships]);
 
   const relativeOptions: RelativeOption[] = [
     {
@@ -94,13 +101,10 @@ export const EnhancedAddRelativeUI: React.FC<EnhancedAddRelativeUIProps> = ({
 
   const getRelationshipCounts = () => {
     return {
-      parents: selectedPerson.parents?.length || 0,
-      spouses: selectedPerson.spouses?.length || 0,
-      children: selectedPerson.children?.length || 0,
-      siblings: Object.values(allData).filter(p => 
-        p.id !== selectedPerson.id && 
-        p.parents?.some(parentId => selectedPerson.parents?.includes(parentId))
-      ).length
+      parents: getParentIds(selectedPerson.id, relationships).length,
+      spouses: getSpouseIds(selectedPerson.id, relationships).length,
+      children: getChildIds(selectedPerson.id, relationships).length,
+      siblings: getSiblingIds(selectedPerson.id, relationships).length
     };
   };
 

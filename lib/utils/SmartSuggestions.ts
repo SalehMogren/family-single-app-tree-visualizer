@@ -1,4 +1,5 @@
-import { FamilyMember, SmartSuggestion } from '../types';
+import { FamilyMember, SmartSuggestion, RelationshipConnection } from '../types';
+import { getParentIds, getChildIds, getSpouseIds, getSiblingIds } from './relationshipHelpers';
 
 export class SmartSuggestionsEngine {
   /**
@@ -6,7 +7,8 @@ export class SmartSuggestionsEngine {
    */
   static generateSuggestions(
     targetPerson: FamilyMember,
-    allData: { [id: string]: FamilyMember }
+    allData: { [id: string]: FamilyMember },
+    relationships: RelationshipConnection[] = []
   ): SmartSuggestion[] {
     const suggestions: SmartSuggestion[] = [];
     
@@ -22,11 +24,16 @@ export class SmartSuggestionsEngine {
       return suggestions;
     }
     
-    // Analyze current relationships with safe property access
-    const hasParents = targetPerson.parents && targetPerson.parents.length > 0;
-    const hasSpouses = targetPerson.spouses && targetPerson.spouses.length > 0;
-    const hasChildren = targetPerson.children && targetPerson.children.length > 0;
-    const parentCount = targetPerson.parents?.length || 0;
+    // Analyze current relationships using relationship helpers
+    const parentIds = getParentIds(targetPerson.id, relationships);
+    const spouseIds = getSpouseIds(targetPerson.id, relationships);
+    const childIds = getChildIds(targetPerson.id, relationships);
+    const siblingIds = getSiblingIds(targetPerson.id, relationships);
+    
+    const hasParents = parentIds.length > 0;
+    const hasSpouses = spouseIds.length > 0;
+    const hasChildren = childIds.length > 0;
+    const parentCount = parentIds.length;
     
     // High priority suggestions
     if (parentCount === 0) {
@@ -40,12 +47,13 @@ export class SmartSuggestionsEngine {
         targetPersonId: targetPerson.id,
         icon: '👨‍👩‍👧‍👦'
       });
-    } else if (parentCount === 1 && targetPerson.parents) {
-      const parentId = targetPerson.parents[0];
+    } else if (parentCount === 1) {
+      const parentId = parentIds[0];
       const existingParent = allData[parentId];
       
       if (existingParent) {
-        const needsSpouse = !existingParent.spouses || existingParent.spouses.length === 0;
+        const parentSpouseIds = getSpouseIds(parentId, relationships);
+        const needsSpouse = parentSpouseIds.length === 0;
         
         if (needsSpouse) {
           suggestions.push({
@@ -188,28 +196,16 @@ export class SmartSuggestionsEngine {
     return suggestions;
   }
 
-  private static getSiblings(person: FamilyMember, allData: { [id: string]: FamilyMember }): FamilyMember[] {
-    if (!person || !person.id || !person.parents || person.parents.length === 0) return [];
-    if (!allData) return [];
+  private static getSiblings(person: FamilyMember, allData: { [id: string]: FamilyMember }, relationships: RelationshipConnection[]): FamilyMember[] {
+    if (!person || !person.id || !allData || !relationships) return [];
     
-    const siblings: FamilyMember[] = [];
-    Object.values(allData).forEach(p => {
-      if (!p || !p.id || p.id === person.id || !p.parents) return;
-      
-      const hasSharedParents = p.parents.some(parentId => 
-        person.parents!.includes(parentId)
-      );
-      if (hasSharedParents) {
-        siblings.push(p);
-      }
-    });
-    
-    return siblings;
+    const siblingIds = getSiblingIds(person.id, relationships);
+    return siblingIds.map(id => allData[id]).filter(Boolean);
   }
 
-  private static couldBeSpouse(person1: FamilyMember, person2: FamilyMember, allData: { [id: string]: FamilyMember }): boolean {
+  private static couldBeSpouse(person1: FamilyMember, person2: FamilyMember, allData: { [id: string]: FamilyMember }, relationships: RelationshipConnection[]): boolean {
     // Validate inputs
-    if (!person1 || !person2 || !person1.id || !person2.id || !allData) return false;
+    if (!person1 || !person2 || !person1.id || !person2.id || !allData || !relationships) return false;
     if (typeof person1.birth_year !== 'number' || typeof person2.birth_year !== 'number') return false;
     
     // Different genders (for traditional marriages)
@@ -220,17 +216,19 @@ export class SmartSuggestionsEngine {
     if (ageDiff > 20) return false;
     
     // Not already married to each other
-    if (person1.spouses?.includes(person2.id) || person2.spouses?.includes(person1.id)) return false;
+    const person1Spouses = getSpouseIds(person1.id, relationships);
+    const person2Spouses = getSpouseIds(person2.id, relationships);
+    if (person1Spouses.includes(person2.id) || person2Spouses.includes(person1.id)) return false;
     
     // Not closely related
-    if (this.areCloselyRelated(person1, person2, allData)) return false;
+    if (this.areCloselyRelated(person1, person2, allData, relationships)) return false;
     
     return true;
   }
 
-  private static couldBeParent(potentialParent: FamilyMember, potentialChild: FamilyMember, allData: { [id: string]: FamilyMember }): boolean {
+  private static couldBeParent(potentialParent: FamilyMember, potentialChild: FamilyMember, allData: { [id: string]: FamilyMember }, relationships: RelationshipConnection[]): boolean {
     // Validate inputs
-    if (!potentialParent || !potentialChild || !potentialParent.id || !potentialChild.id || !allData) return false;
+    if (!potentialParent || !potentialChild || !potentialParent.id || !potentialChild.id || !allData || !relationships) return false;
     if (typeof potentialParent.birth_year !== 'number' || typeof potentialChild.birth_year !== 'number') return false;
     
     // Age compatibility (parent should be older)
@@ -238,30 +236,33 @@ export class SmartSuggestionsEngine {
     if (ageDiff < 15 || ageDiff > 70) return false;
     
     // Not already in parent-child relationship
-    if (potentialChild.parents?.includes(potentialParent.id)) return false;
-    if (potentialParent.children?.includes(potentialChild.id)) return false;
+    const childParents = getParentIds(potentialChild.id, relationships);
+    const parentChildren = getChildIds(potentialParent.id, relationships);
+    if (childParents.includes(potentialParent.id)) return false;
+    if (parentChildren.includes(potentialChild.id)) return false;
     
     // Child doesn't already have 2 parents
-    if (potentialChild.parents && potentialChild.parents.length >= 2) return false;
+    if (childParents.length >= 2) return false;
     
     return true;
   }
 
-  private static areCloselyRelated(person1: FamilyMember, person2: FamilyMember, allData: { [id: string]: FamilyMember }): boolean {
+  private static areCloselyRelated(person1: FamilyMember, person2: FamilyMember, allData: { [id: string]: FamilyMember }, relationships: RelationshipConnection[]): boolean {
     // Validate inputs
-    if (!person1 || !person2 || !person1.id || !person2.id || !allData) return false;
+    if (!person1 || !person2 || !person1.id || !person2.id || !allData || !relationships) return false;
     
     // Check if they're parent-child
-    if (person1.parents?.includes(person2.id) || person2.parents?.includes(person1.id)) return true;
-    if (person1.children?.includes(person2.id) || person2.children?.includes(person1.id)) return true;
+    const person1Parents = getParentIds(person1.id, relationships);
+    const person1Children = getChildIds(person1.id, relationships);
+    const person2Parents = getParentIds(person2.id, relationships);
+    const person2Children = getChildIds(person2.id, relationships);
+    
+    if (person1Parents.includes(person2.id) || person2Parents.includes(person1.id)) return true;
+    if (person1Children.includes(person2.id) || person2Children.includes(person1.id)) return true;
     
     // Check if they're siblings
-    if (person1.parents && person2.parents) {
-      const hasSharedParents = person1.parents.some(parentId => 
-        person2.parents!.includes(parentId)
-      );
-      if (hasSharedParents) return true;
-    }
+    const person1Siblings = getSiblingIds(person1.id, relationships);
+    if (person1Siblings.includes(person2.id)) return true;
     
     return false;
   }
@@ -271,7 +272,8 @@ export class SmartSuggestionsEngine {
    */
   static suggestRelationshipFixes(
     targetPerson: FamilyMember,
-    allData: { [id: string]: FamilyMember }
+    allData: { [id: string]: FamilyMember },
+    relationships: RelationshipConnection[] = []
   ): SmartSuggestion[] {
     const suggestions: SmartSuggestion[] = [];
     
@@ -282,33 +284,35 @@ export class SmartSuggestionsEngine {
     }
 
     // Check for missing reciprocal relationships
-    if (targetPerson.parents) {
-      for (const parentId of targetPerson.parents) {
-        if (!parentId) continue;
-        const parent = allData[parentId];
-        if (parent && parent.id && (!parent.children || !parent.children.includes(targetPerson.id))) {
-          suggestions.push({
-            id: `${targetPerson.id}_fix_parent_${parentId}`,
-            type: 'parent',
-            label: `Fix Parent Relationship: ${parent.name || 'Unknown'}`,
-            description: `Add ${targetPerson.name || 'person'} as child of ${parent.name || 'parent'}`,
-            priority: 'high',
-            reason: 'Missing reciprocal parent-child relationship',
-            targetPersonId: targetPerson.id,
-            suggestedPersonId: parentId,
-            icon: '🔧'
-          });
-        }
+    const parentIds = getParentIds(targetPerson.id, relationships);
+    for (const parentId of parentIds) {
+      if (!parentId) continue;
+      const parent = allData[parentId];
+      const parentChildren = getChildIds(parentId, relationships);
+      if (parent && parent.id && !parentChildren.includes(targetPerson.id)) {
+        suggestions.push({
+          id: `${targetPerson.id}_fix_parent_${parentId}`,
+          type: 'parent',
+          label: `Fix Parent Relationship: ${parent.name || 'Unknown'}`,
+          description: `Add ${targetPerson.name || 'person'} as child of ${parent.name || 'parent'}`,
+          priority: 'high',
+          reason: 'Missing reciprocal parent-child relationship',
+          targetPersonId: targetPerson.id,
+          suggestedPersonId: parentId,
+          icon: '🔧'
+        });
       }
     }
 
     // Check for parent spouse connections
-    if (targetPerson.parents && targetPerson.parents.length === 2) {
-      const parent1 = allData[targetPerson.parents[0]];
-      const parent2 = allData[targetPerson.parents[1]];
+    if (parentIds.length === 2) {
+      const parent1 = allData[parentIds[0]];
+      const parent2 = allData[parentIds[1]];
       
       if (parent1 && parent2) {
-        const areSpouses = parent1.spouses?.includes(parent2.id) && parent2.spouses?.includes(parent1.id);
+        const parent1Spouses = getSpouseIds(parent1.id, relationships);
+        const parent2Spouses = getSpouseIds(parent2.id, relationships);
+        const areSpouses = parent1Spouses.includes(parent2.id) && parent2Spouses.includes(parent1.id);
         if (!areSpouses) {
           suggestions.push({
             id: `${targetPerson.id}_connect_parents_marriage`,

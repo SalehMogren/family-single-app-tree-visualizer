@@ -2,7 +2,7 @@
 
 /**
  * @interface FamilyMember
- * @description Represents a single person in the family.
+ * @description Represents a single person in the family (no relationship arrays).
  */
 export interface FamilyMember {
   id: string;
@@ -10,9 +10,6 @@ export interface FamilyMember {
   gender: "male" | "female";
   birth_year: number;
   death_year?: number;
-  parents?: string[];
-  spouses?: string[];
-  children?: string[];
   occupation?: string;
   birthplace?: string;
   notes?: string;
@@ -48,18 +45,28 @@ export interface TreeData {
 }
 
 export interface TreeState {
-  data: { [id: string]: FamilyMember };
+  /**
+   * All family members, keyed by ID.
+   */
+  members: { [id: string]: FamilyMember };
+  /**
+   * All relationships between members.
+   */
+  relationships: RelationshipConnection[];
+  /**
+   * The hierarchical tree structure for rendering (calculated).
+   */
   tree: TreeNodeData[];
   mainId: string;
   focusNodeId: string | null;
   nodeSeparation: number;
   levelSeparation: number;
   // Visual spacing controls for tree layout
-  horizontalSpacing: number; // Controls visual horizontal spacing multiplier
-  verticalSpacing: number; // Controls visual vertical spacing multiplier
+  horizontalSpacing: number;
+  verticalSpacing: number;
   showSpouses: boolean;
-  viewMode: "full" | "focus"; // View mode: full tree or 3-level focus
-  focusPersonId: string | null; // Person to focus on in 3-level view
+  viewMode: "full" | "focus";
+  focusPersonId: string | null;
   // Visual appearance settings
   cardWidth: number;
   cardHeight: number;
@@ -75,8 +82,16 @@ export interface TreeState {
     spouse: boolean;
     genderIcon: boolean;
   };
-  past: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
-  future: Array<{ data: { [id: string]: FamilyMember }; tree: TreeNodeData[] }>;
+  past: Array<{
+    members: { [id: string]: FamilyMember };
+    relationships: RelationshipConnection[];
+    tree: TreeNodeData[];
+  }>;
+  future: Array<{
+    members: { [id: string]: FamilyMember };
+    relationships: RelationshipConnection[];
+    tree: TreeNodeData[];
+  }>;
 }
 
 /**
@@ -137,12 +152,52 @@ export interface SmartSuggestion {
   icon: string;
 }
 
+/**
+ * Represents a relationship between two family members.
+ */
 export interface RelationshipConnection {
+  /**
+   * Unique identifier for this relationship connection.
+   */
   id: string;
+
+  /**
+   * The ID of the source person in the relationship.
+   * - For "parent-child", this is the parent.
+   * - For "spouse" and "sibling", this can be either person.
+   */
   fromId: string;
+
+  /**
+   * The ID of the target person in the relationship.
+   * - For "parent-child", this is the child.
+   * - For "spouse" and "sibling", this can be either person.
+   */
   toId: string;
-  type: "parent-child" | "spouse" | "sibling";
+
+  /**
+   * The type of relationship.
+   * - "parent": fromId is the parent, toId is the child.
+   * - "spouse": fromId and toId are spouses.
+   * - "sibling": fromId and toId are siblings.
+   */
+  type: "parent" | "spouse" | "sibling";
+
+  /**
+   * Whether the relationship is bidirectional.
+   * - true: The relationship is mutual (e.g., spouse, sibling).
+   *   - If A is spouse of B, B is also spouse of A.
+   *   - If A is sibling of B, B is also sibling of A.
+   * - false: The relationship is directional (e.g., parent-child).
+   *   - If A is parent of B, B is not parent of A.
+   */
   bidirectional: boolean;
+
+  /**
+   * Optional metadata for the relationship.
+   * - marriageYear, divorceYear for spouses.
+   * - adoptionType for parent-child.
+   */
   metadata?: {
     marriageYear?: number;
     divorceYear?: number;

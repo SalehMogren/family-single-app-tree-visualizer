@@ -11,14 +11,15 @@ import {
   CheckCircle,
   RefreshCw,
   Download,
-  Upload,
 } from "lucide-react";
+import { getParentIds, getChildIds, getSpouseIds } from "../../lib/utils/relationshipHelpers";
 
 export function DebugComponent() {
   const {
     data,
     tree,
     mainId,
+    relationships,
     viewMode,
     focusPersonId,
     nodeSeparation,
@@ -36,21 +37,25 @@ export function DebugComponent() {
 
   // Calculate some statistics
   const peopleWithParents = Object.values(data).filter(
-    (p) => p.parents && p.parents.length > 0
+    (p) => getParentIds(p.id, relationships).length > 0
   ).length;
   const peopleWithSpouses = Object.values(data).filter(
-    (p) => p.spouses && p.spouses.length > 0
+    (p) => getSpouseIds(p.id, relationships).length > 0
   ).length;
   const peopleWithChildren = Object.values(data).filter(
-    (p) => p.children && p.children.length > 0
+    (p) => getChildIds(p.id, relationships).length > 0
   ).length;
 
   // Check for potential issues
   const orphanedReferences = Object.values(data).filter((person) => {
+    const parentIds = getParentIds(person.id, relationships);
+    const spouseIds = getSpouseIds(person.id, relationships);
+    const childIds = getChildIds(person.id, relationships);
+    
     return (
-      person.parents?.some((parentId) => !data[parentId]) ||
-      person.spouses?.some((spouseId) => !data[spouseId]) ||
-      person.children?.some((childId) => !data[childId])
+      parentIds.some((parentId) => !data[parentId]) ||
+      spouseIds.some((spouseId) => !data[spouseId]) ||
+      childIds.some((childId) => !data[childId])
     );
   }).length;
 
@@ -213,8 +218,8 @@ export function DebugComponent() {
               <div key={person.id} className='flex justify-between'>
                 <span>{person.name}</span>
                 <span className='text-gray-500'>
-                  {person.parents?.length || 0}P, {person.spouses?.length || 0}
-                  S, {person.children?.length || 0}C
+                  {getParentIds(person.id, relationships).length}P, {getSpouseIds(person.id, relationships).length}
+                  S, {getChildIds(person.id, relationships).length}C
                 </span>
               </div>
             ))}

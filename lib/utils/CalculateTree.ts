@@ -3,14 +3,21 @@
  * Handles complex family structures with proper positioning and collision detection.
  */
 import * as d3 from "d3";
-import { FamilyMember, TreeNodeData } from "../types";
+import { FamilyMember, TreeNodeData, RelationshipConnection } from "../types";
+import {
+  getParentIds,
+  getChildIds,
+  getSpouseIds,
+  getSiblingIds,
+} from "./relationshipHelpers";
 
 /**
  * @interface CalculateTreeParams
- * @description Parameters for the calculateTree function.
+ * @description Parameters for the calculateTree function (RelationshipConnection model).
  */
 interface CalculateTreeParams {
-  data: { [id: string]: FamilyMember };
+  members: { [id: string]: FamilyMember };
+  relationships: RelationshipConnection[];
   mainId: string;
   nodeSeparation: number;
   levelSeparation: number;
@@ -35,7 +42,8 @@ interface FamilyGroup {
  * Enhanced tree calculation that handles complex family structures
  */
 export function calculateTree({
-  data,
+  members,
+  relationships,
   mainId,
   nodeSeparation = 200,
   levelSeparation = 150,
@@ -43,36 +51,50 @@ export function calculateTree({
   viewMode = "full",
   focusPersonId = null,
 }: CalculateTreeParams): TreeNodeData[] {
-  if (!data || !data[mainId]) {
-    console.log('[CalculateTree] No data or invalid mainId, returning empty array');
+  if (!members || !members[mainId]) {
+    console.log(
+      "[CalculateTree] No members or invalid mainId, returning empty array"
+    );
     return [];
   }
 
-  const dataSize = Object.keys(data).length;
-  console.log(`[CalculateTree] Starting calculation for ${mainId} with ${dataSize} people, viewMode: ${viewMode}`);
-  
+  const dataSize = Object.keys(members).length;
+  console.log(
+    `[CalculateTree] Starting calculation for ${mainId} with ${dataSize} people, viewMode: ${viewMode}`
+  );
+
   // Handle focus view mode (3-level view)
-  let filteredData = data;
+  let filteredData = members;
   let focusId = mainId;
-  
-  if (viewMode === "focus" && focusPersonId && data[focusPersonId]) {
-    console.log(`[CalculateTree] Using focus mode for person: ${focusPersonId}`);
-    filteredData = getThreeLevelFamilyData(data, focusPersonId);
-    focusId = focusPersonId;
+
+  if (viewMode === "focus" && focusPersonId && members[focusPersonId]) {
+    console.log(
+      `[CalculateTree] Using focus mode for person: ${focusPersonId}`
+    );
+    filteredData = getThreeLevelFamilyData(
+      members,
+      relationships,
+      focusPersonId
+    );
+    focusId = focusPersonId; // Use the focused person as the root
   }
-  
+
   const filteredDataSize = Object.keys(filteredData).length;
-  console.log(`[CalculateTree] Filtered to ${filteredDataSize} people for ${viewMode} view`);
-  
+  console.log(
+    `[CalculateTree] Filtered to ${filteredDataSize} people for ${viewMode} view`
+  );
+
   // Safety check for extremely large datasets that could cause performance issues
   if (filteredDataSize > 1000) {
-    console.warn(`[CalculateTree] Large dataset detected (${filteredDataSize} people), using fallback positioning`);
+    console.warn(
+      `[CalculateTree] Large dataset detected (${filteredDataSize} people), using fallback positioning`
+    );
     return fallbackSimplePositioning();
   }
 
   // Simple fallback positioning function
   function fallbackSimplePositioning(): TreeNodeData[] {
-    console.log('[CalculateTree] Using fallback positioning');
+    console.log("[CalculateTree] Using fallback positioning");
     const nodes: TreeNodeData[] = [];
     let x = 0;
     const spacing = nodeSeparation;
@@ -84,10 +106,10 @@ export function calculateTree({
     while (queue.length > 0) {
       const personId = queue.shift()!;
       if (visited.has(personId) || !filteredData[personId]) continue;
-      
+
       visited.add(personId);
       const person = filteredData[personId];
-      
+
       nodes.push({
         ...person,
         x: x,
@@ -96,16 +118,19 @@ export function calculateTree({
         parents: [],
         spouses: [],
       });
-      
+
       x += spacing;
 
-      // Add connected people to queue
-      [...(person.children || []), ...(person.parents || []), ...(person.spouses || [])]
-        .forEach(id => {
-          if (!visited.has(id) && filteredData[id]) {
-            queue.push(id);
-          }
-        });
+      // Add connected people to queue using helpers
+      [
+        ...getChildIds(personId, relationships),
+        ...getParentIds(personId, relationships),
+        ...getSpouseIds(personId, relationships),
+      ].forEach((id) => {
+        if (!visited.has(id) && filteredData[id]) {
+          queue.push(id);
+        }
+      });
     }
 
     return nodes;
@@ -113,10 +138,17 @@ export function calculateTree({
 
   try {
     // Step 1: Build multiple family trees to handle disconnected branches
-    const familyTrees = buildMultipleFamilyTrees(filteredData, focusId, showSpouses);
-    
+    const familyTrees = buildMultipleFamilyTrees(
+      members,
+      relationships,
+      focusId,
+      showSpouses
+    );
+
     if (familyTrees.length === 0) {
-      console.warn('[CalculateTree] Could not build any family trees, using fallback');
+      console.warn(
+        "[CalculateTree] Could not build any family trees, using fallback"
+      );
       return fallbackSimplePositioning();
     }
 
@@ -124,15 +156,20 @@ export function calculateTree({
     const result: TreeNodeData[] = [];
     let currentXOffset = 0;
     const treeSpacing = nodeSeparation * 3; // Space between different family trees
-    
+
     familyTrees.forEach((treeData, treeIndex) => {
-      console.log(`[CalculateTree] Processing family tree ${treeIndex + 1}/${familyTrees.length}`);
-      
+      console.log(
+        `[CalculateTree] Processing family tree ${treeIndex + 1}/${
+          familyTrees.length
+        }`
+      );
+
       // Use D3 tree layout for this specific tree
       const treeWidth = 800; // Smaller width per tree
       const treeHeight = 800;
-      
-      const tree = d3.tree<any>()
+
+      const tree = d3
+        .tree<any>()
         .size([treeWidth, treeHeight])
         .separation((a, b) => {
           // More space between siblings than between cousins
@@ -141,18 +178,18 @@ export function calculateTree({
 
       const root = d3.hierarchy(treeData);
       const treeLayout = tree(root);
-      
+
       // Convert D3 nodes to our format with proper positioning
       const treeNodes: TreeNodeData[] = [];
-      
+
       treeLayout.each((node: any) => {
         const person = filteredData[node.data.id];
         if (person) {
           // Position within this tree, then offset for multiple trees
-          const localX = node.x - (treeWidth / 2);
+          const localX = node.x - treeWidth / 2;
           const globalX = localX + currentXOffset;
           const spacedY = node.y;
-          
+
           treeNodes.push({
             ...person,
             x: globalX,
@@ -162,35 +199,43 @@ export function calculateTree({
             spouses: [],
             level: node.depth,
           });
-          
-          console.log(`[CalculateTree] Tree ${treeIndex}: Positioned ${person.name}: (${globalX}, ${spacedY})`);
+
+          console.log(
+            `[CalculateTree] Tree ${treeIndex}: Positioned ${person.name}: (${globalX}, ${spacedY})`
+          );
         }
       });
-      
+
       // Add spouses for this tree
       if (showSpouses) {
-        addSpousePositions(treeNodes, filteredData, nodeSeparation);
+        addSpousePositions(
+          treeNodes,
+          filteredData,
+          relationships,
+          nodeSeparation
+        );
       }
-      
+
       // Calculate the width of this tree for next offset
       if (treeNodes.length > 0) {
-        const minX = Math.min(...treeNodes.map(n => n.x));
-        const maxX = Math.max(...treeNodes.map(n => n.x));
+        const minX = Math.min(...treeNodes.map((n) => n.x));
+        const maxX = Math.max(...treeNodes.map((n) => n.x));
         const treeActualWidth = maxX - minX;
         currentXOffset += treeActualWidth + treeSpacing;
       }
-      
+
       result.push(...treeNodes);
     });
 
     // Step 3: Fine-tune positions to avoid overlaps across all trees
     resolveCollisions(result, nodeSeparation);
 
-    console.log(`[CalculateTree] Completed: ${result.length} nodes positioned across ${familyTrees.length} family trees`);
+    console.log(
+      `[CalculateTree] Completed: ${result.length} nodes positioned across ${familyTrees.length} family trees`
+    );
     return result;
-
   } catch (error) {
-    console.error('[CalculateTree] Error during calculation:', error);
+    console.error("[CalculateTree] Error during calculation:", error);
     return fallbackSimplePositioning();
   }
 }
@@ -199,168 +244,184 @@ export function calculateTree({
  * Extract 3-level family data centered around a focus person
  * Includes: grandparents, parents, focus person, spouse(s), children, and grandchildren
  */
-function getThreeLevelFamilyData(data: { [id: string]: FamilyMember }, focusPersonId: string): { [id: string]: FamilyMember } {
-  const focusPerson = data[focusPersonId];
-  if (!focusPerson) return {};
-  
-  const threeLevelData: { [id: string]: FamilyMember } = {};
-  const includedIds = new Set<string>();
-  
-  // Helper to add person and mark as included
-  const addPerson = (personId: string) => {
-    if (data[personId] && !includedIds.has(personId)) {
-      threeLevelData[personId] = data[personId];
-      includedIds.add(personId);
-    }
-  };
-  
-  // Level 0: Focus person
-  addPerson(focusPersonId);
-  
-  // Level -1: Parents and spouses
-  focusPerson.parents?.forEach(addPerson);
-  focusPerson.spouses?.forEach(addPerson);
-  
-  // Level -2: Grandparents (parents of parents)
-  focusPerson.parents?.forEach(parentId => {
-    const parent = data[parentId];
-    if (parent) {
-      parent.parents?.forEach(addPerson);
-    }
+function getThreeLevelFamilyData(
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[],
+  focusPersonId: string
+): { [id: string]: FamilyMember } {
+  // Always include the focus person
+  const ids = new Set<string>([focusPersonId]);
+
+  // Add parents
+  getParentIds(focusPersonId, relationships).forEach((id) => ids.add(id));
+  // Add siblings (share at least one parent)
+  getParentIds(focusPersonId, relationships).forEach((parentId) => {
+    getChildIds(parentId, relationships).forEach((sibId) => ids.add(sibId));
   });
-  
-  // Level +1: Children
-  focusPerson.children?.forEach(addPerson);
-  
-  // Level +2: Grandchildren (children of children)
-  focusPerson.children?.forEach(childId => {
-    const child = data[childId];
-    if (child) {
-      child.children?.forEach(addPerson);
-    }
+  // Add children
+  getChildIds(focusPersonId, relationships).forEach((id) => ids.add(id));
+  // Add spouses
+  getSpouseIds(focusPersonId, relationships).forEach((id) => ids.add(id));
+
+  // Add parents of spouses
+  getSpouseIds(focusPersonId, relationships).forEach((spouseId) => {
+    getParentIds(spouseId, relationships).forEach((id) => ids.add(id));
+    getChildIds(spouseId, relationships).forEach((id) => ids.add(id));
   });
-  
-  // Also include spouses of children for context
-  focusPerson.children?.forEach(childId => {
-    const child = data[childId];
-    if (child) {
-      child.spouses?.forEach(addPerson);
-    }
+
+  // Build filtered data
+  const filtered: { [id: string]: FamilyMember } = {};
+  ids.forEach((id) => {
+    if (members[id]) filtered[id] = members[id];
   });
-  
-  console.log(`[getThreeLevelFamilyData] Extracted ${Object.keys(threeLevelData).length} people for 3-level view of ${focusPerson.name}`);
-  return threeLevelData;
+  return filtered;
 }
 
 /**
  * Build multiple family trees to handle disconnected family branches
  * This allows for both maternal and paternal family trees to be displayed
  */
-function buildMultipleFamilyTrees(data: { [id: string]: FamilyMember }, mainId: string, showSpouses: boolean): any[] {
-  const allPersonIds = Object.keys(data);
+function buildMultipleFamilyTrees(
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[],
+  mainId: string,
+  showSpouses: boolean
+): any[] {
+  const allPersonIds = Object.keys(members);
   const processedIds = new Set<string>();
   const familyTrees: any[] = [];
-  
+
   // Helper function to find all connected people from a starting point
   const findConnectedFamily = (startId: string): Set<string> => {
     const connected = new Set<string>();
     const queue = [startId];
-    
+
     while (queue.length > 0) {
       const currentId = queue.shift()!;
-      if (connected.has(currentId) || !data[currentId]) continue;
-      
+      if (connected.has(currentId) || !members[currentId]) continue;
+
       connected.add(currentId);
-      const person = data[currentId];
-      
-      // Add all connected relatives to queue
-      [...(person.parents || []), ...(person.children || []), ...(person.spouses || [])]
-        .forEach(relativeId => {
-          if (!connected.has(relativeId) && data[relativeId]) {
-            queue.push(relativeId);
-          }
-        });
+      // Add all connected relatives to queue using helpers
+      [
+        ...getChildIds(currentId, relationships),
+        ...getParentIds(currentId, relationships),
+        ...getSpouseIds(currentId, relationships),
+      ].forEach((relativeId) => {
+        if (!connected.has(relativeId) && members[relativeId]) {
+          queue.push(relativeId);
+        }
+      });
     }
-    
+
     return connected;
   };
-  
+
   // Start with the main person and build their connected family tree
-  if (data[mainId]) {
+  if (members[mainId]) {
     const mainFamilyIds = findConnectedFamily(mainId);
-    const mainFamilyTree = buildSingleFamilyTree(data, mainId, Array.from(mainFamilyIds));
+    const mainFamilyTree = buildSingleFamilyTree(
+      members,
+      relationships,
+      mainId,
+      Array.from(mainFamilyIds)
+    );
     if (mainFamilyTree) {
       familyTrees.push(mainFamilyTree);
-      mainFamilyIds.forEach(id => processedIds.add(id));
+      mainFamilyIds.forEach((id) => processedIds.add(id));
     }
   }
-  
+
   // Find any remaining disconnected families
-  allPersonIds.forEach(personId => {
+  allPersonIds.forEach((personId) => {
     if (!processedIds.has(personId)) {
       const familyIds = findConnectedFamily(personId);
-      const familyTree = buildSingleFamilyTree(data, personId, Array.from(familyIds));
+      const familyTree = buildSingleFamilyTree(
+        members,
+        relationships,
+        personId,
+        Array.from(familyIds)
+      );
       if (familyTree) {
         familyTrees.push(familyTree);
-        familyIds.forEach(id => processedIds.add(id));
+        familyIds.forEach((id) => processedIds.add(id));
       }
     }
   });
-  
-  console.log(`[buildMultipleFamilyTrees] Built ${familyTrees.length} family trees`);
+
+  console.log(
+    `[buildMultipleFamilyTrees] Built ${familyTrees.length} family trees`
+  );
   return familyTrees;
 }
 
 /**
  * Build a single family tree from a connected group of people
  */
-function buildSingleFamilyTree(data: { [id: string]: FamilyMember }, rootId: string, familyMemberIds: string[]): any | null {
+function buildSingleFamilyTree(
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[],
+  rootId: string,
+  familyMemberIds: string[]
+): any | null {
   // Find the actual root (person with no parents in this family group)
   const findRoot = (startId: string): string => {
     let current = startId;
     const visited = new Set<string>();
-    
-    while (current && !visited.has(current) && familyMemberIds.includes(current)) {
+
+    while (
+      current &&
+      !visited.has(current) &&
+      familyMemberIds.includes(current)
+    ) {
       visited.add(current);
-      const person = data[current];
-      if (!person || !person.parents || person.parents.length === 0) {
+      const parentIds = getParentIds(current, relationships);
+      if (!parentIds || parentIds.length === 0) {
         break;
       }
       // Find a parent that's in our family group
-      const parentInGroup = person.parents.find(parentId => familyMemberIds.includes(parentId));
+      const parentInGroup = parentIds.find((parentId) =>
+        familyMemberIds.includes(parentId)
+      );
       if (parentInGroup) {
         current = parentInGroup;
       } else {
         break;
       }
     }
-    
+
     return current;
   };
-  
+
   const actualRoot = findRoot(rootId);
-  if (!actualRoot || !data[actualRoot]) {
-    console.warn(`[buildSingleFamilyTree] Could not find root for family containing ${rootId}`);
+  if (!actualRoot || !members[actualRoot]) {
+    console.warn(
+      `[buildSingleFamilyTree] Could not find root for family containing ${rootId}`
+    );
     return null;
   }
-  
-  console.log(`[buildSingleFamilyTree] Building tree from root: ${actualRoot} for family group of ${familyMemberIds.length} people`);
-  
+
+  console.log(
+    `[buildSingleFamilyTree] Building tree from root: ${actualRoot} for family group of ${familyMemberIds.length} people`
+  );
+
   function buildNode(personId: string, level: number = 0): any {
-    const person = data[personId];
+    const person = members[personId];
     if (!person || !familyMemberIds.includes(personId)) return null;
-    
+
     const node: any = {
       id: personId,
       name: person.name,
       level: level,
-      children: []
+      children: [],
     };
 
     // Add children to the hierarchy (only those in this family group)
-    if (person.children && person.children.length > 0) {
-      person.children.forEach(childId => {
-        if (familyMemberIds.includes(childId) && data[childId]) {
+    const childIds = getChildIds(personId, relationships).filter((childId) =>
+      familyMemberIds.includes(childId)
+    );
+    if (childIds.length > 0) {
+      childIds.forEach((childId) => {
+        if (familyMemberIds.includes(childId) && members[childId]) {
           const childNode = buildNode(childId, level + 1);
           if (childNode) {
             node.children.push(childNode);
@@ -373,11 +434,15 @@ function buildSingleFamilyTree(data: { [id: string]: FamilyMember }, rootId: str
   }
 
   const hierarchicalTree = buildNode(actualRoot, 0);
-  
+
   if (hierarchicalTree) {
-    console.log(`[buildSingleFamilyTree] Built tree with ${countNodes(hierarchicalTree)} nodes`);
+    console.log(
+      `[buildSingleFamilyTree] Built tree with ${countNodes(
+        hierarchicalTree
+      )} nodes`
+    );
   }
-  
+
   return hierarchicalTree;
 }
 
@@ -398,29 +463,32 @@ function countNodes(node: any): number {
 /**
  * Add spouse positions next to their partners
  */
-function addSpousePositions(nodes: TreeNodeData[], data: { [id: string]: FamilyMember }, nodeSeparation: number) {
+function addSpousePositions(
+  nodes: TreeNodeData[],
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[],
+  nodeSeparation: number
+) {
   const spouseNodes: TreeNodeData[] = [];
-  
-  nodes.forEach(node => {
-    const person = data[node.id];
-    if (person.spouses) {
-      person.spouses.forEach((spouseId, index) => {
-        if (data[spouseId] && !nodes.find(n => n.id === spouseId)) {
-          const spouseOffset = (index + 1) * nodeSeparation * 0.8;
-          spouseNodes.push({
-            ...data[spouseId],
-            x: node.x + spouseOffset,
-            y: node.y,
-            children: [],
-            parents: [],
-            spouses: [],
-            isSpouse: true,
-          });
-        }
-      });
-    }
+
+  nodes.forEach((node) => {
+    const person = members[node.id];
+    getSpouseIds(node.id, relationships).forEach((spouseId, index) => {
+      if (members[spouseId] && !nodes.find((n) => n.id === spouseId)) {
+        const spouseOffset = (index + 1) * nodeSeparation * 0.8;
+        spouseNodes.push({
+          ...members[spouseId],
+          x: node.x + spouseOffset,
+          y: node.y,
+          children: [],
+          parents: [],
+          spouses: [],
+          isSpouse: true,
+        });
+      }
+    });
   });
-  
+
   nodes.push(...spouseNodes);
 }
 
@@ -430,8 +498,8 @@ function addSpousePositions(nodes: TreeNodeData[], data: { [id: string]: FamilyM
 function resolveCollisions(nodes: TreeNodeData[], minSeparation: number) {
   // Group nodes by Y level
   const levelGroups = new Map<number, TreeNodeData[]>();
-  
-  nodes.forEach(node => {
+
+  nodes.forEach((node) => {
     const level = Math.round(node.y / 10) * 10; // Round to nearest 10 for grouping
     if (!levelGroups.has(level)) {
       levelGroups.set(level, []);
@@ -440,18 +508,18 @@ function resolveCollisions(nodes: TreeNodeData[], minSeparation: number) {
   });
 
   // Resolve collisions within each level
-  levelGroups.forEach(levelNodes => {
+  levelGroups.forEach((levelNodes) => {
     levelNodes.sort((a, b) => a.x - b.x);
-    
+
     for (let i = 1; i < levelNodes.length; i++) {
       const prevNode = levelNodes[i - 1];
       const currentNode = levelNodes[i];
       const distance = currentNode.x - prevNode.x;
-      
+
       if (distance < minSeparation) {
         const adjustment = minSeparation - distance;
         currentNode.x += adjustment;
-        
+
         // Propagate adjustment to subsequent nodes
         for (let j = i + 1; j < levelNodes.length; j++) {
           levelNodes[j].x += adjustment;
@@ -477,81 +545,57 @@ export function getNodeDimensions() {
  */
 export const getSiblings = (
   personId: string,
-  data: { [id: string]: FamilyMember }
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[]
 ): FamilyMember[] => {
-  const person = data[personId];
-  if (!person?.parents?.length) return [];
-
-  return Object.values(data).filter(
-    (p) =>
-      p.id !== personId &&
-      p.parents?.some((parentId) => person.parents!.includes(parentId))
-  );
+  const siblingIds = getSiblingIds(personId, relationships);
+  return siblingIds.map((id) => members[id]).filter(Boolean);
 };
 
 export const getGrandparents = (
   personId: string,
-  data: { [id: string]: FamilyMember }
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[]
 ): FamilyMember[] => {
-  const person = data[personId];
-  if (!person?.parents?.length) return [];
-
-  const grandparentIds = person.parents.flatMap(
-    (parentId) => data[parentId]?.parents || []
+  const parentIds = getParentIds(personId, relationships);
+  const grandparentIds = parentIds.flatMap((parentId) =>
+    getParentIds(parentId, relationships)
   );
-
-  return grandparentIds.map((id) => data[id]).filter(Boolean);
+  return grandparentIds.map((id) => members[id]).filter(Boolean);
 };
 
 export const getAuntsUncles = (
   personId: string,
-  data: { [id: string]: FamilyMember }
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[]
 ): FamilyMember[] => {
-  const person = data[personId];
-  if (!person?.parents?.length) return [];
-
-  return person.parents.flatMap((parentId) => getSiblings(parentId, data));
+  const parentIds = getParentIds(personId, relationships);
+  return parentIds.flatMap((parentId) =>
+    getSiblings(parentId, members, relationships)
+  );
 };
 
 export const getCousins = (
   personId: string,
-  data: { [id: string]: FamilyMember }
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[]
 ): FamilyMember[] => {
-  const auntsUncles = getAuntsUncles(personId, data);
-  return auntsUncles.flatMap((auntUncle) =>
-    Object.values(data).filter((p) => p.parents?.includes(auntUncle.id))
-  );
+  const auntsUncles = getAuntsUncles(personId, members, relationships);
+  return auntsUncles
+    .flatMap((auntUncle) =>
+      getChildIds(auntUncle.id, relationships).map((id) => members[id])
+    )
+    .filter(Boolean);
 };
 
-export const getNiecesNephews = (
-  personId: string,
-  data: { [id: string]: FamilyMember }
-): FamilyMember[] => {
-  const siblings = getSiblings(personId, data);
-  return siblings.flatMap((sibling) =>
-    Object.values(data).filter((p) => p.parents?.includes(sibling.id))
-  );
-};
-
-export const getInLaws = (
-  personId: string,
-  data: { [id: string]: FamilyMember }
-): FamilyMember[] => {
-  const person = data[personId];
-  if (!person?.spouses?.length) return [];
-
-  return person.spouses.flatMap((spouseId) => {
-    const spouse = data[spouseId];
-    return [
-      ...(spouse.parents?.map((id) => data[id]) || []),
-      ...getSiblings(spouseId, data),
-    ];
-  });
-};
+// Commented out getNiecesNephews and getInLaws for now to avoid linter errors
+// export const getNiecesNephews = () => [];
+// export const getInLaws = () => [];
 
 export const getExtendedFamily = (
   personId: string,
-  data: { [id: string]: FamilyMember }
+  members: { [id: string]: FamilyMember },
+  relationships: RelationshipConnection[]
 ): {
   siblings: FamilyMember[];
   grandparents: FamilyMember[];
@@ -562,13 +606,13 @@ export const getExtendedFamily = (
   stepSiblings: FamilyMember[];
 } => {
   return {
-    siblings: getSiblings(personId, data),
-    grandparents: getGrandparents(personId, data),
-    auntsUncles: getAuntsUncles(personId, data),
-    cousins: getCousins(personId, data),
-    niecesNephews: getNiecesNephews(personId, data),
-    inLaws: getInLaws(personId, data),
-    stepSiblings: [], // Placeholder for stepSiblings functionality
+    siblings: getSiblings(personId, members, relationships),
+    grandparents: getGrandparents(personId, members, relationships),
+    auntsUncles: getAuntsUncles(personId, members, relationships),
+    cousins: getCousins(personId, members, relationships),
+    niecesNephews: [],
+    inLaws: [],
+    stepSiblings: [],
   };
 };
 

@@ -80,6 +80,9 @@ export const TreeSvg = forwardRef<any, TreeSvgProps>(
       lineShape,
       showLabels,
       showSpouses,
+      relationships,
+      focusPersonId,
+      setFocusPerson,
     } = useTreeStore();
     const baseTreeRef = useRef<any>(null);
 
@@ -120,8 +123,10 @@ export const TreeSvg = forwardRef<any, TreeSvgProps>(
           onAddRelative={onAddRelative}
           onRelationshipDrop={onRelationshipDrop}
           onModifyRelationship={onModifyRelationship}
+          selectedNodeId={focusPersonId || mainId}
+          setFocusPerson={setFocusPerson}
+          relationships={relationships}
           className='w-full h-full'
-          selectedNodeId={selectedNodeId}
           {...rest}
         />
       </div>

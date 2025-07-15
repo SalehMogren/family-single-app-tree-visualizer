@@ -12,12 +12,13 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { FamilyMember, SmartSuggestion } from '../../lib/types';
+import { FamilyMember, SmartSuggestion, RelationshipConnection } from '../../lib/types';
 import { SmartSuggestionsEngine } from '../../lib/utils/SmartSuggestions';
 
 interface FloatingSuggestionsProps {
   selectedPerson: FamilyMember | null;
   allData: { [id: string]: FamilyMember };
+  relationships: RelationshipConnection[];
   onAddRelative: (nodeId: string, type: "parent" | "spouse" | "child" | "sibling") => void;
   onConnectExisting?: (personId1: string, personId2: string, relationshipType: "parent" | "spouse" | "child" | "sibling") => void;
   isDarkMode: boolean;
@@ -29,6 +30,7 @@ interface FloatingSuggestionsProps {
 export const FloatingSuggestions: React.FC<FloatingSuggestionsProps> = ({
   selectedPerson,
   allData,
+  relationships,
   onAddRelative,
   onConnectExisting,
   isDarkMode,
@@ -42,11 +44,11 @@ export const FloatingSuggestions: React.FC<FloatingSuggestionsProps> = ({
 
   useEffect(() => {
     if (selectedPerson) {
-      const newSuggestions = SmartSuggestionsEngine.generateSuggestions(selectedPerson, allData);
-      const fixes = SmartSuggestionsEngine.suggestRelationshipFixes(selectedPerson, allData);
+      const newSuggestions = SmartSuggestionsEngine.generateSuggestions(selectedPerson, allData, relationships);
+      const fixes = SmartSuggestionsEngine.suggestRelationshipFixes(selectedPerson, allData, relationships);
       setSuggestions([...newSuggestions, ...fixes]);
     }
-  }, [selectedPerson, allData]);
+  }, [selectedPerson, allData, relationships]);
 
   if (!isVisible || !selectedPerson) return null;
 

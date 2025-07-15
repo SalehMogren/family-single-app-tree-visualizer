@@ -28,11 +28,18 @@ import {
   validateRelationship,
   detectDuplicates,
 } from "../../lib/utils/CalculateTree";
+import {
+  getParentIds,
+  getSpouseIds,
+  getChildIds,
+  getSiblingIds,
+} from "../../lib/utils/relationshipHelpers";
 import { SmartSuggestionsEngine } from "../../lib/utils/SmartSuggestions";
 
 interface RelationshipManagerProps {
   selectedPerson: FamilyMember;
   allData: { [id: string]: FamilyMember };
+  relationships: any[];
   onAddRelative: (
     nodeId: string,
     type: "parent" | "spouse" | "child" | "sibling"
@@ -54,6 +61,7 @@ interface RelationshipManagerProps {
 export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
   selectedPerson,
   allData,
+  relationships,
   onAddRelative,
   onConnectExisting,
   onModifyRelationship,
@@ -71,7 +79,15 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
     "all" | "high" | "medium" | "low"
   >("all");
 
-  const extendedFamily = getExtendedFamily(selectedPerson.id, allData);
+  const parentIds = getParentIds(selectedPerson.id, relationships);
+  const spouseIds = getSpouseIds(selectedPerson.id, relationships);
+  const childIds = getChildIds(selectedPerson.id, relationships);
+  const siblingIds = getSiblingIds(selectedPerson.id, relationships);
+  const extendedFamily = getExtendedFamily(
+    selectedPerson.id,
+    allData,
+    relationships
+  );
 
   // Load suggestions when selected person changes
   useEffect(() => {
@@ -88,7 +104,7 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
 
   const quickAddActions = [
     // Only include Add Parent if less than 2 parents
-    ...(!selectedPerson.parents || selectedPerson.parents.length < 2
+    ...(parentIds.length < 2
       ? [
           {
             type: "parent" as const,
@@ -118,16 +134,16 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
       label: "Add Sibling",
       icon: <Users2 size={16} />,
       color: "bg-purple-500 hover:bg-purple-600",
-      disabled: !selectedPerson.parents || selectedPerson.parents.length === 0,
+      disabled: parentIds.length === 0,
       disabledReason: "Person must have parents to add siblings",
     },
   ];
 
   const relationshipCounts = {
-    parents: selectedPerson.parents?.length || 0,
-    spouses: selectedPerson.spouses?.length || 0,
-    children: selectedPerson.children?.length || 0,
-    siblings: extendedFamily.siblings.length,
+    parents: parentIds.length,
+    spouses: spouseIds.length,
+    children: childIds.length,
+    siblings: siblingIds.length,
     grandparents: extendedFamily.grandparents.length,
     auntsUncles: extendedFamily.auntsUncles.length,
     cousins: extendedFamily.cousins.length,
@@ -227,7 +243,7 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
     }> = [];
 
     // Check for missing parents
-    if (!selectedPerson.parents || selectedPerson.parents.length === 0) {
+    if (parentIds.length === 0) {
       validations.push({
         type: "warning",
         message: "No parents recorded",
@@ -236,25 +252,23 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
     }
 
     // Check for age logic
-    if (selectedPerson.parents) {
-      selectedPerson.parents.forEach((parentId) => {
-        const parent = allData[parentId];
-        if (parent) {
-          const validation = validateRelationship(
-            parent,
-            selectedPerson,
-            "parent"
-          );
-          if (!validation.isValid) {
-            validations.push({
-              type: "error",
-              message: `Age issue with ${parent.name}: ${validation.errors[0]}`,
-              icon: <AlertTriangle size={16} />,
-            });
-          }
+    parentIds.forEach((parentId) => {
+      const parent = allData[parentId];
+      if (parent) {
+        const validation = validateRelationship(
+          parent,
+          selectedPerson,
+          "parent"
+        );
+        if (!validation.isValid) {
+          validations.push({
+            type: "error",
+            message: `Age issue with ${parent.name}: ${validation.errors[0]}`,
+            icon: <AlertTriangle size={16} />,
+          });
         }
-      });
-    }
+      }
+    });
 
     // Check for potential duplicates
     const duplicates = detectDuplicates(selectedPerson, allData);
@@ -297,13 +311,10 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
 
   const renderModifySection = () => {
     const currentRelationships = {
-      parents:
-        selectedPerson.parents?.map((id) => allData[id]).filter(Boolean) || [],
-      spouses:
-        selectedPerson.spouses?.map((id) => allData[id]).filter(Boolean) || [],
-      children:
-        selectedPerson.children?.map((id) => allData[id]).filter(Boolean) || [],
-      siblings: extendedFamily.siblings || [],
+      parents: parentIds.map((id) => allData[id]).filter(Boolean),
+      spouses: spouseIds.map((id) => allData[id]).filter(Boolean),
+      children: childIds.map((id) => allData[id]).filter(Boolean),
+      siblings: siblingIds.map((id) => allData[id]).filter(Boolean),
     };
 
     return (

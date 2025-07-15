@@ -3,17 +3,16 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Settings,
   Trash2,
   Edit3,
   X,
   Heart,
   Users,
   ArrowDown,
-  ArrowUp,
-  Info
+  ArrowUp
 } from 'lucide-react';
-import { FamilyMember } from '../../lib/types';
+import { FamilyMember, RelationshipConnection } from '../../lib/types';
+import { getChildIds } from '../../lib/utils/relationshipHelpers';
 
 interface InteractiveLinkProps {
   linkData: {
@@ -23,6 +22,7 @@ interface InteractiveLinkProps {
     person2: FamilyMember;
   };
   position: { x: number; y: number };
+  relationships: RelationshipConnection[];
   isDarkMode: boolean;
   onModifyRelationship: (
     personId1: string,
@@ -36,6 +36,7 @@ interface InteractiveLinkProps {
 export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
   linkData,
   position,
+  relationships,
   isDarkMode,
   onModifyRelationship,
   onClose
@@ -206,9 +207,11 @@ export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
                   <div className="flex items-center justify-between text-xs">
                     <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Shared Children:</span>
                     <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
-                      {linkData.person1.children?.filter(childId => 
-                        linkData.person2.children?.includes(childId)
-                      ).length || 0}
+                      {(() => {
+                        const person1Children = getChildIds(linkData.person1.id, relationships);
+                        const person2Children = getChildIds(linkData.person2.id, relationships);
+                        return person1Children.filter(childId => person2Children.includes(childId)).length;
+                      })()}
                     </span>
                   </div>
                 </div>
