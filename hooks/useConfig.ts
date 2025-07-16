@@ -9,6 +9,7 @@ import {
   loadFooterConfig,
   loadTheme,
 } from "@/lib/config"
+import { useTranslation } from "@/lib/i18n/useTranslation"
 
 interface AppConfigNew {
   appInfo: {
@@ -75,13 +76,29 @@ export function useFamilyBrief() {
   const [familyBrief, setFamilyBrief] = useState<FamilyBrief | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { language } = useTranslation()
 
   useEffect(() => {
-    loadFamilyBrief()
-      .then(setFamilyBrief)
-      .catch((err) => setError(err.message))
+    // Load multilingual family brief config
+    fetch("/config/family-brief.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((data) => {
+        // Use current language from translation hook
+        const languageData = data[language] || data.ar
+        setFamilyBrief(languageData)
+        setError(null)
+      })
+      .catch((err) => {
+        console.error("Error loading family brief:", err)
+        setError(err.message)
+      })
       .finally(() => setLoading(false))
-  }, [])
+  }, [language]) // Re-run when language changes
 
   return { familyBrief, loading, error }
 }

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Users, Menu, X } from "lucide-react";
 import { useAppConfig, useTheme } from "@/hooks/useConfig";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 
 interface NavbarProps {
   isDarkMode: boolean;
@@ -14,6 +16,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { config } = useAppConfig();
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   if (!config || !theme) return null;
 
@@ -79,7 +82,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
                 }}>
-                نبذة العائلة
+                {t("common.familyBrief")}
               </button>
             )}{" "}
             <button
@@ -89,7 +92,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 color: colors.text,
                 fontFamily: theme.fonts.primary,
               }}>
-              الشجرة التفاعلية
+              {t("common.interactiveTree")}
             </button>
             <button
               onClick={() => window.open("/tree-editor", "_blank")}
@@ -98,27 +101,31 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 color: colors.text,
                 fontFamily: theme.fonts.primary,
               }}>
-              محرر الشجرة
+              {t("toolbar.treeEditor")}
             </button>
-            <div className='h-4 w-px bg-amber-300 opacity-50'></div>
-            {config.features.darkMode && (
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={toggleTheme}
-                className={`transition-all duration-300 hover:scale-110`}
-                style={{ color: colors.primary }}>
-                {isDarkMode ? (
-                  <Sun className='h-4 w-4' />
-                ) : (
-                  <Moon className='h-4 w-4' />
-                )}
-              </Button>
-            )}
+            <div className='flex-1'></div>
+            <div className='flex items-center gap-2'>
+              <LanguageToggle isDarkMode={isDarkMode} />
+              {config.features.darkMode && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={toggleTheme}
+                  className={`transition-all duration-300 hover:scale-110`}
+                  style={{ color: colors.primary }}>
+                  {isDarkMode ? (
+                    <Sun className='h-4 w-4' />
+                  ) : (
+                    <Moon className='h-4 w-4' />
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className='md:hidden flex items-center gap-2'>
+            <LanguageToggle isDarkMode={isDarkMode} />
             {config.features.darkMode && (
               <Button
                 variant='ghost'
@@ -163,7 +170,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                     color: colors.text,
                     fontFamily: theme.fonts.primary,
                   }}>
-                  نبذة العائلة
+                  {t("common.familyBrief")}
                 </button>
               )}{" "}
               <button
@@ -173,7 +180,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
                 }}>
-                الشجرة التفاعلية
+                {t("common.interactiveTree")}
               </button>
               <button
                 onClick={() => window.open("/tree-editor", "_blank")}
@@ -182,7 +189,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                   color: colors.text,
                   fontFamily: theme.fonts.primary,
                 }}>
-                محرر الشجرة
+                {t("toolbar.treeEditor")}
               </button>
             </div>
           </div>

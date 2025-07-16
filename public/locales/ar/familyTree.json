@@ -1,0 +1,20 @@
+{
+    "showName": "إظهار الاسم",
+    "showBirthYear": "إظهار سنة الميلاد",
+    "showDeathYear": "إظهار سنة الوفاة",
+    "showSpouses": "إظهار الزوج/ة",
+    "showGenderIcon": "إظهار رمز الجنس",
+    "maleColor": "لون الذكر",
+    "femaleColor": "لون الأنثى",
+    "linkColor": "لون الخط",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "horizontalSpacing": "المسافة الأفقية",
+    "verticalSpacing": "المسافة العمودية",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "resetView": "إعادة تعيين العرض",
+    "settings": "الإعدادات",
+    "exportPNG": "تصدير PNG",
+    "exportPDF": "تصدير PDF"
+}

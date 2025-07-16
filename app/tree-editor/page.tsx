@@ -32,7 +32,7 @@ import { getParentIds } from "../../lib/utils/relationshipHelpers";
 import { TreeErrorBoundary, FormErrorBoundary } from "@/components/ui/error-boundary";
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { LanguageSelector } from "@/components/ui/language-selector";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Defines the different modes for the sidebar panel.
@@ -273,22 +273,23 @@ export default function TreeEditor() {
     try {
       modifyRelationship(personId1, personId2, action, relationshipType);
       
-      const person1Name = data[personId1]?.name || "شخص";
-      const person2Name = data[personId2]?.name || "شخص";
-      const relationshipNames = {
-        parent: "أبوة",
-        spouse: "زواج", 
-        child: "أطفال",
-        sibling: "إخوة"
-      };
+      const person1Name = data[personId1]?.name || t('common.person');
+      const person2Name = data[personId2]?.name || t('common.person');
+      const relationshipKey = `relationships.${relationshipType}`;
       
       if (action === "connect") {
-        toast.success(`تم ربط ${person1Name} و ${person2Name} بعلاقة ${relationshipNames[relationshipType]} بنجاح`);
+        toast.success(t('messages.relationshipConnected')
+          .replace('{{person1}}', person1Name)
+          .replace('{{person2}}', person2Name)
+          .replace('{{relationshipType}}', t(relationshipKey as any)));
       } else if (action === "disconnect") {
-        toast.success(`تم فصل علاقة ${relationshipNames[relationshipType]} بين ${person1Name} و ${person2Name} بنجاح`);
+        toast.success(t('messages.relationshipDisconnected')
+          .replace('{{person1}}', person1Name)
+          .replace('{{person2}}', person2Name)
+          .replace('{{relationshipType}}', t(relationshipKey as any)));
       }
     } catch (error) {
-      toast.error("حدث خطأ أثناء تعديل العلاقة. الرجاء المحاولة مرة أخرى.");
+      toast.error(t('messages.relationshipError'));
       console.error("Error modifying relationship:", error);
     }
   };
@@ -341,9 +342,9 @@ export default function TreeEditor() {
       link.download = "family-data.json";
       link.click();
       URL.revokeObjectURL(url);
-      toast.success("تم تصدير بيانات الشجرة بنجاح");
+      toast.success(t('messages.dataExported'));
     } catch (error) {
-      toast.error("حدث خطأ أثناء تصدير البيانات. الرجاء المحاولة مرة أخرى.");
+      toast.error(t('messages.exportError'));
       console.error("Error saving file:", error);
     }
   };
@@ -372,13 +373,13 @@ export default function TreeEditor() {
                 relationships: loadedData.relationships,
               });
               updateMainId(loadedData.mainId);
-              toast.success("تم استيراد بيانات الشجرة بنجاح");
+              toast.success(t('messages.dataImported'));
             } else {
               throw new Error("Invalid data format in loaded file.");
             }
           } catch (error) {
             console.error("Failed to parse JSON file.", error);
-            toast.error("خطأ في تحميل الملف. تأكد من صحة تنسيق الملف.");
+            toast.error(t('messages.importError'));
           }
         };
         reader.readAsText(file);
@@ -437,7 +438,7 @@ export default function TreeEditor() {
               </h1>
             </div>
             <div className='flex items-center gap-2'>
-              <LanguageSelector isDarkMode={isDarkMode} />
+              <LanguageToggle isDarkMode={isDarkMode} />
               <Button
                 variant='outline'
                 size='icon'
@@ -457,7 +458,10 @@ export default function TreeEditor() {
         className={`grid h-[calc(100vh-80px)] ${
           isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
         }`}
-        style={{ gridTemplateColumns: "384px 1fr 384px" }}>
+        style={{ 
+          gridTemplateColumns: "384px 1fr 384px",
+          direction: "ltr" // Force LTR layout to prevent panel switching
+        }}>
         {/* Right Sidebar (was Left) - For Node Info */}
         <aside
           className={`border-r overflow-y-auto transition-colors duration-300 ${
@@ -496,7 +500,7 @@ export default function TreeEditor() {
                       className={`font-semibold ${
                         isDarkMode ? "text-white" : "text-gray-900"
                       }`}>
-                      معلومات العضو
+                      {t('forms.memberInfo')}
                     </h3>
                     <div className='flex items-center space-x-2'>
                       <Button
@@ -510,8 +514,8 @@ export default function TreeEditor() {
                         }`}
                         title={
                           viewMode === "focus"
-                            ? "التبديل إلى العرض الكامل"
-                            : "التركيز على هذا الشخص (عرض 3 مستويات)"
+                            ? t('toolbar.fullView')
+                            : t('toolbar.focusView')
                         }>
                         {viewMode === "focus" ? (
                           <Maximize2 className='w-4 h-4' />
@@ -529,18 +533,18 @@ export default function TreeEditor() {
                   </div>
                   <div className='space-y-3'>
                     <p>
-                      <Label>الاسم:</Label> {selectedNode.name}
+                      <Label>{t('forms.name')}:</Label> {selectedNode.name}
                     </p>
                     <p>
-                      <Label>الجنس:</Label>{" "}
-                      {selectedNode.gender === "male" ? "ذكر" : "أنثى"}
+                      <Label>{t('forms.gender')}:</Label>{" "}
+                      {selectedNode.gender === "male" ? t('forms.male') : t('forms.female')}
                     </p>
                     <p>
-                      <Label>الميلاد:</Label> {selectedNode.birth_year}
+                      <Label>{t('forms.birthYear')}:</Label> {selectedNode.birth_year}
                     </p>
                     {selectedNode.death_year && (
                       <p>
-                        <Label>الوفاة:</Label> {selectedNode.death_year}
+                        <Label>{t('forms.deathYear')}:</Label> {selectedNode.death_year}
                       </p>
                     )}
                     <div className='flex gap-2 pt-2'>
@@ -550,7 +554,7 @@ export default function TreeEditor() {
                         className='flex-1'
                         onClick={() => setSidebarMode("edit")}>
                         <Edit className='w-3 h-3 mr-1' />
-                        تحرير
+                        {t('common.edit')}
                       </Button>
                       <Button
                         size='sm'
@@ -558,7 +562,7 @@ export default function TreeEditor() {
                         className='flex-1'
                         onClick={handleDeleteNode}>
                         <Trash2 className='w-3 h-3 mr-1' />
-                        حذف
+                        {t('common.delete')}
                       </Button>
                     </div>
                   </div>
@@ -589,13 +593,13 @@ export default function TreeEditor() {
                     className={`font-medium ${
                       isDarkMode ? "text-gray-300" : "text-gray-700"
                     }`}>
-                    شجرة عائلتك فارغة
+                    {t('messages.emptyTree')}
                   </p>
                   <p
                     className={`text-sm ${
                       isDarkMode ? "text-gray-500" : "text-gray-500"
                     }`}>
-                    ابدأ بإضافة أول شخص لبناء شجرة عائلتك
+                    {t('messages.startBuilding')}
                   </p>
                 </div>
                 <Button
@@ -606,7 +610,7 @@ export default function TreeEditor() {
                   }}
                   className='mt-2'>
                   <TreePine className='w-3 h-3 mr-1' />
-                  إضافة شخص
+                  {t('common.addPerson')}
                 </Button>
               </div>
             )}
@@ -642,13 +646,13 @@ export default function TreeEditor() {
                   className={`text-xl font-semibold ${
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}>
-                  ابدأ ببناء شجرة عائلتك
+                  {t('messages.startBuildingTree')}
                 </div>
                 <div
                   className={`text-sm max-w-md mx-auto ${
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}>
-                  اضغط على "إضافة شخص" لبدء إنشاء شجرة عائلتك من الصفر
+                  {t('messages.clickToStart')}
                 </div>
               </div>
               <Button
@@ -658,7 +662,7 @@ export default function TreeEditor() {
                 }}
                 className='px-6 py-3'>
                 <TreePine className='w-4 h-4 mr-2' />
-                إضافة أول شخص
+                {t('common.addFirstPerson')}
               </Button>
             </div>
           )}
@@ -695,7 +699,7 @@ export default function TreeEditor() {
                 className={`font-semibold mb-3 ${
                   isDarkMode ? "text-white" : "text-gray-900"
                 }`}>
-                إحصائيات الشجرة
+                {t('toolbar.treeStats')}
               </h3>
               <div className='text-center space-y-3'>
                 <div>
@@ -709,7 +713,7 @@ export default function TreeEditor() {
                     className={`text-xs ${
                       isDarkMode ? "text-gray-400" : "text-gray-600"
                     }`}>
-                    العقد المعروضة
+                    {t('toolbar.nodesDisplayed')}
                   </div>
                 </div>
                 <div>
@@ -723,7 +727,7 @@ export default function TreeEditor() {
                     className={`text-xs ${
                       isDarkMode ? "text-gray-400" : "text-gray-600"
                     }`}>
-                    إجمالي الأعضاء
+                    {t('toolbar.totalMembers')}
                   </div>
                 </div>
                 <div className='pt-2 border-t border-gray-200 dark:border-gray-600'>
@@ -738,8 +742,8 @@ export default function TreeEditor() {
                     )}
                     <span>
                       {viewMode === "focus"
-                        ? "عرض مركز (3 مستويات)"
-                        : "عرض كامل"}
+                        ? t('toolbar.focusView')
+                        : t('toolbar.fullView')}
                     </span>
                   </div>
                   {viewMode === "focus" && focusPersonId && (
@@ -747,7 +751,7 @@ export default function TreeEditor() {
                       className={`text-xs mt-1 ${
                         isDarkMode ? "text-blue-400" : "text-blue-600"
                       }`}>
-                      التركيز على: {data[focusPersonId]?.name || "غير محدد"}
+                      {t('toolbar.focusOn')}: {data[focusPersonId]?.name || t('common.notSpecified')}
                     </div>
                   )}
                 </div>
@@ -761,7 +765,7 @@ export default function TreeEditor() {
       <DeleteConfirmationDialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
-        description={`هل أنت متأكد من حذف ${deleteDialog.personName} من الشجرة؟ هذا الإجراء لا يمكن التراجع عنه.`}
+        description={t('messages.deleteConfirmation').replace('{{name}}', deleteDialog.personName)}
         onConfirm={handleDeleteConfirm}
         isDarkMode={isDarkMode}
       />

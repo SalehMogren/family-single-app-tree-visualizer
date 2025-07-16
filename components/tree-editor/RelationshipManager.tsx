@@ -36,6 +36,7 @@ import {
   getSiblingIds,
 } from "../../lib/utils/relationshipHelpers";
 import { SmartSuggestionsEngine } from "../../lib/utils/SmartSuggestions";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 interface RelationshipManagerProps {
   selectedPerson: FamilyMember;
@@ -68,6 +69,7 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
   onModifyRelationship,
   isDarkMode,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<
     "quick-add" | "suggestions" | "extended" | "validation" | "modify"
   >("quick-add");
@@ -120,7 +122,7 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
       ? [
           {
             type: "parent" as const,
-            label: "Add Parent",
+            label: t('relationships.addParent'),
             icon: <UserPlus size={16} />,
             color: "bg-green-500 hover:bg-green-600",
             disabled: false,
@@ -129,25 +131,25 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
       : []),
     {
       type: "spouse" as const,
-      label: "Add Spouse",
+      label: t('relationships.addSpouse'),
       icon: <Heart size={16} />,
       color: "bg-blue-500 hover:bg-blue-600",
       disabled: false,
     },
     {
       type: "child" as const,
-      label: "Add Child",
+      label: t('relationships.addChild'),
       icon: <Baby size={16} />,
       color: "bg-yellow-500 hover:bg-yellow-600",
       disabled: false,
     },
     {
       type: "sibling" as const,
-      label: "Add Sibling",
+      label: t('relationships.addSibling'),
       icon: <Users2 size={16} />,
       color: "bg-purple-500 hover:bg-purple-600",
       disabled: parentIds.length === 0,
-      disabledReason: "Person must have parents to add siblings",
+      disabledReason: t('relationships.siblingRequiresParents'),
     },
   ];
 
@@ -184,19 +186,19 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
 
       <div className='grid grid-cols-2 gap-2 text-xs'>
         <div className='flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded'>
-          <span>Parents:</span>
+          <span>{t('relationships.parents')}:</span>
           <Badge variant='secondary'>{relationshipCounts.parents}/2</Badge>
         </div>
         <div className='flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded'>
-          <span>Spouses:</span>
+          <span>{t('relationships.spouses')}:</span>
           <Badge variant='secondary'>{relationshipCounts.spouses}</Badge>
         </div>
         <div className='flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded'>
-          <span>Children:</span>
+          <span>{t('relationships.children')}:</span>
           <Badge variant='secondary'>{relationshipCounts.children}</Badge>
         </div>
         <div className='flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded'>
-          <span>Siblings:</span>
+          <span>{t('relationships.siblings')}:</span>
           <Badge variant='secondary'>{relationshipCounts.siblings}</Badge>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTreeStore } from "../../hooks/useTreeStore";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -48,6 +49,7 @@ export function Toolbar({
   onResetView,
   className = "",
 }: ToolbarProps) {
+  const { t } = useTranslation();
   const {
     horizontalSpacing,
     verticalSpacing,
@@ -208,7 +210,7 @@ export function Toolbar({
           className={`text-sm font-medium ${
             isDarkMode ? "text-gray-300" : "text-gray-700"
           }`}>
-          تخطيط الشجرة
+          {t("toolbar.layout")}
         </Label>
 
         <div className='space-y-2'>
@@ -216,7 +218,7 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            التباعد الأفقي: {horizontalSpacing.toFixed(1)}x
+            {t("toolbar.horizontalSpacing")}: {horizontalSpacing.toFixed(1)}x
           </Label>
           <Slider
             value={[horizontalSpacing]}
@@ -233,7 +235,7 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            التباعد العمودي: {verticalSpacing.toFixed(1)}x
+            {t("toolbar.verticalSpacing")}: {verticalSpacing.toFixed(1)}x
           </Label>
           <Slider
             value={[verticalSpacing]}
@@ -251,7 +253,7 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            عرض البطاقة: {cardWidth}px
+            {t("toolbar.cardWidth")}: {cardWidth}px
           </Label>
           <Slider
             value={[cardWidth]}
@@ -268,7 +270,7 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            ارتفاع البطاقة: {cardHeight}px
+            {t("toolbar.cardHeight")}: {cardHeight}px
           </Label>
           <Slider
             value={[cardHeight]}
@@ -286,13 +288,16 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            الألوان
+            {t("toolbar.colors")}
           </Label>
-          
+
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                لون الذكر
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.maleColor")}
               </Label>
               <input
                 type='color'
@@ -302,8 +307,11 @@ export function Toolbar({
               />
             </div>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                لون الأنثى
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.femaleColor")}
               </Label>
               <input
                 type='color'
@@ -313,8 +321,11 @@ export function Toolbar({
               />
             </div>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                لون الخطوط
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.linkColor")}
               </Label>
               <input
                 type='color'
@@ -332,13 +343,16 @@ export function Toolbar({
             className={`text-xs ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}>
-            إظهار المعلومات
+            {t("toolbar.showInfo")}
           </Label>
-          
+
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                الاسم
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.showName")}
               </Label>
               <Switch
                 checked={showLabels.name}
@@ -346,30 +360,45 @@ export function Toolbar({
               />
             </div>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                سنة الميلاد
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.showBirthYear")}
               </Label>
               <Switch
                 checked={showLabels.birthYear}
-                onCheckedChange={(checked) => setShowLabel("birthYear", checked)}
+                onCheckedChange={(checked) =>
+                  setShowLabel("birthYear", checked)
+                }
               />
             </div>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                سنة الوفاة
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.showDeathYear")}
               </Label>
               <Switch
                 checked={showLabels.deathYear}
-                onCheckedChange={(checked) => setShowLabel("deathYear", checked)}
+                onCheckedChange={(checked) =>
+                  setShowLabel("deathYear", checked)
+                }
               />
             </div>
             <div className='flex items-center justify-between'>
-              <Label className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
-                رمز الجنس
+              <Label
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}>
+                {t("toolbar.showGenderIcon")}
               </Label>
               <Switch
                 checked={showLabels.genderIcon}
-                onCheckedChange={(checked) => setShowLabel("genderIcon", checked)}
+                onCheckedChange={(checked) =>
+                  setShowLabel("genderIcon", checked)
+                }
               />
             </div>
           </div>
@@ -383,7 +412,7 @@ export function Toolbar({
               className={`text-xs ${
                 isDarkMode ? "text-gray-400" : "text-gray-600"
               }`}>
-              عرض الأزواج
+              {t("toolbar.showSpouses")}
             </Label>
             <Switch
               id='spouse-toggle'

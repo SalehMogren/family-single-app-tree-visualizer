@@ -64,6 +64,7 @@ This document tracks the development progress of the Family Tree Visualizer appl
 - [x] Toolbar with zoom controls
 - [x] Relationship manager interface
 - [x] Suggested relatives panel
+- [x] Localization & i18n (Arabic/English, RTL/LTR, dynamic language switching, translation files)
 
 #### 1.7 Configuration System
 - [x] App configuration (`app-config.json`)

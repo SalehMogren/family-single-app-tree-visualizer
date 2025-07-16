@@ -1,20 +1,42 @@
 {
-  "familyName": "عائلة الأحمد",
-  "origin": "المملكة العربية السعودية - منطقة نجد",
-  "established": "القرن التاسع عشر الميلادي",
-  "description": "عائلة الأحمد من العائلات العريقة في منطقة نجد، اشتهرت بالتجارة والعلم عبر الأجيال. تمتد جذور العائلة إلى أكثر من قرنين من الزمان، وقد ساهم أفرادها في التنمية الاقتصادية والثقافية للمنطقة.",
-  "notableMembers": "تضم العائلة العديد من الشخصيات البارزة في مجالات التجارة والتعليم والخدمة العامة",
-  "currentGeneration": "الجيل الخامس",
-  "totalMembers": 45,
-  "yearsOfHistory": 200,
-  "geography": {
-    "mainRegion": "منطقة نجد التاريخية",
-    "description": "تنتشر العائلة في عدة مناطق بالمملكة العربية السعودية، مع التركز الأساسي في منطقة نجد التاريخية."
+  "ar": {
+    "familyName": "عائلة الأحمد",
+    "origin": "المملكة العربية السعودية - منطقة نجد",
+    "established": "القرن التاسع عشر الميلادي",
+    "description": "عائلة الأحمد من العائلات العريقة في منطقة نجد، اشتهرت بالتجارة والعلم عبر الأجيال. تمتد جذور العائلة إلى أكثر من قرنين من الزمان، وقد ساهم أفرادها في التنمية الاقتصادية والثقافية للمنطقة.",
+    "notableMembers": "تضم العائلة العديد من الشخصيات البارزة في مجالات التجارة والتعليم والخدمة العامة",
+    "currentGeneration": "الجيل الخامس",
+    "totalMembers": 45,
+    "yearsOfHistory": 200,
+    "geography": {
+      "mainRegion": "منطقة نجد التاريخية",
+      "description": "تنتشر العائلة في عدة مناطق بالمملكة العربية السعودية، مع التركز الأساسي في منطقة نجد التاريخية."
+    },
+    "achievements": [
+      "تأسيس أول مدرسة أهلية في المنطقة عام 1950",
+      "إنشاء مؤسسة خيرية لدعم الأيتام والمحتاجين",
+      "المساهمة في تطوير التجارة المحلية والإقليمية",
+      "تخريج أكثر من 20 طبيب ومهندس ومعلم"
+    ]
   },
-  "achievements": [
-    "تأسيس أول مدرسة أهلية في المنطقة عام 1950",
-    "إنشاء مؤسسة خيرية لدعم الأيتام والمحتاجين",
-    "المساهمة في تطوير التجارة المحلية والإقليمية",
-    "تخريج أكثر من 20 طبيب ومهندس ومعلم"
-  ]
+  "en": {
+    "familyName": "Al-Ahmad Family",
+    "origin": "Saudi Arabia - Najd Region",
+    "established": "19th Century",
+    "description": "The Al-Ahmad family is one of the prominent families in the Najd region, known for trade and scholarship across generations. The family's roots extend back more than two centuries, and its members have contributed to the economic and cultural development of the region.",
+    "notableMembers": "The family includes many prominent figures in trade, education, and public service",
+    "currentGeneration": "Fifth Generation",
+    "totalMembers": 45,
+    "yearsOfHistory": 200,
+    "geography": {
+      "mainRegion": "Historic Najd Region",
+      "description": "The family is spread across several regions in Saudi Arabia, with the main concentration in the historic Najd region."
+    },
+    "achievements": [
+      "Founded the first private school in the region in 1950",
+      "Established a charitable foundation to support orphans and the needy",
+      "Contributed to the development of local and regional trade",
+      "Graduated more than 20 doctors, engineers, and teachers"
+    ]
+  }
 }

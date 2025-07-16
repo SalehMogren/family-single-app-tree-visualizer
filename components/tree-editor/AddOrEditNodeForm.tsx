@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FamilyMember } from "../../lib/types";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 interface AddOrEditNodeFormProps {
   nodeToEdit?: FamilyMember | null;
@@ -27,6 +28,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
   onCancel,
   isDarkMode,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<Partial<FamilyMember>>({});
 
   useEffect(() => {
@@ -55,15 +57,15 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
   };
 
   const title = nodeToEdit
-    ? "تحرير معلومات العضو"
-    : `إضافة ${
+    ? t('forms.editMemberInfo')
+    : `${t('forms.add')} ${
         relationType === "parent"
-          ? "والد/والدة"
+          ? t('relationships.parent')
           : relationType === "spouse"
-          ? "زوج/زوجة"
+          ? t('relationships.spouse')
           : relationType === "sibling"
-          ? "أخ/أخت"
-          : "ابن/ابنة"
+          ? t('relationships.sibling')
+          : t('relationships.child')
       }`;
 
   return (
@@ -85,7 +87,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
         </div>
         <div className='space-y-3'>
           <div>
-            <Label htmlFor='name'>الاسم</Label>
+            <Label htmlFor='name'>{t('forms.name')}</Label>
             <Input
               id='name'
               name='name'
@@ -96,7 +98,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
           </div>
           <div className='grid grid-cols-2 gap-3'>
             <div>
-              <Label htmlFor='gender'>الجنس</Label>
+              <Label htmlFor='gender'>{t('forms.gender')}</Label>
               <Select
                 name='gender'
                 value={formData.gender || "male"}
@@ -105,13 +107,13 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='male'>ذكر</SelectItem>
-                  <SelectItem value='female'>أنثى</SelectItem>
+                  <SelectItem value='male'>{t('forms.male')}</SelectItem>
+                  <SelectItem value='female'>{t('forms.female')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor='birth_year'>سنة الميلاد</Label>
+              <Label htmlFor='birth_year'>{t('forms.birthYear')}</Label>
               <Input
                 id='birth_year'
                 name='birth_year'
@@ -122,7 +124,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
             </div>
           </div>
           <div>
-            <Label htmlFor='death_year'>سنة الوفاة (اختياري)</Label>
+            <Label htmlFor='death_year'>{t('forms.deathYear')} ({t('forms.optional')})</Label>
             <Input
               id='death_year'
               name='death_year'
@@ -132,7 +134,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
             />
           </div>
           <div>
-            <Label htmlFor='occupation'>المهنة (اختياري)</Label>
+            <Label htmlFor='occupation'>{t('forms.occupation')} ({t('forms.optional')})</Label>
             <Input
               id='occupation'
               name='occupation'
@@ -142,7 +144,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
           </div>
           <div className='flex gap-2 pt-2'>
             <Button type='submit' size='sm' className='flex-1'>
-              حفظ
+              {t('common.save')}
             </Button>
             <Button
               type='button'
@@ -150,7 +152,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
               variant='outline'
               className='flex-1'
               onClick={onCancel}>
-              إلغاء
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

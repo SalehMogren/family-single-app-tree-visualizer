@@ -1,0 +1,20 @@
+{
+    "showName": "Show name",
+    "showBirthYear": "Show birth year",
+    "showDeathYear": "Show death year",
+    "showSpouses": "Show spouses",
+    "showGenderIcon": "Show gender icon",
+    "maleColor": "Male color",
+    "femaleColor": "Female color",
+    "linkColor": "Link color",
+    "width": "Width",
+    "height": "Height",
+    "horizontalSpacing": "Horizontal spacing",
+    "verticalSpacing": "Vertical spacing",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetView": "Reset view",
+    "settings": "Settings",
+    "exportPNG": "Export PNG",
+    "exportPDF": "Export PDF"
+}

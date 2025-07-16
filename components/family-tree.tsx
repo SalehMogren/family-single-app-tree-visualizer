@@ -14,15 +14,9 @@ import { ZoomIn, ZoomOut, RotateCcw, Settings, Download } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import jsPDF from "jspdf";
 import { useTreeStore } from "@/hooks/useTreeStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface FamilyTreeProps {
   isDarkMode: boolean;
@@ -222,6 +216,8 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     [isDarkMode]
   );
 
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div
@@ -293,42 +289,42 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 variant='outline'
                 size='sm'
                 onClick={handleZoomIn}
-                title='تكبير'>
+                title={t("familyTree.zoomIn")}>
                 <ZoomIn className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={handleZoomOut}
-                title='تصغير'>
+                title={t("familyTree.zoomOut")}>
                 <ZoomOut className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={handleResetView}
-                title='إعادة تعيين العرض'>
+                title={t("familyTree.resetView")}>
                 <RotateCcw className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={() => setShowSettings((v) => !v)}
-                title='الإعدادات'>
+                title={t("familyTree.settings")}>
                 <Settings className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={() => handleExport("png")}
-                title='تصدير PNG'>
+                title={t("familyTree.exportPNG")}>
                 <Download className='w-4 h-4 mr-1' /> PNG
               </Button>
               <Button
                 variant='outline'
                 size='sm'
                 onClick={() => handleExport("pdf")}
-                title='تصدير PDF'>
+                title={t("familyTree.exportPDF")}>
                 <Download className='w-4 h-4 mr-1' /> PDF
               </Button>
             </div>
@@ -342,7 +338,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 }`}>
                 <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <Label>العرض</Label>
+                    <Label>
+                      {t("familyTree.width")}: {cardWidth}px
+                    </Label>
                     <Slider
                       value={[cardWidth]}
                       min={100}
@@ -352,7 +350,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>الارتفاع</Label>
+                    <Label>
+                      {t("familyTree.height")}: {cardHeight}px
+                    </Label>
                     <Slider
                       value={[cardHeight]}
                       min={50}
@@ -362,7 +362,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>المسافة الأفقية</Label>
+                    <Label>
+                      {t("familyTree.horizontalSpacing")}: {horizontalSpacing}x
+                    </Label>
                     <Slider
                       value={[horizontalSpacing]}
                       min={1}
@@ -372,7 +374,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>المسافة العمودية</Label>
+                    <Label>
+                      {t("familyTree.verticalSpacing")}: {verticalSpacing}x
+                    </Label>
                     <Slider
                       value={[verticalSpacing]}
                       min={1}
@@ -382,7 +386,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>لون الذكر</Label>
+                    <Label>{t("familyTree.maleColor")}</Label>
                     <input
                       type='color'
                       value={maleColor}
@@ -391,7 +395,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>لون الأنثى</Label>
+                    <Label>{t("familyTree.femaleColor")}</Label>
                     <input
                       type='color'
                       value={femaleColor}
@@ -400,7 +404,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>لون الخط</Label>
+                    <Label>{t("familyTree.linkColor")}</Label>
                     <input
                       type='color'
                       value={linkColor}
@@ -409,35 +413,35 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                     />
                   </div>
                   <div>
-                    <Label>إظهار الاسم</Label>
+                    <Label>{t("familyTree.showName")}</Label>
                     <Switch
                       checked={showLabels.name}
                       onCheckedChange={(v) => setShowLabel("name", v)}
                     />
                   </div>
                   <div>
-                    <Label>إظهار سنة الميلاد</Label>
+                    <Label>{t("familyTree.showBirthYear")}</Label>
                     <Switch
                       checked={showLabels.birthYear}
                       onCheckedChange={(v) => setShowLabel("birthYear", v)}
                     />
                   </div>
                   <div>
-                    <Label>إظهار سنة الوفاة</Label>
+                    <Label>{t("familyTree.showDeathYear")}</Label>
                     <Switch
                       checked={showLabels.deathYear}
                       onCheckedChange={(v) => setShowLabel("deathYear", v)}
                     />
                   </div>
                   <div>
-                    <Label>إظهار الزوج/ة</Label>
+                    <Label>{t("familyTree.showSpouses")}</Label>
                     <Switch
                       checked={showSpouses}
                       onCheckedChange={setShowSpouses}
                     />
                   </div>
                   <div>
-                    <Label>إظهار رمز الجنس</Label>
+                    <Label>{t("familyTree.showGenderIcon")}</Label>
                     <Switch
                       checked={showLabels.genderIcon}
                       onCheckedChange={(v) => setShowLabel("genderIcon", v)}

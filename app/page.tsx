@@ -5,12 +5,17 @@ import Navbar from "@/components/navbar";
 import FamilyBrief from "@/components/family-brief";
 import FamilyTree from "@/components/family-tree";
 import Footer from "@/components/footer";
-import { useAppConfig } from "@/hooks/useConfig";
+import { useAppConfig, useTheme } from "@/hooks/useConfig";
 import TimelineView from "@/components/timeline-view";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { config } = useAppConfig();
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!theme) return null;
+  const colors = isDarkMode ? theme.colors.dark : theme.colors.light;
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -22,7 +27,7 @@ export default function Home() {
         <div className='text-center'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4'></div>
           <p className='text-lg font-semibold text-gray-700'>
-            جاري تحميل التطبيق...
+            {t("common.loading")}
           </p>
         </div>
       </div>
@@ -34,6 +39,10 @@ export default function Home() {
       className={`min-h-screen transition-colors duration-300 ${
         isDarkMode ? "dark" : ""
       }`}
+      style={{
+        backgroundColor: colors.background,
+        borderColor: colors.border,
+      }}
       dir='rtl'>
       {config.navigation.showNavbar && (
         <Navbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
