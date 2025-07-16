@@ -29,6 +29,11 @@ import {
 import { RelationshipManager } from "@/components/tree-editor/RelationshipManager";
 import { DragDropProvider } from "@/components/tree-editor/DragDropProvider";
 import { getParentIds } from "../../lib/utils/relationshipHelpers";
+import { TreeErrorBoundary, FormErrorBoundary } from "@/components/ui/error-boundary";
+import { toast } from "sonner";
+import { DeleteConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Defines the different modes for the sidebar panel.
 type SidebarMode = "stats" | "view" | "edit" | "add";
@@ -43,6 +48,13 @@ export default function TreeEditor() {
     type: "parent" | "spouse" | "child" | "sibling";
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    personName: string;
+  }>({
+    open: false,
+    personName: ""
+  });
 
   // Use the custom hook to interact with the Redux store.
   const {
@@ -73,6 +85,9 @@ export default function TreeEditor() {
 
   // A ref to access methods on the TreeSvg component (e.g., for zoom).
   const treeSvgRef = useRef<any>(null);
+  
+  // Translation hook
+  const { t } = useTranslation();
 
   // Initialize with empty tree - start from scratch
   useEffect(() => {
@@ -165,34 +180,65 @@ export default function TreeEditor() {
    * Dispatches either an 'updateNode' or 'addNode' action.
    */
   const handleSaveNode = (formData: Partial<FamilyMember>) => {
-    if (sidebarMode === "edit" && selectedNode) {
-      updateMember({ ...selectedNode, ...formData } as FamilyMember);
-    } else if (sidebarMode === "add" && addRelativeInfo) {
-      const newId = `m_${Date.now()}`;
-      const newMember: FamilyMember = {
-        id: newId,
-        ...formData,
-      } as FamilyMember;
-      addRelative({
-        targetId: addRelativeInfo.targetId,
-        newMember,
-        type: addRelativeInfo.type,
-      });
-      if (!mainId) updateMainId(newId);
+    try {
+      if (sidebarMode === "edit" && selectedNode) {
+        updateMember({ ...selectedNode, ...formData } as FamilyMember);
+        toast.success(t('messages.memberUpdated').replace('{{name}}', formData.name || selectedNode.name));
+      } else if (sidebarMode === "add" && addRelativeInfo) {
+        const newId = `m_${Date.now()}`;
+        const newMember: FamilyMember = {
+          id: newId,
+          ...formData,
+        } as FamilyMember;
+        addRelative({
+          targetId: addRelativeInfo.targetId,
+          newMember,
+          type: addRelativeInfo.type,
+        });
+        if (!mainId) updateMainId(newId);
+        
+        const relationshipKey = `relationships.${addRelativeInfo.type}`;
+        toast.success(t('messages.memberAdded')
+          .replace('{{name}}', formData.name || '')
+          .replace('{{relationshipType}}', t(relationshipKey as any)));
+      }
+      setSidebarMode("stats");
+      setSelectedNode(null);
+      setAddRelativeInfo(null);
+    } catch (error) {
+      toast.error(t('messages.saveError'));
+      console.error("Error saving node:", error);
     }
-    setSidebarMode("stats");
-    setSelectedNode(null);
-    setAddRelativeInfo(null);
   };
 
   /**
-   * Deletes the currently selected node from the tree.
+   * Opens the delete confirmation dialog
    */
   const handleDeleteNode = () => {
     if (selectedNode) {
-      deleteMember(selectedNode.id);
-      setSidebarMode("stats");
-      setSelectedNode(null);
+      setDeleteDialog({
+        open: true,
+        personName: selectedNode.name
+      });
+    }
+  };
+
+  /**
+   * Confirms and deletes the currently selected node from the tree.
+   */
+  const handleDeleteConfirm = () => {
+    if (selectedNode) {
+      try {
+        const name = selectedNode.name;
+        deleteMember(selectedNode.id);
+        setSidebarMode("stats");
+        setSelectedNode(null);
+        setDeleteDialog({ open: false, personName: "" });
+        toast.success(t('messages.memberDeleted').replace('{{name}}', name));
+      } catch (error) {
+        toast.error(t('messages.deleteError'));
+        console.error("Error deleting node:", error);
+      }
     }
   };
 
@@ -224,7 +270,27 @@ export default function TreeEditor() {
     action: "connect" | "disconnect" | "modify",
     relationshipType: "parent" | "spouse" | "child" | "sibling"
   ) => {
-    modifyRelationship(personId1, personId2, action, relationshipType);
+    try {
+      modifyRelationship(personId1, personId2, action, relationshipType);
+      
+      const person1Name = data[personId1]?.name || "شخص";
+      const person2Name = data[personId2]?.name || "شخص";
+      const relationshipNames = {
+        parent: "أبوة",
+        spouse: "زواج", 
+        child: "أطفال",
+        sibling: "إخوة"
+      };
+      
+      if (action === "connect") {
+        toast.success(`تم ربط ${person1Name} و ${person2Name} بعلاقة ${relationshipNames[relationshipType]} بنجاح`);
+      } else if (action === "disconnect") {
+        toast.success(`تم فصل علاقة ${relationshipNames[relationshipType]} بين ${person1Name} و ${person2Name} بنجاح`);
+      }
+    } catch (error) {
+      toast.error("حدث خطأ أثناء تعديل العلاقة. الرجاء المحاولة مرة أخرى.");
+      console.error("Error modifying relationship:", error);
+    }
   };
 
   /**
@@ -261,19 +327,25 @@ export default function TreeEditor() {
    * Triggers a browser download of the current tree data as a JSON file.
    */
   const handleSaveToFile = () => {
-    const exportData = {
-      members: data,
-      relationships,
-      mainId,
-    };
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "family-data.json";
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const exportData = {
+        members: data,
+        relationships,
+        mainId,
+      };
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "family-data.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("تم تصدير بيانات الشجرة بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء تصدير البيانات. الرجاء المحاولة مرة أخرى.");
+      console.error("Error saving file:", error);
+    }
   };
 
   /**
@@ -300,12 +372,13 @@ export default function TreeEditor() {
                 relationships: loadedData.relationships,
               });
               updateMainId(loadedData.mainId);
+              toast.success("تم استيراد بيانات الشجرة بنجاح");
             } else {
               throw new Error("Invalid data format in loaded file.");
             }
           } catch (error) {
             console.error("Failed to parse JSON file.", error);
-            alert("Error loading file.");
+            toast.error("خطأ في تحميل الملف. تأكد من صحة تنسيق الملف.");
           }
         };
         reader.readAsText(file);
@@ -360,19 +433,22 @@ export default function TreeEditor() {
                 className={`text-2xl font-bold ${
                   isDarkMode ? "text-white" : "text-gray-900"
                 }`}>
-                محرر شجرة العائلة
+                {t('toolbar.treeEditor')}
               </h1>
             </div>
-            <Button
-              variant='outline'
-              size='icon'
-              onClick={() => setIsDarkMode(!isDarkMode)}>
-              {isDarkMode ? (
-                <Sun className='w-5 h-5' />
-              ) : (
-                <Moon className='w-5 h-5' />
-              )}
-            </Button>
+            <div className='flex items-center gap-2'>
+              <LanguageSelector isDarkMode={isDarkMode} />
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={() => setIsDarkMode(!isDarkMode)}>
+                {isDarkMode ? (
+                  <Sun className='w-5 h-5' />
+                ) : (
+                  <Moon className='w-5 h-5' />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -392,19 +468,23 @@ export default function TreeEditor() {
           <div className='p-4 space-y-4'>
             {/* Conditional rendering for the right sidebar panel */}
             {sidebarMode === "add" && addRelativeInfo ? (
-              <AddOrEditNodeForm
-                onSave={handleSaveNode}
-                onCancel={handleCancel}
-                isDarkMode={isDarkMode}
-                relationType={addRelativeInfo.type}
-              />
+              <FormErrorBoundary>
+                <AddOrEditNodeForm
+                  onSave={handleSaveNode}
+                  onCancel={handleCancel}
+                  isDarkMode={isDarkMode}
+                  relationType={addRelativeInfo.type}
+                />
+              </FormErrorBoundary>
             ) : sidebarMode === "edit" && selectedNode ? (
-              <AddOrEditNodeForm
-                nodeToEdit={selectedNode}
-                onSave={handleSaveNode}
-                onCancel={handleCancel}
-                isDarkMode={isDarkMode}
-              />
+              <FormErrorBoundary>
+                <AddOrEditNodeForm
+                  nodeToEdit={selectedNode}
+                  onSave={handleSaveNode}
+                  onCancel={handleCancel}
+                  isDarkMode={isDarkMode}
+                />
+              </FormErrorBoundary>
             ) : sidebarMode === "view" && selectedNode ? (
               <div className='space-y-4'>
                 <Card
@@ -485,15 +565,17 @@ export default function TreeEditor() {
                 </Card>
 
                 {/* Relationship Manager */}
-                <RelationshipManager
-                  selectedPerson={selectedNode}
-                  allData={data}
-                  relationships={relationships}
-                  onAddRelative={handleAddRelativeClick}
-                  onConnectExisting={handleConnectExisting}
-                  onModifyRelationship={handleModifyRelationship}
-                  isDarkMode={isDarkMode}
-                />
+                <FormErrorBoundary>
+                  <RelationshipManager
+                    selectedPerson={selectedNode}
+                    allData={data}
+                    relationships={relationships}
+                    onAddRelative={handleAddRelativeClick}
+                    onConnectExisting={handleConnectExisting}
+                    onModifyRelationship={handleModifyRelationship}
+                    isDarkMode={isDarkMode}
+                  />
+                </FormErrorBoundary>
               </div>
             ) : (
               <div className='flex flex-col items-center justify-center h-full text-center space-y-4'>
@@ -534,18 +616,20 @@ export default function TreeEditor() {
         {/* Main Tree Visualization */}
         <main className='relative bg-gray-100 dark:bg-gray-950'>
           {tree.length > 0 ? (
-            <DragDropProvider onRelationshipDrop={handleRelationshipDrop}>
-              <TreeSvg
-                ref={treeSvgRef}
-                isDarkMode={isDarkMode}
-                onNodeClick={handleNodeClick}
-                onAddRelative={handleAddRelativeClick}
-                onRelationshipDrop={handleRelationshipDrop}
-                onModifyRelationship={handleModifyRelationship}
-                selectedNodeId={selectedNode?.id}
-                className='w-full h-full'
-              />
-            </DragDropProvider>
+            <TreeErrorBoundary>
+              <DragDropProvider onRelationshipDrop={handleRelationshipDrop}>
+                <TreeSvg
+                  ref={treeSvgRef}
+                  isDarkMode={isDarkMode}
+                  onNodeClick={handleNodeClick}
+                  onAddRelative={handleAddRelativeClick}
+                  onRelationshipDrop={handleRelationshipDrop}
+                  onModifyRelationship={handleModifyRelationship}
+                  selectedNodeId={selectedNode?.id}
+                  className='w-full h-full'
+                />
+              </DragDropProvider>
+            </TreeErrorBoundary>
           ) : (
             <div className='flex flex-col items-center justify-center h-full space-y-6'>
               <div className='text-center space-y-4'>
@@ -673,6 +757,14 @@ export default function TreeEditor() {
         </aside>
       </div>
       <DebugComponent />
+      
+      <DeleteConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        description={`هل أنت متأكد من حذف ${deleteDialog.personName} من الشجرة؟ هذا الإجراء لا يمكن التراجع عنه.`}
+        onConfirm={handleDeleteConfirm}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 }

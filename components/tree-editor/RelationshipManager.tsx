@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DisconnectConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import {
   UserPlus,
   Heart,
@@ -78,6 +79,17 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
   const [activeCategory, setActiveCategory] = useState<
     "all" | "high" | "medium" | "low"
   >("all");
+  const [disconnectDialog, setDisconnectDialog] = useState<{
+    open: boolean;
+    personId: string;
+    personName: string;
+    relationshipType: "parent" | "spouse" | "child" | "sibling";
+  }>({
+    open: false,
+    personId: "",
+    personName: "",
+    relationshipType: "parent"
+  });
 
   const parentIds = getParentIds(selectedPerson.id, relationships);
   const spouseIds = getSpouseIds(selectedPerson.id, relationships);
@@ -370,18 +382,12 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
                           size='sm'
                           variant='ghost'
                           onClick={() => {
-                            if (onModifyRelationship) {
-                              onModifyRelationship(
-                                selectedPerson.id,
-                                person.id,
-                                "disconnect",
-                                relationshipType as any
-                              );
-                            } else {
-                              console.warn(
-                                "onModifyRelationship callback not provided"
-                              );
-                            }
+                            setDisconnectDialog({
+                              open: true,
+                              personId: person.id,
+                              personName: person.name,
+                              relationshipType: relationshipType as any
+                            });
                           }}
                           className='h-6 w-6 p-0 text-red-500 hover:text-red-700'
                           title={`Remove ${relationshipType.slice(
@@ -652,11 +658,26 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
     );
   };
 
+  const handleDisconnectConfirm = () => {
+    if (onModifyRelationship) {
+      onModifyRelationship(
+        selectedPerson.id,
+        disconnectDialog.personId,
+        "disconnect",
+        disconnectDialog.relationshipType
+      );
+    } else {
+      console.warn("onModifyRelationship callback not provided");
+    }
+    setDisconnectDialog(prev => ({ ...prev, open: false }));
+  };
+
   return (
-    <Card
-      className={`p-4 ${
-        isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
-      }`}>
+    <>
+      <Card
+        className={`p-4 ${
+          isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gray-50"
+        }`}>
       <div className='flex items-center justify-between mb-4'>
         <h3
           className={`font-semibold ${
@@ -706,6 +727,15 @@ export const RelationshipManager: React.FC<RelationshipManagerProps> = ({
         {activeTab === "modify" && renderModifySection()}
         {activeTab === "validation" && renderValidationSection()}
       </div>
-    </Card>
+      </Card>
+
+      <DisconnectConfirmationDialog
+        open={disconnectDialog.open}
+        onOpenChange={(open) => setDisconnectDialog(prev => ({ ...prev, open }))}
+        description={`Are you sure you want to disconnect the ${disconnectDialog.relationshipType} relationship between ${selectedPerson.name} and ${disconnectDialog.personName}? This action cannot be undone.`}
+        onConfirm={handleDisconnectConfirm}
+        isDarkMode={isDarkMode}
+      />
+    </>
   );
 };

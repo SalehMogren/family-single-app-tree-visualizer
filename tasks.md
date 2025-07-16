@@ -86,8 +86,15 @@ This document tracks the development progress of the Family Tree Visualizer appl
         - [x] Implement relationship selectors/helpers
         - [x] Refactor all logic and UI to use new model
         - [x] Update validation and test
-- [ ] Add confirmation dialogs for destructive operations
-- [ ] Enhance error handling and user feedback
+- [x] Add confirmation dialogs for destructive operations
+    - [x] Create reusable ConfirmationDialog component with shadcn/ui
+    - [x] Implement confirmation dialogs for relationship disconnection in RelationshipManager
+    - [x] Add confirmation dialogs for relationship removal in InteractiveLink
+    - [x] Add confirmation dialogs for member deletion in TreeEditor
+- [x] Enhance error handling and user feedback
+    - [x] Create error boundary components for graceful error handling
+    - [x] Add toast notification system for user feedback (upgraded to Sonner)
+    - [x] Wrap key components with appropriate error boundaries
 - [ ] Test all edge cases from PRD Section 6
 
 #### 1.9 Testing & Quality Assurance

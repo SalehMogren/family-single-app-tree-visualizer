@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { RemoveConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { 
   Trash2,
   Edit3,
@@ -42,6 +43,7 @@ export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
   onClose
 }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [removeDialog, setRemoveDialog] = useState(false);
 
   const getRelationshipInfo = () => {
     const { type, person1, person2 } = linkData;
@@ -92,6 +94,11 @@ export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
       relationshipInfo.actionType
     );
     onClose();
+  };
+
+  const handleRemoveConfirm = () => {
+    handleDisconnect();
+    setRemoveDialog(false);
   };
 
   const handleModify = () => {
@@ -183,7 +190,7 @@ export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
             <Button
               size="sm"
               variant="destructive"
-              onClick={handleDisconnect}
+              onClick={() => setRemoveDialog(true)}
               className="flex-1"
             >
               <Trash2 className="w-3 h-3 mr-1" />
@@ -244,6 +251,14 @@ export const InteractiveLink: React.FC<InteractiveLinkProps> = ({
           )}
         </div>
       </Card>
+
+      <RemoveConfirmationDialog
+        open={removeDialog}
+        onOpenChange={setRemoveDialog}
+        description={`Are you sure you want to remove the ${relationshipInfo.label.toLowerCase()} relationship between ${linkData.person1.name} and ${linkData.person2.name}? This action cannot be undone.`}
+        onConfirm={handleRemoveConfirm}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 };
