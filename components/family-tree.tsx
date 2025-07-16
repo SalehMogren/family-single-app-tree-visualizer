@@ -461,7 +461,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   relationships={relationships}
                   isEditable={false}
                   isDarkMode={isDarkMode}
-                  onNodeClick={(node) => setFocusPerson(node.id)}
+                  onNodeClick={() => {}}
                   onAddRelative={() => {}}
                   selectedNodeId={focusPersonId || mainId}
                   setFocusPerson={setFocusPerson}
