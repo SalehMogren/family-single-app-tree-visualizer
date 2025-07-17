@@ -30,6 +30,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<Partial<FamilyMember>>({});
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     setFormData(
@@ -44,7 +45,19 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let processedValue: any = value;
+    
+    // If it's the birth_year field and value looks like a date, extract the year
+    if (name === 'birth_year' && typeof value === 'string' && value.includes('-')) {
+      const year = parseInt(value.split('-')[0], 10);
+      if (!isNaN(year)) {
+        processedValue = year;
+      }
+    } else if (name === 'birth_year' && value !== '') {
+      processedValue = parseInt(value, 10);
+    }
+    
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
   };
 
   const handleSelectChange = (name: keyof FamilyMember, value: string) => {
@@ -53,7 +66,24 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Validate form
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.name || formData.name.trim() === '') {
+      newErrors.name = t('validation.nameRequired');
+    }
+    
+    if (!formData.birth_year) {
+      newErrors.birth_year = t('validation.birthYearRequired');
+    }
+    
+    setErrors(newErrors);
+    
+    // If there are no errors, submit the form
+    if (Object.keys(newErrors).length === 0) {
+      onSave(formData);
+    }
   };
 
   const title = nodeToEdit
@@ -91,10 +121,16 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
             <Input
               id='name'
               name='name'
+              data-testid='name-input'
               value={formData.name || ""}
               onChange={handleInputChange}
               required
             />
+            {errors.name && (
+              <span data-testid='name-error' className='text-red-500 text-sm mt-1 block'>
+                {errors.name}
+              </span>
+            )}
           </div>
           <div className='grid grid-cols-2 gap-3'>
             <div>
@@ -103,7 +139,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
                 name='gender'
                 value={formData.gender || "male"}
                 onValueChange={(v) => handleSelectChange("gender", v)}>
-                <SelectTrigger>
+                <SelectTrigger data-testid='gender-select'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -117,10 +153,17 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
               <Input
                 id='birth_year'
                 name='birth_year'
-                type='number'
+                data-testid='birth-date-input'
+                type='text'
+                placeholder='Year (e.g., 1990) or Date (e.g., 1990-01-01)'
                 value={formData.birth_year || ""}
                 onChange={handleInputChange}
               />
+              {errors.birth_year && (
+                <span data-testid='birth-date-error' className='text-red-500 text-sm mt-1 block'>
+                  {errors.birth_year}
+                </span>
+              )}
             </div>
           </div>
           <div>
@@ -143,7 +186,7 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
             />
           </div>
           <div className='flex gap-2 pt-2'>
-            <Button type='submit' size='sm' className='flex-1'>
+            <Button type='submit' size='sm' className='flex-1' data-testid='submit-btn'>
               {t('common.save')}
             </Button>
             <Button

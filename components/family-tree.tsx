@@ -38,6 +38,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     linkColor,
     lineShape,
     showLabels,
+    viewMode,
     setCardWidth,
     setCardHeight,
     setHorizontalSpacing,
@@ -47,6 +48,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     setLinkColor,
     setShowLabel,
     setShowSpouses,
+    setViewMode,
     updateMembersAndRelationships,
     updateMainId,
     relationships,
@@ -259,6 +261,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   return (
     <section
       id='family-tree'
+      data-testid='family-tree'
       className={`py-16 transition-colors duration-300 ${
         isDarkMode ? "bg-gray-900" : "bg-gray-50"
       }`}>
@@ -285,6 +288,29 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
             </div>
             {/* Toolbar */}
             <div className='flex flex-wrap items-center gap-2 p-4 justify-end'>
+              {/* View Mode Toggle */}
+              <div className='flex items-center gap-1 mr-2'>
+                <Button
+                  data-testid='view-mode-toggle'
+                  variant={viewMode === "full" ? "default" : "outline"}
+                  size='sm'
+                  onClick={() => setViewMode("full")}
+                  title={t("familyTree.fullView")}>
+                  <span data-testid='full-tree-view' className='text-xs'>
+                    {t("familyTree.fullView")}
+                  </span>
+                </Button>
+                <Button
+                  data-testid='view-mode-toggle'
+                  variant={viewMode === "focus" ? "default" : "outline"}
+                  size='sm'
+                  onClick={() => setViewMode("focus")}
+                  title={t("familyTree.focusView")}>
+                  <span data-testid='three-level-view' className='text-xs'>
+                    {t("familyTree.focusView")}
+                  </span>
+                </Button>
+              </div>
               <Button
                 variant='outline'
                 size='sm'
@@ -314,6 +340,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 <Settings className='w-4 h-4' />
               </Button>
               <Button
+                data-testid='export-png-btn'
                 variant='outline'
                 size='sm'
                 onClick={() => handleExport("png")}
@@ -321,6 +348,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 <Download className='w-4 h-4 mr-1' /> PNG
               </Button>
               <Button
+                data-testid='export-pdf-btn'
                 variant='outline'
                 size='sm'
                 onClick={() => handleExport("pdf")}

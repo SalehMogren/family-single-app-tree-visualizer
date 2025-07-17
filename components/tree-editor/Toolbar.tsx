@@ -149,6 +149,7 @@ export function Toolbar({
         </Label>
         <div className='flex gap-2'>
           <Button
+            data-testid='undo-btn'
             variant='outline'
             size='sm'
             onClick={onUndo}
@@ -157,6 +158,7 @@ export function Toolbar({
             <Undo className='w-4 h-4' />
           </Button>
           <Button
+            data-testid='redo-btn'
             variant='outline'
             size='sm'
             onClick={onRedo}
@@ -433,6 +435,7 @@ export function Toolbar({
         </Label>
         <div className='grid grid-cols-2 gap-2'>
           <Button
+            data-testid='export-btn'
             variant='outline'
             size='sm'
             onClick={onSave}
@@ -441,6 +444,7 @@ export function Toolbar({
             حفظ
           </Button>
           <Button
+            data-testid='import-btn'
             variant='outline'
             size='sm'
             onClick={onLoad}
@@ -449,6 +453,7 @@ export function Toolbar({
             تحميل
           </Button>
           <Button
+            data-testid='export-btn'
             variant='outline'
             size='sm'
             onClick={onExport}
@@ -456,6 +461,26 @@ export function Toolbar({
             className='col-span-2'>
             <Download className='w-4 h-4 mr-1' />
             تصدير
+          </Button>
+          <Button
+            data-testid='export-png-btn'
+            variant='outline'
+            size='sm'
+            onClick={onExport}
+            title='تصدير PNG'
+            className='col-span-1'>
+            <Download className='w-4 h-4 mr-1' />
+            PNG
+          </Button>
+          <Button
+            data-testid='export-pdf-btn'
+            variant='outline'
+            size='sm'
+            onClick={onExport}
+            title='تصدير PDF'
+            className='col-span-1'>
+            <Download className='w-4 h-4 mr-1' />
+            PDF
           </Button>
         </div>
       </div>

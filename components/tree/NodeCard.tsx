@@ -112,6 +112,7 @@ export function NodeCard({
 
   return (
     <div
+      data-testid="node-card"
       style={{ ...cardStyle, overflow: "visible" }}
       className={`cursor-pointer group rounded-lg transition-all duration-300 border-2 ${
         canAcceptDrop ? "ring-2 ring-blue-400 ring-opacity-50" : ""

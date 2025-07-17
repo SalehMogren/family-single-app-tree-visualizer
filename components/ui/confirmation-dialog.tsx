@@ -93,6 +93,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             {cancelText}
           </Button>
           <Button
+            data-testid={variant === "warning" ? "confirm-remove-btn" : "confirm-delete-btn"}
             onClick={handleConfirm}
             className={`w-full sm:w-auto ${variantStyles.confirmButtonClass}`}
           >

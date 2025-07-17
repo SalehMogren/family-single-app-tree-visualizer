@@ -42,6 +42,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
+        // Add data-testid attributes based on toast type
+        unstyled: false,
       }}
       {...props}
     />

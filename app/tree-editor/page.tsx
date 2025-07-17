@@ -30,7 +30,7 @@ import { RelationshipManager } from "@/components/tree-editor/RelationshipManage
 import { DragDropProvider } from "@/components/tree-editor/DragDropProvider";
 import { getParentIds } from "../../lib/utils/relationshipHelpers";
 import { TreeErrorBoundary, FormErrorBoundary } from "@/components/ui/error-boundary";
-import { toast } from "sonner";
+import { toast } from "@/lib/utils/toast";
 import { DeleteConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -356,6 +356,7 @@ export default function TreeEditor() {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
+    input.setAttribute('data-testid', 'file-input');
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -549,6 +550,7 @@ export default function TreeEditor() {
                     )}
                     <div className='flex gap-2 pt-2'>
                       <Button
+                        data-testid="edit-member-btn"
                         size='sm'
                         variant='outline'
                         className='flex-1'
@@ -557,6 +559,7 @@ export default function TreeEditor() {
                         {t('common.edit')}
                       </Button>
                       <Button
+                        data-testid="delete-member-btn"
                         size='sm'
                         variant='destructive'
                         className='flex-1'
@@ -603,6 +606,8 @@ export default function TreeEditor() {
                   </p>
                 </div>
                 <Button
+                  data-testid="add-member-btn"
+                  aria-label={t('common.addPerson')}
                   size='sm'
                   onClick={() => {
                     setSidebarMode("add");
@@ -656,6 +661,8 @@ export default function TreeEditor() {
                 </div>
               </div>
               <Button
+                data-testid="add-member-btn"
+                aria-label={t('common.addFirstPerson')}
                 onClick={() => {
                   setSidebarMode("add");
                   setAddRelativeInfo({ targetId: "", type: "child" });

@@ -34,6 +34,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
 
   return (
     <nav
+      data-testid="navbar"
       className={`sticky top-0 z-50 border-b backdrop-blur-sm transition-colors duration-300`}
       style={{
         backgroundColor: `${colors.surface}95`,
@@ -95,7 +96,9 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
               {t("common.interactiveTree")}
             </button>
             <button
-              onClick={() => window.open("/tree-editor", "_blank")}
+              data-testid="tree-editor-link"
+              aria-label={t("toolbar.treeEditor")}
+              onClick={() => window.location.href = "/tree-editor"}
               className={`text-sm font-medium transition-colors duration-300 hover:scale-105`}
               style={{
                 color: colors.text,
@@ -108,6 +111,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
               <LanguageToggle isDarkMode={isDarkMode} />
               {config.features.darkMode && (
                 <Button
+                  data-testid="theme-toggle"
                   variant='ghost'
                   size='sm'
                   onClick={toggleTheme}
@@ -140,6 +144,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
               </Button>
             )}
             <Button
+              data-testid="mobile-menu-btn"
               variant='ghost'
               size='sm'
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -156,6 +161,7 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div
+            data-testid="mobile-menu"
             className={`md:hidden border-t transition-colors duration-300`}
             style={{
               borderColor: colors.border,
@@ -183,7 +189,9 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                 {t("common.interactiveTree")}
               </button>
               <button
-                onClick={() => window.open("/tree-editor", "_blank")}
+                data-testid="tree-editor-link"
+                aria-label={t("toolbar.treeEditor")}
+                onClick={() => window.location.href = "/tree-editor"}
                 className={`block w-full text-right px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
                 style={{
                   color: colors.text,
