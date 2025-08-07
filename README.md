@@ -78,7 +78,7 @@ Customize colors, fonts, and styling:
 Your family tree structure:
 \`\`\`json
 {
-  "name": "أحمد محمد الأحمد",
+  "name": "أحمد محمد فلان",
   "gender": "male",
   "birth_year": 1920,
   "spouse": "فاطمة علي السالم",
