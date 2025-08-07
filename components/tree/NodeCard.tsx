@@ -76,18 +76,27 @@ export function NodeCard({
     }
   );
 
+  // Get Tailwind classes for background and border colors
+  const getBackgroundClass = () => {
+    return node.gender === "male" ? "bg-tree-male" : "bg-tree-female";
+  };
+
+  const getBorderClass = () => {
+    if (isSelected) {
+      return "border-ring";
+    } else if (isDropTarget) {
+      return "border-primary";
+    } else {
+      return node.gender === "male" ? "border-tree-male" : "border-tree-female";
+    }
+  };
+
   const cardStyle: React.CSSProperties = {
     ...style,
-    backgroundColor: genderColor,
-    borderColor: isSelected
-      ? "hsl(var(--yellow-400))"
-      : isDropTarget
-      ? "hsl(var(--blue-400))"
-      : genderColor,
     boxShadow: isSelected
       ? `0 0 16px ${genderColor}`
       : isDropTarget
-      ? `0 0 20px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.4)`
+      ? `0 0 20px hsl(var(--primary) / 0.8), 0 0 40px hsl(var(--primary) / 0.4)`
       : isDraggedNode
       ? `0 8px 25px rgba(0,0,0,0.2)`
       : "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
@@ -114,7 +123,7 @@ export function NodeCard({
     <div
       data-testid="node-card"
       style={{ ...cardStyle, overflow: "visible" }}
-      className={`cursor-pointer group rounded-lg transition-all duration-300 border-2 ${
+      className={`cursor-pointer group rounded-lg transition-all duration-300 border-2 ${getBackgroundClass()} ${getBorderClass()} ${
         canAcceptDrop ? "ring-2 ring-blue-400 ring-opacity-50" : ""
       } ${isDraggedNode ? "cursor-grabbing" : "cursor-grab"}`}
       onClick={() => onNodeClick(node)}

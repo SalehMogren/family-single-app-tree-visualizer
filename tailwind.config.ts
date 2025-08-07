@@ -61,6 +61,11 @@ const config: Config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        tree: {
+          male: "hsl(var(--male-color))",
+          female: "hsl(var(--female-color))",
+          link: "hsl(var(--link-color))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

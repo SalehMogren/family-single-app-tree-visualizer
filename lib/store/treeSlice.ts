@@ -25,9 +25,9 @@ const initialState: TreeState = {
   // Visual appearance settings
   cardWidth: 160,
   cardHeight: 90,
-  maleColor: "hsl(var(--primary))",
-  femaleColor: "hsl(var(--destructive))",
-  linkColor: "hsl(var(--muted-foreground))",
+  maleColor: "hsl(var(--male-color))",
+  femaleColor: "hsl(var(--female-color))",
+  linkColor: "hsl(var(--link-color))",
   lineShape: "curved",
   // Label visibility toggles
   showLabels: {

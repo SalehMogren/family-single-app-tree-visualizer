@@ -25,7 +25,7 @@ interface FamilyTreeProps {
 
 export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   const { theme } = useTheme();
-  
+
   // Get tree data and settings from Redux store (optimized)
   const {
     data,
@@ -226,23 +226,43 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   if (loading) {
     return (
       <div
-        className="flex items-center justify-center h-96"
+        className='flex items-center justify-center h-96'
         style={{
-          backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#FFFBEB')
+          backgroundColor: theme
+            ? isDarkMode
+              ? theme.colors.dark.background
+              : theme.colors.light.background
+            : isDarkMode
+            ? "#111827"
+            : "#FFFBEB",
         }}>
         <div className='text-center'>
           <span
-            className="mx-auto h-12 w-12 mb-4 animate-pulse"
+            className='mx-auto h-12 w-12 mb-4 animate-pulse'
             style={{
-              color: theme ? (isDarkMode ? theme.colors.dark.accent : theme.colors.light.primary) : (isDarkMode ? '#60a5fa' : '#2563eb')
+              color: theme
+                ? isDarkMode
+                  ? theme.colors.dark.accent
+                  : theme.colors.light.primary
+                : isDarkMode
+                ? "#60a5fa"
+                : "#2563eb",
             }}>
             ⏳
           </span>
           <p
-            className="text-lg font-semibold"
+            className='text-lg font-semibold'
             style={{
-              color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9FAFB' : '#1F2937'),
-              fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+              color: theme
+                ? isDarkMode
+                  ? theme.colors.dark.text
+                  : theme.colors.light.text
+                : isDarkMode
+                ? "#F9FAFB"
+                : "#1F2937",
+              fontFamily: theme
+                ? theme.fonts.primary
+                : "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif",
             }}>
             جاري تحميل شجرة العائلة...
           </p>
@@ -254,17 +274,27 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   if (error) {
     return (
       <div
-        className="flex items-center justify-center h-96"
+        className='flex items-center justify-center h-96'
         style={{
-          backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#FFFBEB')
+          backgroundColor: theme
+            ? isDarkMode
+              ? theme.colors.dark.background
+              : theme.colors.light.background
+            : isDarkMode
+            ? "#111827"
+            : "#FFFBEB",
         }}>
         <div className='text-center'>
           <span className='mx-auto h-12 w-12 text-red-600 mb-4'>❌</span>
-          <p 
+          <p
             className='text-lg font-semibold text-red-700'
             style={{
-              fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
-            }}>{error}</p>
+              fontFamily: theme
+                ? theme.fonts.primary
+                : "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif",
+            }}>
+            {error}
+          </p>
         </div>
       </div>
     );
@@ -274,30 +304,68 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     <section
       id='family-tree'
       data-testid='family-tree'
-      className="py-16 transition-colors duration-300"
+      className='py-16 transition-colors duration-300'
       style={{
-        backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#f9fafb')
+        backgroundColor: theme
+          ? isDarkMode
+            ? theme.colors.dark.background
+            : theme.colors.light.background
+          : isDarkMode
+          ? "#111827"
+          : "#f9fafb",
       }}>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='relative w-full max-w-full'>
           <Card
-            data-testid="family-tree"
-            className="border-2 shadow-xl backdrop-blur-sm transition-colors duration-300"
+            data-testid='family-tree'
+            className='border-2 shadow-xl backdrop-blur-sm transition-colors duration-300'
             style={{
-              borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
-              backgroundColor: theme ? (isDarkMode ? theme.colors.dark.surface + 'E6' : theme.colors.light.surface + 'E6') : (isDarkMode ? '#1F2937E6' : '#FFFFFFE6')
+              borderColor: theme
+                ? isDarkMode
+                  ? theme.colors.dark.border
+                  : theme.colors.light.border
+                : isDarkMode
+                ? "#456882"
+                : "#D2C1B6",
+              backgroundColor: theme
+                ? isDarkMode
+                  ? theme.colors.dark.surface + "E6"
+                  : theme.colors.light.surface + "E6"
+                : isDarkMode
+                ? "#1F2937E6"
+                : "#FFFFFFE6",
             }}>
             <div
-              className="p-4 border-b transition-colors duration-300"
+              className='p-4 border-b transition-colors duration-300'
               style={{
-                borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
-                background: theme ? (isDarkMode ? `linear-gradient(to right, ${theme.colors.dark.primary}80, ${theme.colors.dark.secondary}80)` : `linear-gradient(to right, ${theme.colors.light.accent}80, ${theme.colors.light.accent}60)`) : (isDarkMode ? 'linear-gradient(to right, rgba(120, 53, 15, 0.5), rgba(154, 52, 18, 0.5))' : 'linear-gradient(to right, rgba(251, 191, 36, 0.5), rgba(251, 146, 60, 0.6))')
+                borderColor: theme
+                  ? isDarkMode
+                    ? theme.colors.dark.border
+                    : theme.colors.light.border
+                  : isDarkMode
+                  ? "#456882"
+                  : "#D2C1B6",
+                background: theme
+                  ? isDarkMode
+                    ? `linear-gradient(to right, ${theme.colors.dark.primary}80, ${theme.colors.dark.secondary}80)`
+                    : `linear-gradient(to right, ${theme.colors.light.accent}80, ${theme.colors.light.accent}60)`
+                  : isDarkMode
+                  ? "linear-gradient(to right, rgba(120, 53, 15, 0.5), rgba(154, 52, 18, 0.5))"
+                  : "linear-gradient(to right, rgba(251, 191, 36, 0.5), rgba(251, 146, 60, 0.6))",
               }}>
               <span
-                className="font-semibold transition-colors duration-300"
+                className='font-semibold transition-colors duration-300'
                 style={{
-                  color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9F3EF' : '#1B3C53'),
-                  fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+                  color: theme
+                    ? isDarkMode
+                      ? theme.colors.dark.text
+                      : theme.colors.light.text
+                    : isDarkMode
+                    ? "#F9F3EF"
+                    : "#1B3C53",
+                  fontFamily: theme
+                    ? theme.fonts.primary
+                    : "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif",
                 }}>
                 شجرة العائلة
               </span>
@@ -312,9 +380,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   size='default'
                   className='min-h-[44px] flex-1 sm:flex-none'
                   onClick={() => setViewMode("full")}
-                  title={t("familyTree.fullView")}>
+                  title={t("toolbar.fullView")}>
                   <span data-testid='full-tree-view' className='text-xs'>
-                    {t("familyTree.fullView")}
+                    {t("toolbar.fullView")}
                   </span>
                 </Button>
                 <Button
@@ -323,76 +391,88 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   size='default'
                   className='min-h-[44px] flex-1 sm:flex-none'
                   onClick={() => setViewMode("focus")}
-                  title={t("familyTree.focusView")}>
+                  title={t("toolbar.focusView")}>
                   <span data-testid='three-level-view' className='text-xs'>
-                    {t("familyTree.focusView")}
+                    {t("toolbar.focusView")}
                   </span>
                 </Button>
               </div>
               {/* Zoom and Control Actions */}
               <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
-              <Button
-                variant='outline'
-                size='default'
-                className='min-h-[44px] min-w-[44px]'
-                onClick={handleZoomIn}
-                title={t("familyTree.zoomIn")}>
-                <ZoomIn className='w-4 h-4' />
-              </Button>
-              <Button
-                variant='outline'
-                size='default'
-                className='min-h-[44px] min-w-[44px]'
-                onClick={handleZoomOut}
-                title={t("familyTree.zoomOut")}>
-                <ZoomOut className='w-4 h-4' />
-              </Button>
-              <Button
-                variant='outline'
-                size='default'
-                className='min-h-[44px] min-w-[44px]'
-                onClick={handleResetView}
-                title={t("familyTree.resetView")}>
-                <RotateCcw className='w-4 h-4' />
-              </Button>
-              <Button
-                variant='outline'
-                size='default'
-                className='min-h-[44px] min-w-[44px]'
-                onClick={() => setShowSettings((v) => !v)}
-                title={t("familyTree.settings")}>
-                <Settings className='w-4 h-4' />
-              </Button>
+                <Button
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px] min-w-[44px]'
+                  onClick={handleZoomIn}
+                  title={t("familyTree.zoomIn")}>
+                  <ZoomIn className='w-4 h-4' />
+                </Button>
+                <Button
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px] min-w-[44px]'
+                  onClick={handleZoomOut}
+                  title={t("familyTree.zoomOut")}>
+                  <ZoomOut className='w-4 h-4' />
+                </Button>
+                <Button
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px] min-w-[44px]'
+                  onClick={handleResetView}
+                  title={t("familyTree.resetView")}>
+                  <RotateCcw className='w-4 h-4' />
+                </Button>
+                <Button
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px] min-w-[44px]'
+                  onClick={() => setShowSettings((v) => !v)}
+                  title={t("familyTree.settings")}>
+                  <Settings className='w-4 h-4' />
+                </Button>
               </div>
               {/* Export Actions */}
               <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
-              <Button
-                data-testid='export-png-btn'
-                variant='outline'
-                size='default'
-                className='min-h-[44px]'
-                onClick={() => handleExport("png")}
-                title={t("familyTree.exportPNG")}>
-                <Download className='w-5 h-5 mr-1' /> PNG
-              </Button>
-              <Button
-                data-testid='export-pdf-btn'
-                variant='outline'
-                size='default'
-                className='min-h-[44px]'
-                onClick={() => handleExport("pdf")}
-                title={t("familyTree.exportPDF")}>
-                <Download className='w-5 h-5 mr-1' /> PDF
-              </Button>
+                <Button
+                  data-testid='export-png-btn'
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px]'
+                  onClick={() => handleExport("png")}
+                  title={t("familyTree.exportPNG")}>
+                  <Download className='w-5 h-5 mr-1' /> PNG
+                </Button>
+                <Button
+                  data-testid='export-pdf-btn'
+                  variant='outline'
+                  size='default'
+                  className='min-h-[44px]'
+                  onClick={() => handleExport("pdf")}
+                  title={t("familyTree.exportPDF")}>
+                  <Download className='w-5 h-5 mr-1' /> PDF
+                </Button>
               </div>
             </div>
             {/* Settings panel (toggle) */}
             {showSettings && (
               <div
-                className="p-4 border-b"
+                className='p-4 border-b'
                 style={{
-                  borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
-                  backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.surface) : (isDarkMode ? '#0F1419' : '#FFFFFF')
+                  borderColor: theme
+                    ? isDarkMode
+                      ? theme.colors.dark.border
+                      : theme.colors.light.border
+                    : isDarkMode
+                    ? "#456882"
+                    : "#D2C1B6",
+                  backgroundColor: theme
+                    ? isDarkMode
+                      ? theme.colors.dark.background
+                      : theme.colors.light.surface
+                    : isDarkMode
+                    ? "#0F1419"
+                    : "#FFFFFF",
                 }}>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div>
@@ -534,10 +614,18 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                       ⏳
                     </span>
                     <p
-                      className="text-lg font-semibold"
+                      className='text-lg font-semibold'
                       style={{
-                        color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9FAFB' : '#1F2937'),
-                        fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+                        color: theme
+                          ? isDarkMode
+                            ? theme.colors.dark.text
+                            : theme.colors.light.text
+                          : isDarkMode
+                          ? "#F9FAFB"
+                          : "#1F2937",
+                        fontFamily: theme
+                          ? theme.fonts.primary
+                          : "Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif",
                       }}>
                       جاري تحضير شجرة العائلة...
                     </p>

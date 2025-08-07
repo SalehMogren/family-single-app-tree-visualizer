@@ -162,6 +162,15 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
     });
 
     /**
+     * Utility function to detect mobile devices
+     */
+    const isMobileDevice = () => {
+      if (typeof window === 'undefined') return false;
+      return window.innerWidth <= 768 || 
+             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    /**
      * This effect sets up the D3 zoom and pan behavior on the SVG container.
      * It also exposes the zoom functions to the parent component.
      */
@@ -278,10 +287,10 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
 
         if (nodeXPositions.length === 0 || nodeYPositions.length === 0) {
           // Fallback to center if no valid positions
-          const initialTransform = d3.zoomIdentity.translate(
-            svgWidth / 2,
-            svgHeight / 2
-          );
+          const fallbackScale = isMobileDevice() ? 1.2 : 1; // Start more zoomed in on mobile
+          const initialTransform = d3.zoomIdentity
+            .translate(svgWidth / 2, svgHeight / 2)
+            .scale(fallbackScale);
           svg.call(zoomBehavior.transform, initialTransform);
           return;
         }
@@ -302,7 +311,15 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
         const padding = 100;
         const scaleX = (svgWidth - padding * 2) / treeWidth;
         const scaleY = (svgHeight - padding * 2) / treeHeight;
-        const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+        
+        let scale: number;
+        if (isMobileDevice()) {
+          // On mobile, start with a more zoomed-in view
+          const mobileScale = Math.min(scaleX, scaleY, 1.5); // Allow scaling up to 1.5x on mobile
+          scale = Math.max(mobileScale, 0.8); // Ensure minimum 0.8x zoom for readability
+        } else {
+          scale = Math.min(scaleX, scaleY, 1); // Don't scale up on desktop, only down
+        }
 
         // Calculate translation to center the scaled tree
         const translateX = svgWidth / 2 - treeCenterX * scale;
