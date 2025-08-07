@@ -1,30 +1,30 @@
 {
   "colors": {
     "light": {
-      "primary": "#D4AF37",
-      "secondary": "#F59E0B",
-      "accent": "#FCD34D",
-      "background": "#FFFBEB",
+      "primary": "#1B3C53",
+      "secondary": "#456882",
+      "accent": "#D2C1B6",
+      "background": "#F9F3EF",
       "surface": "#FFFFFF",
-      "text": "#1F2937",
-      "textSecondary": "#6B7280",
-      "border": "#E5E7EB",
-      "maleColor": "#1E40AF",
-      "femaleColor": "#BE185D",
-      "linkColor": "#D4AF37"
+      "text": "#1B3C53",
+      "textSecondary": "#456882",
+      "border": "#D2C1B6",
+      "maleColor": "#1B3C53",
+      "femaleColor": "#456882",
+      "linkColor": "#1B3C53"
     },
     "dark": {
-      "primary": "#F59E0B",
-      "secondary": "#D4AF37",
-      "accent": "#FCD34D",
-      "background": "#111827",
-      "surface": "#1F2937",
-      "text": "#F9FAFB",
-      "textSecondary": "#D1D5DB",
-      "border": "#374151",
-      "maleColor": "#3B82F6",
-      "femaleColor": "#EC4899",
-      "linkColor": "#F59E0B"
+      "primary": "#D2C1B6",
+      "secondary": "#456882",
+      "accent": "#F9F3EF",
+      "background": "#0F1419",
+      "surface": "#1B3C53",
+      "text": "#F9F3EF",
+      "textSecondary": "#E8DDD4",
+      "border": "#456882",
+      "maleColor": "#D2C1B6",
+      "femaleColor": "#F9F3EF",
+      "linkColor": "#D2C1B6"
     }
   },
   "fonts": {

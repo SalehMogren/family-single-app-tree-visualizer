@@ -65,8 +65,8 @@ Customize colors, fonts, and styling:
 {
   "colors": {
     "light": {
-      "primary": "#D4AF37",
-      "secondary": "#F59E0B",
+      "primary": "#2563eb",
+      "secondary": "#1d4ed8",
       "maleColor": "#1E40AF",
       "femaleColor": "#BE185D"
     }

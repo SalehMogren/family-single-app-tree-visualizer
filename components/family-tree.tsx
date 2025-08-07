@@ -17,12 +17,15 @@ import { Switch } from "@/components/ui/switch";
 import jsPDF from "jspdf";
 import { useTreeStore } from "@/hooks/useTreeStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useTheme } from "@/hooks/useConfig";
 
 interface FamilyTreeProps {
   isDarkMode: boolean;
 }
 
 export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
+  const { theme } = useTheme();
+  
   // Get tree data and settings from Redux store (optimized)
   const {
     data,
@@ -223,20 +226,24 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   if (loading) {
     return (
       <div
-        className={`flex items-center justify-center h-96 ${
-          isDarkMode ? "bg-gray-900" : "bg-amber-50"
-        }`}>
+        className="flex items-center justify-center h-96"
+        style={{
+          backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#FFFBEB')
+        }}>
         <div className='text-center'>
           <span
-            className={`mx-auto h-12 w-12 mb-4 animate-pulse ${
-              isDarkMode ? "text-amber-400" : "text-amber-600"
-            }`}>
+            className="mx-auto h-12 w-12 mb-4 animate-pulse"
+            style={{
+              color: theme ? (isDarkMode ? theme.colors.dark.accent : theme.colors.light.primary) : (isDarkMode ? '#60a5fa' : '#2563eb')
+            }}>
             ⏳
           </span>
           <p
-            className={`text-lg font-semibold ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
-            }`}>
+            className="text-lg font-semibold"
+            style={{
+              color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9FAFB' : '#1F2937'),
+              fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+            }}>
             جاري تحميل شجرة العائلة...
           </p>
         </div>
@@ -247,12 +254,17 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
   if (error) {
     return (
       <div
-        className={`flex items-center justify-center h-96 ${
-          isDarkMode ? "bg-gray-900" : "bg-amber-50"
-        }`}>
+        className="flex items-center justify-center h-96"
+        style={{
+          backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#FFFBEB')
+        }}>
         <div className='text-center'>
           <span className='mx-auto h-12 w-12 text-red-600 mb-4'>❌</span>
-          <p className='text-lg font-semibold text-red-700'>{error}</p>
+          <p 
+            className='text-lg font-semibold text-red-700'
+            style={{
+              fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+            }}>{error}</p>
         </div>
       </div>
     );
@@ -262,27 +274,30 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     <section
       id='family-tree'
       data-testid='family-tree'
-      className={`py-16 transition-colors duration-300 ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}>
+      className="py-16 transition-colors duration-300"
+      style={{
+        backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.background) : (isDarkMode ? '#111827' : '#f9fafb')
+      }}>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='relative w-full max-w-full'>
           <Card
-            className={`border-2 shadow-xl backdrop-blur-sm transition-colors duration-300 ${
-              isDarkMode
-                ? "border-amber-600 bg-gray-800/90"
-                : "border-amber-200 bg-white/90"
-            }`}>
+            className="border-2 shadow-xl backdrop-blur-sm transition-colors duration-300"
+            style={{
+              borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
+              backgroundColor: theme ? (isDarkMode ? theme.colors.dark.surface + 'E6' : theme.colors.light.surface + 'E6') : (isDarkMode ? '#1F2937E6' : '#FFFFFFE6')
+            }}>
             <div
-              className={`p-4 border-b transition-colors duration-300-300-300 ${
-                isDarkMode
-                  ? "border-amber-600 bg-gradient-to-r from-amber-900/50 to-orange-900/50"
-                  : "border-amber-200 bg-gradient-to-r from-amber-100 to-orange-100"
-              }`}>
+              className="p-4 border-b transition-colors duration-300"
+              style={{
+                borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
+                background: theme ? (isDarkMode ? `linear-gradient(to right, ${theme.colors.dark.primary}80, ${theme.colors.dark.secondary}80)` : `linear-gradient(to right, ${theme.colors.light.accent}80, ${theme.colors.light.accent}60)`) : (isDarkMode ? 'linear-gradient(to right, rgba(120, 53, 15, 0.5), rgba(154, 52, 18, 0.5))' : 'linear-gradient(to right, rgba(251, 191, 36, 0.5), rgba(251, 146, 60, 0.6))')
+              }}>
               <span
-                className={`font-semibold transition-colors duration-300 ${
-                  isDarkMode ? "text-amber-300" : "text-amber-800"
-                }`}>
+                className="font-semibold transition-colors duration-300"
+                style={{
+                  color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9F3EF' : '#1B3C53'),
+                  fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+                }}>
                 شجرة العائلة
               </span>
             </div>
@@ -359,11 +374,11 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
             {/* Settings panel (toggle) */}
             {showSettings && (
               <div
-                className={`p-4 border-b ${
-                  isDarkMode
-                    ? "border-amber-600 bg-gray-900"
-                    : "border-amber-200 bg-white"
-                }`}>
+                className="p-4 border-b"
+                style={{
+                  borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
+                  backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.surface) : (isDarkMode ? '#0F1419' : '#FFFFFF')
+                }}>
                 <div className='grid grid-cols-2 gap-4'>
                   <div>
                     <Label>
@@ -504,9 +519,11 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                       ⏳
                     </span>
                     <p
-                      className={`text-lg font-semibold ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
-                      }`}>
+                      className="text-lg font-semibold"
+                      style={{
+                        color: theme ? (isDarkMode ? theme.colors.dark.text : theme.colors.light.text) : (isDarkMode ? '#F9FAFB' : '#1F2937'),
+                        fontFamily: theme ? theme.fonts.primary : 'Raqaa One, Amiri, Noto Sans Arabic, Arial, sans-serif'
+                      }}>
                       جاري تحضير شجرة العائلة...
                     </p>
                   </div>
