@@ -170,7 +170,7 @@ export default function TimelineView({ isDarkMode }: TimelineViewProps) {
               backgroundColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.primary) : (isDarkMode ? '#456882' : '#1B3C53')
             }}></div>
 
-          <div className='space-y-12'>
+          <div className='space-y-8 sm:space-y-12'>
             {events.map((event, index) => {
               const Icon = eventIcons[event.type];
               const isEven = index % 2 === 0;
@@ -179,7 +179,7 @@ export default function TimelineView({ isDarkMode }: TimelineViewProps) {
                 <div key={event.id} className='relative'>
                   {/* Timeline Dot */}
                   <div
-                    className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full border-4 flex items-center justify-center transition-colors duration-300"
+                    className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full border-4 flex items-center justify-center transition-colors duration-300 z-10"
                     style={{
                       borderColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.surface) : (isDarkMode ? '#1F2937' : '#FFFFFF'),
                       backgroundColor: eventColors[event.type]
@@ -196,16 +196,16 @@ export default function TimelineView({ isDarkMode }: TimelineViewProps) {
                   <div
                     className={`flex ${
                       isEven ? "justify-start" : "justify-end"
-                    }`}>
+                    } px-2 sm:px-0`}>
                     <Card
-                      className={`w-full max-w-md ${
-                        isEven ? "mr-auto ml-8" : "ml-auto mr-8"
+                      className={`w-full max-w-md sm:max-w-lg ${
+                        isEven ? "mr-auto ml-2 sm:ml-8" : "ml-auto mr-2 sm:mr-8"
                       } border-2 shadow-xl backdrop-blur-sm transition-colors duration-300`}
                       style={{
                         borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
                         backgroundColor: theme ? (isDarkMode ? theme.colors.dark.surface + 'E6' : theme.colors.light.surface + 'E6') : (isDarkMode ? '#1F2937E6' : '#FFFFFFE6')
                       }}>
-                      <div className='p-6'>
+                      <div className='p-4 sm:p-6'>
                         <div className='flex items-center justify-between mb-3'>
                           <Badge
                             variant='secondary'

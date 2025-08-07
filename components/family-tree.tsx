@@ -302,13 +302,14 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
               </span>
             </div>
             {/* Toolbar */}
-            <div className='flex flex-wrap items-center gap-2 p-4 justify-end'>
+            <div className='flex flex-col sm:flex-row flex-wrap items-center gap-2 p-4 justify-end'>
               {/* View Mode Toggle */}
-              <div className='flex items-center gap-1 mr-2'>
+              <div className='flex items-center gap-1 mr-0 sm:mr-2 mb-2 sm:mb-0 w-full sm:w-auto justify-center sm:justify-start'>
                 <Button
                   data-testid='view-mode-toggle'
                   variant={viewMode === "full" ? "default" : "outline"}
-                  size='sm'
+                  size='default'
+                  className='min-h-[44px] flex-1 sm:flex-none'
                   onClick={() => setViewMode("full")}
                   title={t("familyTree.fullView")}>
                   <span data-testid='full-tree-view' className='text-xs'>
@@ -318,7 +319,8 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 <Button
                   data-testid='view-mode-toggle'
                   variant={viewMode === "focus" ? "default" : "outline"}
-                  size='sm'
+                  size='default'
+                  className='min-h-[44px] flex-1 sm:flex-none'
                   onClick={() => setViewMode("focus")}
                   title={t("familyTree.focusView")}>
                   <span data-testid='three-level-view' className='text-xs'>
@@ -326,50 +328,62 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   </span>
                 </Button>
               </div>
+              {/* Zoom and Control Actions */}
+              <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
               <Button
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px] min-w-[44px]'
                 onClick={handleZoomIn}
                 title={t("familyTree.zoomIn")}>
                 <ZoomIn className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px] min-w-[44px]'
                 onClick={handleZoomOut}
                 title={t("familyTree.zoomOut")}>
                 <ZoomOut className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px] min-w-[44px]'
                 onClick={handleResetView}
                 title={t("familyTree.resetView")}>
                 <RotateCcw className='w-4 h-4' />
               </Button>
               <Button
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px] min-w-[44px]'
                 onClick={() => setShowSettings((v) => !v)}
                 title={t("familyTree.settings")}>
                 <Settings className='w-4 h-4' />
               </Button>
+              </div>
+              {/* Export Actions */}
+              <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
               <Button
                 data-testid='export-png-btn'
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px]'
                 onClick={() => handleExport("png")}
                 title={t("familyTree.exportPNG")}>
-                <Download className='w-4 h-4 mr-1' /> PNG
+                <Download className='w-5 h-5 mr-1' /> PNG
               </Button>
               <Button
                 data-testid='export-pdf-btn'
                 variant='outline'
-                size='sm'
+                size='default'
+                className='min-h-[44px]'
                 onClick={() => handleExport("pdf")}
                 title={t("familyTree.exportPDF")}>
-                <Download className='w-4 h-4 mr-1' /> PDF
+                <Download className='w-5 h-5 mr-1' /> PDF
               </Button>
+              </div>
             </div>
             {/* Settings panel (toggle) */}
             {showSettings && (
@@ -379,7 +393,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),
                   backgroundColor: theme ? (isDarkMode ? theme.colors.dark.background : theme.colors.light.surface) : (isDarkMode ? '#0F1419' : '#FFFFFF')
                 }}>
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div>
                     <Label>
                       {t("familyTree.width")}: {cardWidth}px
