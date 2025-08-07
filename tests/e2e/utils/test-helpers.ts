@@ -16,7 +16,11 @@ export class TestHelpers {
     await this.page.click('[data-testid="add-member-btn"]');
     await this.page.fill('[data-testid="name-input"]', name);
     await this.page.fill('[data-testid="birth-date-input"]', birthDate);
-    await this.page.selectOption('[data-testid="gender-select"]', gender);
+    
+    // Handle Shadcn Select component
+    await this.page.click('[data-testid="gender-select"]');
+    await this.page.click(`[data-value="${gender}"]`);
+    
     await this.page.click('[data-testid="submit-btn"]');
   }
 

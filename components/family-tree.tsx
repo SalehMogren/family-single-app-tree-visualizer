@@ -281,6 +281,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='relative w-full max-w-full'>
           <Card
+            data-testid="family-tree"
             className="border-2 shadow-xl backdrop-blur-sm transition-colors duration-300"
             style={{
               borderColor: theme ? (isDarkMode ? theme.colors.dark.border : theme.colors.light.border) : (isDarkMode ? '#456882' : '#D2C1B6'),

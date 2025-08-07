@@ -18,6 +18,8 @@
   "birthYearRequired": "Birth year is required",
   "invalidYear": "Invalid year",
   "deathBeforeBirth": "Death year cannot be before birth year",
+  "invalidCharacters": "Invalid characters detected in name",
+  "unreasonableYear": "Year must be between 1800 and current year",
   "addMember": "Add Member",
   "editMember": "Edit Member",
   "memberInfo": "Member Information",

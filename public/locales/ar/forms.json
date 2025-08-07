@@ -18,6 +18,8 @@
   "birthYearRequired": "سنة الميلاد مطلوبة",
   "invalidYear": "سنة غير صحيحة",
   "deathBeforeBirth": "سنة الوفاة لا يمكن أن تكون قبل سنة الميلاد",
+  "invalidCharacters": "تم اكتشاف أحرف غير صالحة في الاسم",
+  "unreasonableYear": "يجب أن تكون السنة بين 1800 والسنة الحالية",
   "addMember": "إضافة عضو",
   "editMember": "تحرير عضو",
   "memberInfo": "معلومات العضو",

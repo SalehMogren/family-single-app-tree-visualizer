@@ -64,26 +64,70 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateForm = (): {[key: string]: string} => {
+    const newErrors: {[key: string]: string} = {};
+    
+    // Name validation
+    if (!formData.name || formData.name.trim() === '') {
+      newErrors.name = t('forms.nameRequired');
+    } else {
+      // Sanitize name and check for XSS attempts
+      const sanitizedName = formData.name.replace(/<[^>]*>/g, '');
+      if (sanitizedName !== formData.name) {
+        newErrors.name = t('forms.invalidCharacters');
+        // Update form data with sanitized name
+        setFormData(prev => ({ ...prev, name: sanitizedName }));
+      }
+    }
+    
+    // Birth year validation
+    if (!formData.birth_year) {
+      newErrors.birth_year = t('forms.birthYearRequired');
+    } else {
+      const currentYear = new Date().getFullYear();
+      const birthYear = Number(formData.birth_year);
+      
+      if (isNaN(birthYear)) {
+        newErrors.birth_year = t('forms.invalidYear');
+      } else if (birthYear < 1800 || birthYear > currentYear) {
+        newErrors.birth_year = t('forms.unreasonableYear');
+      }
+    }
+    
+    // Death year validation
+    if (formData.death_year) {
+      const deathYear = Number(formData.death_year);
+      const birthYear = Number(formData.birth_year);
+      
+      if (isNaN(deathYear)) {
+        newErrors.death_year = t('forms.invalidYear');
+      } else if (deathYear <= birthYear) {
+        newErrors.death_year = t('forms.deathBeforeBirth');
+      }
+    }
+    
+    return newErrors;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
-    const newErrors: {[key: string]: string} = {};
-    
-    if (!formData.name || formData.name.trim() === '') {
-      newErrors.name = t('validation.nameRequired');
-    }
-    
-    if (!formData.birth_year) {
-      newErrors.birth_year = t('validation.birthYearRequired');
-    }
-    
+    const newErrors = validateForm();
     setErrors(newErrors);
     
     // If there are no errors, submit the form
     if (Object.keys(newErrors).length === 0) {
       onSave(formData);
     }
+  };
+  
+  // Real-time validation on blur
+  const handleFieldValidation = (fieldName: string) => {
+    const fieldErrors = validateForm();
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: fieldErrors[fieldName] || ''
+    }));
   };
 
   const title = nodeToEdit
@@ -124,10 +168,13 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
               data-testid='name-input'
               value={formData.name || ""}
               onChange={handleInputChange}
+              onBlur={() => handleFieldValidation('name')}
+              aria-describedby={errors.name ? 'name-error' : undefined}
+              aria-invalid={!!errors.name}
               required
             />
             {errors.name && (
-              <span data-testid='name-error' className='text-red-500 text-sm mt-1 block'>
+              <span id='name-error' data-testid='name-error' className='text-red-500 text-sm mt-1 block' role='alert' aria-live='polite'>
                 {errors.name}
               </span>
             )}
@@ -158,9 +205,12 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
                 placeholder='Year (e.g., 1990) or Date (e.g., 1990-01-01)'
                 value={formData.birth_year || ""}
                 onChange={handleInputChange}
+                onBlur={() => handleFieldValidation('birth_year')}
+                aria-describedby={errors.birth_year ? 'birth-year-error' : undefined}
+                aria-invalid={!!errors.birth_year}
               />
               {errors.birth_year && (
-                <span data-testid='birth-date-error' className='text-red-500 text-sm mt-1 block'>
+                <span id='birth-year-error' data-testid='birth-date-error' className='text-red-500 text-sm mt-1 block' role='alert' aria-live='polite'>
                   {errors.birth_year}
                 </span>
               )}
@@ -174,7 +224,15 @@ export const AddOrEditNodeForm: React.FC<AddOrEditNodeFormProps> = ({
               type='number'
               value={formData.death_year || ""}
               onChange={handleInputChange}
+              onBlur={() => handleFieldValidation('death_year')}
+              aria-describedby={errors.death_year ? 'death-year-error' : undefined}
+              aria-invalid={!!errors.death_year}
             />
+            {errors.death_year && (
+              <span id='death-year-error' data-testid='death-year-error' className='text-red-500 text-sm mt-1 block' role='alert' aria-live='polite'>
+                {errors.death_year}
+              </span>
+            )}
           </div>
           <div>
             <Label htmlFor='occupation'>{t('forms.occupation')} ({t('forms.optional')})</Label>

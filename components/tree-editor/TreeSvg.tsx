@@ -10,9 +10,9 @@ const defaultSettings: BaseTreeSettings = {
   horizontalSpacing: 2.2,
   verticalSpacing: 1.8,
   margin: { top: 80, right: 80, bottom: 80, left: 80 },
-  maleColor: "#1E40AF",
-  femaleColor: "#BE185D",
-  linkColor: "#3B82F6",
+  maleColor: "hsl(var(--primary))",
+  femaleColor: "hsl(var(--destructive))",
+  linkColor: "hsl(var(--muted-foreground))",
   orientation: "vertical",
   direction: "bottom-to-top",
   showLabels: {
