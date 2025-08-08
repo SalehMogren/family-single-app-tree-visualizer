@@ -14,10 +14,10 @@ import { ZoomIn, ZoomOut, RotateCcw, Settings, Download } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import jsPDF from "jspdf";
 import { useTreeStore } from "@/hooks/useTreeStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useTheme } from "@/hooks/useConfig";
+import { exportTreeSvg } from "@/lib/utils/treeExport";
 
 interface FamilyTreeProps {
   isDarkMode: boolean;
@@ -149,74 +149,26 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
     resetViewRef.current && resetViewRef.current();
   }, []);
 
-  // Export as PNG or PDF using SVG serialization
+  // Export as PNG or PDF using the utility function
   const svgId = "family-tree-svg";
   const handleExport = useCallback(
     async (format: "png" | "pdf") => {
-      const svg = document.getElementById(svgId);
-      if (!svg) return;
-
-      // Inline all images as data URLs
-      const images = svg.querySelectorAll("image");
-      const promises: Promise<void>[] = [];
-      images.forEach((img: any) => {
-        const href = img.getAttribute("href") || img.getAttribute("xlink:href");
-        if (href && !href.startsWith("data:")) {
-          promises.push(
-            fetch(href)
-              .then((res) => res.blob())
-              .then((blob) => {
-                return new Promise<void>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    img.setAttribute("href", reader.result as string);
-                    resolve();
-                  };
-                  reader.readAsDataURL(blob);
-                });
-              })
-              .catch(() => {})
-          );
+      try {
+        const success = await exportTreeSvg({
+          svgId,
+          isDarkMode,
+          format,
+          filename: `family-tree-${Date.now()}`,
+          includeBackground: true,
+        });
+        
+        if (!success) {
+          alert("Export failed. Please try again or check the console for details.");
         }
-      });
-      await Promise.all(promises);
-
-      // Now serialize and export as before
-      const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(svg);
-      const svgBlob = new Blob([svgString], {
-        type: "image/svg+xml;charset=utf-8",
-      });
-      const url = URL.createObjectURL(svgBlob);
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = svg.clientWidth;
-        canvas.height = svg.clientHeight;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.fillStyle = isDarkMode ? "#18181b" : "#f9fafb";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        if (format === "png") {
-          const dataUrl = canvas.toDataURL("image/png");
-          const link = document.createElement("a");
-          link.href = dataUrl;
-          link.download = `family-tree-${Date.now()}.png`;
-          link.click();
-        } else {
-          const imgData = canvas.toDataURL("image/png");
-          const pdf = new jsPDF({
-            orientation: "landscape",
-            unit: "px",
-            format: [canvas.width, canvas.height],
-          });
-          pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-          pdf.save(`family-tree-${Date.now()}.pdf`);
-        }
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
+      } catch (error) {
+        console.error("Export failed:", error);
+        alert("Export failed. This might be due to browser security restrictions. Please try again or use a different browser.");
+      }
     },
     [isDarkMode]
   );

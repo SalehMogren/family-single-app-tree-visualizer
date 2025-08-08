@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { exportTreeSvg } from "@/lib/utils/treeExport";
 import {
   Undo,
   Redo,
@@ -24,7 +25,9 @@ interface ToolbarProps {
   isDarkMode: boolean;
   onSave: () => void;
   onLoad: () => void;
-  onExport: () => void;
+  onExport?: () => void; // Keep for backward compatibility
+  onExportPNG?: () => void;
+  onExportPDF?: () => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -32,6 +35,7 @@ interface ToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
+  svgId?: string; // Add SVG ID for export
   className?: string;
 }
 
@@ -40,6 +44,8 @@ export function Toolbar({
   onSave,
   onLoad,
   onExport,
+  onExportPNG,
+  onExportPDF,
   onUndo,
   onRedo,
   canUndo,
@@ -47,6 +53,7 @@ export function Toolbar({
   onZoomIn,
   onZoomOut,
   onResetView,
+  svgId = "family-tree-svg",
   className = "",
 }: ToolbarProps) {
   const { t } = useTranslation();
@@ -131,6 +138,53 @@ export function Toolbar({
     onLoad,
     onExport,
   ]);
+
+  // Internal export handlers
+  const handleExportPNG = async () => {
+    try {
+      if (onExportPNG) {
+        onExportPNG();
+      } else {
+        const success = await exportTreeSvg({
+          svgId,
+          isDarkMode,
+          format: 'png',
+          filename: `tree-editor-${Date.now()}`,
+          includeBackground: true,
+        });
+        
+        if (!success) {
+          alert("PNG export failed. Please try again or check the console for details.");
+        }
+      }
+    } catch (error) {
+      console.error("PNG export failed:", error);
+      alert("PNG export failed. Please try again.");
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      if (onExportPDF) {
+        onExportPDF();
+      } else {
+        const success = await exportTreeSvg({
+          svgId,
+          isDarkMode,
+          format: 'pdf',
+          filename: `tree-editor-${Date.now()}`,
+          includeBackground: true,
+        });
+        
+        if (!success) {
+          alert("PDF export failed. Please try again or check the console for details.");
+        }
+      }
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      alert("PDF export failed. Please try again.");
+    }
+  };
 
   return (
     <Card
@@ -466,7 +520,7 @@ export function Toolbar({
             data-testid='export-png-btn'
             variant='outline'
             size='sm'
-            onClick={onExport}
+            onClick={handleExportPNG}
             title='تصدير PNG'
             className='col-span-1'>
             <Download className='w-4 h-4 mr-1' />
@@ -476,7 +530,7 @@ export function Toolbar({
             data-testid='export-pdf-btn'
             variant='outline'
             size='sm'
-            onClick={onExport}
+            onClick={handleExportPDF}
             title='تصدير PDF'
             className='col-span-1'>
             <Download className='w-4 h-4 mr-1' />
