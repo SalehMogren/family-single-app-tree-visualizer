@@ -166,8 +166,14 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
      */
     const isMobileDevice = () => {
       if (typeof window === 'undefined') return false;
-      return window.innerWidth <= 768 || 
+      return window.innerWidth <= 768 ||
              /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    // Detect iOS Safari to handle foreignObject transform issues
+    const isIOSSafari = () => {
+      if (typeof navigator === 'undefined') return false;
+      return /iPad|iPhone|iPod/.test(navigator.userAgent);
     };
 
     /**
@@ -199,153 +205,162 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
         );
       };
 
-      // If dimensions aren't ready, wait a bit and try again
-      if (!checkDimensions()) {
-        const timeoutId = setTimeout(() => {
-          // Force re-run effect when dimensions are ready
-          if (checkDimensions()) {
-            // Trigger re-render to restart this effect
-            setZoom((prev) => prev);
-          }
-        }, 100);
-        return () => clearTimeout(timeoutId);
-      }
+      let timeoutId: ReturnType<typeof setTimeout>;
 
-      const svg = d3.select(svgRef.current);
-      const g = svg.select("g.tree-container");
+      const initialize = () => {
+        if (!svgRef.current) return;
 
-      const zoomBehavior = d3
-        .zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.1, 3])
-        .filter((event) => {
-          // Prevent zoom/pan on drag events from nodes
-          if (event.type === "mousedown" || event.type === "touchstart") {
-            const target = event.target as Element;
-            // Check if the event target is a draggable node or its child
-            const isDraggableNode =
-              target.closest('[draggable="true"]') !== null;
-            const isNodeCard =
-              target.closest(".cursor-grab, .cursor-grabbing") !== null;
-            const isPlaceholderNode =
-              target.closest('[data-placeholder="true"]') !== null;
+        const svg = d3.select(svgRef.current);
+        const g = svg.select("g.tree-container");
 
-            // Disable zoom/pan if it's a draggable element
-            return !isDraggableNode && !isNodeCard && !isPlaceholderNode;
-          }
-          return true;
-        })
-        .on("zoom", (event) => {
-          g.attr("transform", event.transform);
-          setZoom(event.transform.k);
-        });
+        const zoomBehavior = d3
+          .zoom<SVGSVGElement, unknown>()
+          .scaleExtent([0.1, 3])
+          .filter((event) => {
+            // Prevent zoom/pan on drag events from nodes
+            if (event.type === "mousedown" || event.type === "touchstart") {
+              const target = event.target as Element;
+              // Check if the event target is a draggable node or its child
+              const isDraggableNode =
+                target.closest('[draggable="true"]') !== null;
+              const isNodeCard =
+                target.closest(".cursor-grab, .cursor-grabbing") !== null;
+              const isPlaceholderNode =
+                target.closest('[data-placeholder="true"]') !== null;
 
-      // Apply zoom behavior with error handling
-      try {
-        svg.call(zoomBehavior);
-      } catch (error) {
-        console.warn("Failed to initialize D3 zoom behavior:", error);
-        return;
-      }
+              // Disable zoom/pan if it's a draggable element
+              return !isDraggableNode && !isNodeCard && !isPlaceholderNode;
+            }
+            return true;
+          })
+          .on("zoom", (event) => {
+            g.attr("transform", event.transform);
+            setZoom(event.transform.k);
+            if (isIOSSafari()) {
+              svg.selectAll("foreignObject").attr("transform", event.transform);
+            }
+          });
 
-      // Calculate tree bounds and center appropriately
-      const centerTree = () => {
-        if (!svgRef.current || tree.length === 0) return;
-
-        // Get SVG dimensions with fallback and error handling
-        let svgWidth: number;
-        let svgHeight: number;
-
+        // Apply zoom behavior with error handling
         try {
-          const rect = svgRef.current.getBoundingClientRect();
-          svgWidth = rect.width;
-          svgHeight = rect.height;
-
-          // Fallback to clientWidth/Height if getBoundingClientRect fails
-          if (svgWidth === 0 || svgHeight === 0) {
-            svgWidth = svgRef.current.clientWidth;
-            svgHeight = svgRef.current.clientHeight;
-          }
-
-          // Final fallback to default dimensions
-          if (svgWidth === 0 || svgHeight === 0) {
-            svgWidth = 800;
-            svgHeight = 600;
-          }
+          svg.call(zoomBehavior);
         } catch (error) {
-          console.warn("Failed to get SVG dimensions, using defaults:", error);
-          svgWidth = 800;
-          svgHeight = 600;
-        }
-
-        // Calculate tree bounds
-        const nodeXPositions = tree
-          .map((node) => node.x)
-          .filter((x) => !isNaN(x));
-        const nodeYPositions = tree
-          .map((node) => node.y)
-          .filter((y) => !isNaN(y));
-
-        if (nodeXPositions.length === 0 || nodeYPositions.length === 0) {
-          // Fallback to center if no valid positions
-          const fallbackScale = isMobileDevice() ? 1.2 : 1; // Start more zoomed in on mobile
-          const initialTransform = d3.zoomIdentity
-            .translate(svgWidth / 2, svgHeight / 2)
-            .scale(fallbackScale);
-          svg.call(zoomBehavior.transform, initialTransform);
+          console.warn("Failed to initialize D3 zoom behavior:", error);
           return;
         }
 
-        const minX = Math.min(...nodeXPositions);
-        const maxX = Math.max(...nodeXPositions);
-        const minY = Math.min(...nodeYPositions);
-        const maxY = Math.max(...nodeYPositions);
+        // Calculate tree bounds and center appropriately
+        const centerTree = () => {
+          if (!svgRef.current || tree.length === 0) return;
 
-        const treeWidth = maxX - minX + settings.cardWidth;
-        const treeHeight = maxY - minY + settings.cardHeight;
+          // Get SVG dimensions with fallback and error handling
+          let svgWidth: number;
+          let svgHeight: number;
 
-        // Calculate center position
-        const treeCenterX = (minX + maxX) / 2;
-        const treeCenterY = (minY + maxY) / 2;
+          try {
+            const rect = svgRef.current.getBoundingClientRect();
+            svgWidth = rect.width;
+            svgHeight = rect.height;
 
-        // Calculate scale to fit tree in viewport with padding
-        const padding = 100;
-        const scaleX = (svgWidth - padding * 2) / treeWidth;
-        const scaleY = (svgHeight - padding * 2) / treeHeight;
-        
-        let scale: number;
-        if (isMobileDevice()) {
-          // On mobile, start with a more zoomed-in view
-          const mobileScale = Math.min(scaleX, scaleY, 1.5); // Allow scaling up to 1.5x on mobile
-          scale = Math.max(mobileScale, 0.8); // Ensure minimum 0.8x zoom for readability
+            // Fallback to clientWidth/Height if getBoundingClientRect fails
+            if (svgWidth === 0 || svgHeight === 0) {
+              svgWidth = svgRef.current.clientWidth;
+              svgHeight = svgRef.current.clientHeight;
+            }
+
+            // Final fallback to default dimensions
+            if (svgWidth === 0 || svgHeight === 0) {
+              svgWidth = 800;
+              svgHeight = 600;
+            }
+          } catch (error) {
+            console.warn("Failed to get SVG dimensions, using defaults:", error);
+            svgWidth = 800;
+            svgHeight = 600;
+          }
+
+          // Calculate tree bounds
+          const nodeXPositions = tree
+            .map((node) => node.x)
+            .filter((x) => !isNaN(x));
+          const nodeYPositions = tree
+            .map((node) => node.y)
+            .filter((y) => !isNaN(y));
+
+          if (nodeXPositions.length === 0 || nodeYPositions.length === 0) {
+            // Fallback to center if no valid positions
+            const fallbackScale = isMobileDevice() ? 1.2 : 1; // Start more zoomed in on mobile
+            const initialTransform = d3.zoomIdentity
+              .translate(svgWidth / 2, svgHeight / 2)
+              .scale(fallbackScale);
+            svg.call(zoomBehavior.transform, initialTransform);
+            return;
+          }
+
+          const minX = Math.min(...nodeXPositions);
+          const maxX = Math.max(...nodeXPositions);
+          const minY = Math.min(...nodeYPositions);
+          const maxY = Math.max(...nodeYPositions);
+
+          const treeWidth = maxX - minX + settings.cardWidth;
+          const treeHeight = maxY - minY + settings.cardHeight;
+
+          // Calculate center position
+          const treeCenterX = (minX + maxX) / 2;
+          const treeCenterY = (minY + maxY) / 2;
+
+          // Calculate scale to fit tree in viewport with padding
+          const padding = 100;
+          const scaleX = (svgWidth - padding * 2) / treeWidth;
+          const scaleY = (svgHeight - padding * 2) / treeHeight;
+
+          let scale: number;
+          if (isMobileDevice()) {
+            // On mobile, start with a more zoomed-in view
+            const mobileScale = Math.min(scaleX, scaleY, 1.5); // Allow scaling up to 1.5x on mobile
+            scale = Math.max(mobileScale, 0.8); // Ensure minimum 0.8x zoom for readability
+          } else {
+            scale = Math.min(scaleX, scaleY, 1); // Don't scale up on desktop, only down
+          }
+
+          // Calculate translation to center the scaled tree
+          const translateX = svgWidth / 2 - treeCenterX * scale;
+          const translateY = svgHeight / 2 - treeCenterY * scale;
+
+          const transform = d3.zoomIdentity
+            .translate(translateX, translateY)
+            .scale(scale);
+
+          svg.transition().duration(750).call(zoomBehavior.transform, transform);
+        };
+
+        // Center on initial render and when tree changes
+        centerTree();
+
+        // Store zoom functions for ref exposure
+        zoomFunctions.current = {
+          zoomIn: () => svg.transition().call(zoomBehavior.scaleBy, 1.2),
+          zoomOut: () => svg.transition().call(zoomBehavior.scaleBy, 1 / 1.2),
+          resetView: () => centerTree(),
+        };
+
+        // Optional: expose handlers (backward compatibility)
+        if (onZoomIn) onZoomIn(zoomFunctions.current.zoomIn);
+        if (onZoomOut) onZoomOut(zoomFunctions.current.zoomOut);
+        if (onResetView) onResetView(zoomFunctions.current.resetView);
+      };
+
+      const waitForDimensions = () => {
+        if (checkDimensions()) {
+          initialize();
         } else {
-          scale = Math.min(scaleX, scaleY, 1); // Don't scale up on desktop, only down
+          timeoutId = setTimeout(waitForDimensions, 100);
         }
-
-        // Calculate translation to center the scaled tree
-        const translateX = svgWidth / 2 - treeCenterX * scale;
-        const translateY = svgHeight / 2 - treeCenterY * scale;
-
-        const transform = d3.zoomIdentity
-          .translate(translateX, translateY)
-          .scale(scale);
-
-        svg.transition().duration(750).call(zoomBehavior.transform, transform);
       };
 
-      // Center on initial render and when tree changes
-      centerTree();
+      waitForDimensions();
 
-      // Store zoom functions for ref exposure
-      zoomFunctions.current = {
-        zoomIn: () => svg.transition().call(zoomBehavior.scaleBy, 1.2),
-        zoomOut: () => svg.transition().call(zoomBehavior.scaleBy, 1 / 1.2),
-        resetView: () => centerTree(),
-      };
-
-      // Optional: expose handlers (backward compatibility)
-      if (onZoomIn) onZoomIn(zoomFunctions.current.zoomIn);
-      if (onZoomOut) onZoomOut(zoomFunctions.current.zoomOut);
-      if (onResetView) onResetView(zoomFunctions.current.resetView);
+      return () => clearTimeout(timeoutId);
     }, [
       onZoomIn,
       onZoomOut,
