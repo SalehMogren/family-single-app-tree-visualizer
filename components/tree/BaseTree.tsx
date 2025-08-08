@@ -166,8 +166,14 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
      */
     const isMobileDevice = () => {
       if (typeof window === 'undefined') return false;
-      return window.innerWidth <= 768 || 
+      return window.innerWidth <= 768 ||
              /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    // Detect iOS Safari to handle foreignObject transform issues
+    const isIOSSafari = () => {
+      if (typeof navigator === 'undefined') return false;
+      return /iPad|iPhone|iPod/.test(navigator.userAgent);
     };
 
     /**
@@ -230,6 +236,9 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
           .on("zoom", (event) => {
             g.attr("transform", event.transform);
             setZoom(event.transform.k);
+            if (isIOSSafari()) {
+              svg.selectAll("foreignObject").attr("transform", event.transform);
+            }
           });
 
         // Apply zoom behavior with error handling
