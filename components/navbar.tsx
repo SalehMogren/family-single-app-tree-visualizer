@@ -96,6 +96,15 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
               {t("common.interactiveTree")}
             </button>
             <button
+              onClick={() => scrollToSection("timeline")}
+              className={`text-sm font-medium transition-colors duration-300 hover:scale-105`}
+              style={{
+                color: colors.text,
+                fontFamily: theme.fonts.primary,
+              }}>
+              {t("common.timeline")}
+            </button>
+            <button
               data-testid="tree-editor-link"
               aria-label={t("toolbar.treeEditor")}
               onClick={() => window.location.href = "/tree-editor"}
@@ -187,6 +196,15 @@ export default function Navbar({ isDarkMode, toggleTheme }: NavbarProps) {
                   fontFamily: theme.fonts.primary,
                 }}>
                 {t("common.interactiveTree")}
+              </button>
+              <button
+                onClick={() => scrollToSection("timeline")}
+                className={`block w-full text-right px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
+                style={{
+                  color: colors.text,
+                  fontFamily: theme.fonts.primary,
+                }}>
+                {t("common.timeline")}
               </button>
               <button
                 data-testid="tree-editor-link"
