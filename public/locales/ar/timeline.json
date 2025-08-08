@@ -1,0 +1,13 @@
+{
+  "title": "التسلسل الزمني للعائلة",
+  "subtitle": "الأحداث المهمة في تاريخ العائلة",
+  "loading": "جاري تحميل الأحداث التاريخية...",
+  "participants": "المشاركون:",
+  "eventTypeFamily": "عائلي",
+  "eventTypeMigration": "هجرة",
+  "eventTypeMarriage": "زواج",
+  "eventTypeBusiness": "أعمال",
+  "eventTypeEducation": "تعليم",
+  "eventTypeReunion": "لم شمل",
+  "eventTypeBirth": "ولادة"
+}

@@ -92,6 +92,20 @@ export const useMessagesTranslation = () => {
   };
 };
 
+export const useTimelineTranslation = () => {
+  const { t } = useTranslation();
+  return {
+    t: (key: string) => t(`timeline.${key}` as TranslationKey),
+  };
+};
+
+export const useFooterTranslation = () => {
+  const { t } = useTranslation();
+  return {
+    t: (key: string) => t(`footer.${key}` as TranslationKey),
+  };
+};
+
 // Language context for providers
 export const getLanguageFromStorage = (): SupportedLanguage => {
   if (typeof window !== "undefined") {

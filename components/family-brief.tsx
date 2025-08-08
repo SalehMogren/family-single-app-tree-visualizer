@@ -64,7 +64,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid lg:grid-cols-3 gap-8 mb-12" dir="rtl">
           {/* Family Description */}
           <div className="lg:col-span-2">
             {config.features.familyHistory && (
@@ -75,7 +75,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
                   backgroundColor: `${colors.surface}90`,
                 }}
               >
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-6" dir="rtl">
                   <BookOpen className={`h-6 w-6 transition-colors duration-300`} style={{ color: colors.primary }} />
                   <h2
                     className={`text-2xl font-bold transition-colors duration-300`}
@@ -121,7 +121,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
                   backgroundColor: `${colors.surface}90`,
                 }}
               >
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-4" dir="rtl">
                   <TrendingUp className={`h-5 w-5 transition-colors duration-300`} style={{ color: colors.primary }} />
                   <h3
                     className={`text-lg font-bold transition-colors duration-300`}
@@ -206,7 +206,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
                   backgroundColor: `${colors.surface}90`,
                 }}
               >
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-4" dir="rtl">
                   <MapPin className={`h-5 w-5 transition-colors duration-300`} style={{ color: colors.primary }} />
                   <h3
                     className={`text-lg font-bold transition-colors duration-300`}
@@ -242,7 +242,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
               backgroundColor: `${colors.surface}90`,
             }}
           >
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-6" dir="rtl">
               <Award className={`h-6 w-6 transition-colors duration-300`} style={{ color: colors.primary }} />
               <h2
                 className={`text-2xl font-bold transition-colors duration-300`}
@@ -260,7 +260,7 @@ export default function FamilyBrief({ isDarkMode }: FamilyBriefProps) {
                   key={index}
                   className={`flex items-start gap-3 p-4 rounded-lg transition-colors duration-300`}
                   style={{ backgroundColor: `${colors.primary}10` }}
-                >
+                  dir="rtl">
                   <div
                     className={`w-2 h-2 rounded-full mt-2 transition-colors duration-300`}
                     style={{ backgroundColor: colors.primary }}

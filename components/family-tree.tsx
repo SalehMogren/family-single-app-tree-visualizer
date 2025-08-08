@@ -371,14 +371,14 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
               </span>
             </div>
             {/* Toolbar */}
-            <div className='flex flex-col sm:flex-row flex-wrap items-center gap-2 p-4 justify-end'>
+            <div className='flex flex-col lg:flex-row flex-wrap items-center gap-4 p-4 lg:justify-between'>
               {/* View Mode Toggle */}
-              <div className='flex items-center gap-1 mr-0 sm:mr-2 mb-2 sm:mb-0 w-full sm:w-auto justify-center sm:justify-start'>
+              <div className='flex items-center gap-2 w-full lg:w-auto justify-center lg:justify-start'>
                 <Button
                   data-testid='view-mode-toggle'
                   variant={viewMode === "full" ? "default" : "outline"}
                   size='default'
-                  className='min-h-[44px] flex-1 sm:flex-none'
+                  className='min-h-[44px] flex-1 lg:flex-none min-w-[120px]'
                   onClick={() => setViewMode("full")}
                   title={t("toolbar.fullView")}>
                   <span data-testid='full-tree-view' className='text-xs'>
@@ -389,7 +389,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   data-testid='view-mode-toggle'
                   variant={viewMode === "focus" ? "default" : "outline"}
                   size='default'
-                  className='min-h-[44px] flex-1 sm:flex-none'
+                  className='min-h-[44px] flex-1 lg:flex-none min-w-[120px]'
                   onClick={() => setViewMode("focus")}
                   title={t("toolbar.focusView")}>
                   <span data-testid='three-level-view' className='text-xs'>
@@ -398,7 +398,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 </Button>
               </div>
               {/* Zoom and Control Actions */}
-              <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
+              <div className='flex flex-wrap gap-3 w-full lg:w-auto justify-center lg:justify-end'>
                 <Button
                   variant='outline'
                   size='default'
@@ -433,12 +433,12 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                 </Button>
               </div>
               {/* Export Actions */}
-              <div className='flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-end'>
+              <div className='flex flex-wrap gap-3 w-full lg:w-auto justify-center lg:justify-end'>
                 <Button
                   data-testid='export-png-btn'
                   variant='outline'
                   size='default'
-                  className='min-h-[44px]'
+                  className='min-h-[44px] min-w-[80px]'
                   onClick={() => handleExport("png")}
                   title={t("familyTree.exportPNG")}>
                   <Download className='w-5 h-5 mr-1' /> PNG
@@ -447,7 +447,7 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   data-testid='export-pdf-btn'
                   variant='outline'
                   size='default'
-                  className='min-h-[44px]'
+                  className='min-h-[44px] min-w-[80px]'
                   onClick={() => handleExport("pdf")}
                   title={t("familyTree.exportPDF")}>
                   <Download className='w-5 h-5 mr-1' /> PDF

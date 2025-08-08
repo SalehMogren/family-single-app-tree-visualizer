@@ -1,0 +1,13 @@
+{
+  "title": "Family Timeline",
+  "subtitle": "Important events in the family history",
+  "loading": "Loading historical events...",
+  "participants": "Participants:",
+  "eventTypeFamily": "Family",
+  "eventTypeMigration": "Migration",
+  "eventTypeMarriage": "Marriage",
+  "eventTypeBusiness": "Business",
+  "eventTypeEducation": "Education",
+  "eventTypeReunion": "Reunion",
+  "eventTypeBirth": "Birth"
+}

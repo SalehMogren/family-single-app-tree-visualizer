@@ -9,6 +9,8 @@ import relationshipsAr from "../../public/locales/ar/relationships.json";
 import toolbarAr from "../../public/locales/ar/toolbar.json";
 import messagesAr from "../../public/locales/ar/messages.json";
 import familyTreeAr from "../../public/locales/ar/familyTree.json";
+import timelineAr from "../../public/locales/ar/timeline.json";
+import footerAr from "../../public/locales/ar/footer.json";
 
 import commonEn from "../../public/locales/en/common.json";
 import formsEn from "../../public/locales/en/forms.json";
@@ -16,6 +18,8 @@ import relationshipsEn from "../../public/locales/en/relationships.json";
 import toolbarEn from "../../public/locales/en/toolbar.json";
 import messagesEn from "../../public/locales/en/messages.json";
 import familyTreeEn from "../../public/locales/en/familyTree.json";
+import timelineEn from "../../public/locales/en/timeline.json";
+import footerEn from "../../public/locales/en/footer.json";
 
 // Supported languages
 export const supportedLanguages = {
@@ -42,6 +46,8 @@ const resources = {
     toolbar: toolbarAr,
     messages: messagesAr,
     familyTree: familyTreeAr,
+    timeline: timelineAr,
+    footer: footerAr,
   },
   en: {
     common: commonEn,
@@ -50,6 +56,8 @@ const resources = {
     toolbar: toolbarEn,
     messages: messagesEn,
     familyTree: familyTreeEn,
+    timeline: timelineEn,
+    footer: footerEn,
   },
 };
 
@@ -75,6 +83,8 @@ i18n
       "toolbar",
       "messages",
       "familyTree",
+      "timeline",
+      "footer",
     ],
 
     // Language detection configuration

@@ -23,10 +23,15 @@ export default function Home() {
 
   if (!config) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
+      <div className='min-h-screen flex items-center justify-center' dir='rtl'>
         <div className='text-center'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4'></div>
-          <p className='text-lg font-semibold text-gray-700'>
+          <p 
+            className='text-lg font-semibold'
+            style={{
+              color: colors.text || '#1F2937',
+              fontFamily: theme?.fonts?.primary || 'Noto Sans Arabic, Arial, sans-serif'
+            }}>
             {t("common.loading")}
           </p>
         </div>
