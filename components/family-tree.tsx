@@ -555,6 +555,9 @@ export default function FamilyTree({ isDarkMode }: FamilyTreeProps) {
                   onAddRelative={() => {}}
                   selectedNodeId={focusPersonId || mainId}
                   setFocusPerson={setFocusPerson}
+                  onZoomIn={(fn) => (zoomInRef.current = fn)}
+                  onZoomOut={(fn) => (zoomOutRef.current = fn)}
+                  onResetView={(fn) => (resetViewRef.current = fn)}
                 />
               ) : (
                 <div className='flex items-center justify-center h-96'>

@@ -139,6 +139,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
     ref
   ) => {
     const svgRef = useRef<SVGSVGElement>(null);
+    const htmlLayerRef = useRef<HTMLDivElement>(null);
     const links = useLinks(tree, data, settings, relationships);
     const [zoom, setZoom] = useState(1);
     const [miniTreeData, setMiniTreeData] = useState<any | null>(null);
@@ -166,8 +167,14 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
      */
     const isMobileDevice = () => {
       if (typeof window === 'undefined') return false;
-      return window.innerWidth <= 768 || 
+      return window.innerWidth <= 768 ||
              /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    // Detect iOS Safari to handle foreignObject transform issues
+    const isIOSSafari = () => {
+      if (typeof navigator === 'undefined') return false;
+      return /iPad|iPhone|iPod/.test(navigator.userAgent);
     };
 
     /**
@@ -199,153 +206,165 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
         );
       };
 
-      // If dimensions aren't ready, wait a bit and try again
-      if (!checkDimensions()) {
-        const timeoutId = setTimeout(() => {
-          // Force re-run effect when dimensions are ready
-          if (checkDimensions()) {
-            // Trigger re-render to restart this effect
-            setZoom((prev) => prev);
-          }
-        }, 100);
-        return () => clearTimeout(timeoutId);
-      }
+      let timeoutId: ReturnType<typeof setTimeout>;
 
-      const svg = d3.select(svgRef.current);
-      const g = svg.select("g.tree-container");
+      const initialize = () => {
+        if (!svgRef.current) return;
 
-      const zoomBehavior = d3
-        .zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.1, 3])
-        .filter((event) => {
-          // Prevent zoom/pan on drag events from nodes
-          if (event.type === "mousedown" || event.type === "touchstart") {
-            const target = event.target as Element;
-            // Check if the event target is a draggable node or its child
-            const isDraggableNode =
-              target.closest('[draggable="true"]') !== null;
-            const isNodeCard =
-              target.closest(".cursor-grab, .cursor-grabbing") !== null;
-            const isPlaceholderNode =
-              target.closest('[data-placeholder="true"]') !== null;
+        const svg = d3.select(svgRef.current);
+        const g = svg.select("g.tree-container");
 
-            // Disable zoom/pan if it's a draggable element
-            return !isDraggableNode && !isNodeCard && !isPlaceholderNode;
-          }
-          return true;
-        })
-        .on("zoom", (event) => {
-          g.attr("transform", event.transform);
-          setZoom(event.transform.k);
-        });
+        const zoomBehavior = d3
+          .zoom<SVGSVGElement, unknown>()
+          .scaleExtent([0.1, 3])
+          .filter((event) => {
+            // Prevent zoom/pan on drag events from nodes
+            if (event.type === "mousedown" || event.type === "touchstart") {
+              const target = event.target as Element;
+              // Check if the event target is a draggable node or its child
+              const isDraggableNode =
+                target.closest('[draggable="true"]') !== null;
+              const isNodeCard =
+                target.closest(".cursor-grab, .cursor-grabbing") !== null;
+              const isPlaceholderNode =
+                target.closest('[data-placeholder="true"]') !== null;
 
-      // Apply zoom behavior with error handling
-      try {
-        svg.call(zoomBehavior);
-      } catch (error) {
-        console.warn("Failed to initialize D3 zoom behavior:", error);
-        return;
-      }
+              // Disable zoom/pan if it's a draggable element
+              return !isDraggableNode && !isNodeCard && !isPlaceholderNode;
+            }
+            return true;
+          })
+          .on("zoom", (event) => {
+            g.attr("transform", event.transform);
+            setZoom(event.transform.k);
+            if (isIOSSafari() && htmlLayerRef.current) {
+              const transformStr = `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`;
+              d3.select(htmlLayerRef.current)
+                .style("transform", transformStr)
+                .style("transformOrigin", "0 0");
+            }
+          });
 
-      // Calculate tree bounds and center appropriately
-      const centerTree = () => {
-        if (!svgRef.current || tree.length === 0) return;
-
-        // Get SVG dimensions with fallback and error handling
-        let svgWidth: number;
-        let svgHeight: number;
-
+        // Apply zoom behavior with error handling
         try {
-          const rect = svgRef.current.getBoundingClientRect();
-          svgWidth = rect.width;
-          svgHeight = rect.height;
-
-          // Fallback to clientWidth/Height if getBoundingClientRect fails
-          if (svgWidth === 0 || svgHeight === 0) {
-            svgWidth = svgRef.current.clientWidth;
-            svgHeight = svgRef.current.clientHeight;
-          }
-
-          // Final fallback to default dimensions
-          if (svgWidth === 0 || svgHeight === 0) {
-            svgWidth = 800;
-            svgHeight = 600;
-          }
+          svg.call(zoomBehavior);
         } catch (error) {
-          console.warn("Failed to get SVG dimensions, using defaults:", error);
-          svgWidth = 800;
-          svgHeight = 600;
-        }
-
-        // Calculate tree bounds
-        const nodeXPositions = tree
-          .map((node) => node.x)
-          .filter((x) => !isNaN(x));
-        const nodeYPositions = tree
-          .map((node) => node.y)
-          .filter((y) => !isNaN(y));
-
-        if (nodeXPositions.length === 0 || nodeYPositions.length === 0) {
-          // Fallback to center if no valid positions
-          const fallbackScale = isMobileDevice() ? 1.2 : 1; // Start more zoomed in on mobile
-          const initialTransform = d3.zoomIdentity
-            .translate(svgWidth / 2, svgHeight / 2)
-            .scale(fallbackScale);
-          svg.call(zoomBehavior.transform, initialTransform);
+          console.warn("Failed to initialize D3 zoom behavior:", error);
           return;
         }
 
-        const minX = Math.min(...nodeXPositions);
-        const maxX = Math.max(...nodeXPositions);
-        const minY = Math.min(...nodeYPositions);
-        const maxY = Math.max(...nodeYPositions);
+        // Calculate tree bounds and center appropriately
+        const centerTree = () => {
+          if (!svgRef.current || tree.length === 0) return;
 
-        const treeWidth = maxX - minX + settings.cardWidth;
-        const treeHeight = maxY - minY + settings.cardHeight;
+          // Get SVG dimensions with fallback and error handling
+          let svgWidth: number;
+          let svgHeight: number;
 
-        // Calculate center position
-        const treeCenterX = (minX + maxX) / 2;
-        const treeCenterY = (minY + maxY) / 2;
+          try {
+            const rect = svgRef.current.getBoundingClientRect();
+            svgWidth = rect.width;
+            svgHeight = rect.height;
 
-        // Calculate scale to fit tree in viewport with padding
-        const padding = 100;
-        const scaleX = (svgWidth - padding * 2) / treeWidth;
-        const scaleY = (svgHeight - padding * 2) / treeHeight;
-        
-        let scale: number;
-        if (isMobileDevice()) {
-          // On mobile, start with a more zoomed-in view
-          const mobileScale = Math.min(scaleX, scaleY, 1.5); // Allow scaling up to 1.5x on mobile
-          scale = Math.max(mobileScale, 0.8); // Ensure minimum 0.8x zoom for readability
+            // Fallback to clientWidth/Height if getBoundingClientRect fails
+            if (svgWidth === 0 || svgHeight === 0) {
+              svgWidth = svgRef.current.clientWidth;
+              svgHeight = svgRef.current.clientHeight;
+            }
+
+            // Final fallback to default dimensions
+            if (svgWidth === 0 || svgHeight === 0) {
+              svgWidth = 800;
+              svgHeight = 600;
+            }
+          } catch (error) {
+            console.warn("Failed to get SVG dimensions, using defaults:", error);
+            svgWidth = 800;
+            svgHeight = 600;
+          }
+
+          // Calculate tree bounds
+          const nodeXPositions = tree
+            .map((node) => node.x)
+            .filter((x) => !isNaN(x));
+          const nodeYPositions = tree
+            .map((node) => node.y)
+            .filter((y) => !isNaN(y));
+
+          if (nodeXPositions.length === 0 || nodeYPositions.length === 0) {
+            // Fallback to center if no valid positions
+            const fallbackScale = isMobileDevice() ? 1.2 : 1; // Start more zoomed in on mobile
+            const initialTransform = d3.zoomIdentity
+              .translate(svgWidth / 2, svgHeight / 2)
+              .scale(fallbackScale);
+            svg.call(zoomBehavior.transform, initialTransform);
+            return;
+          }
+
+          const minX = Math.min(...nodeXPositions);
+          const maxX = Math.max(...nodeXPositions);
+          const minY = Math.min(...nodeYPositions);
+          const maxY = Math.max(...nodeYPositions);
+
+          const treeWidth = maxX - minX + settings.cardWidth;
+          const treeHeight = maxY - minY + settings.cardHeight;
+
+          // Calculate center position
+          const treeCenterX = (minX + maxX) / 2;
+          const treeCenterY = (minY + maxY) / 2;
+
+          // Calculate scale to fit tree in viewport with padding
+          const padding = 100;
+          const scaleX = (svgWidth - padding * 2) / treeWidth;
+          const scaleY = (svgHeight - padding * 2) / treeHeight;
+
+          let scale: number;
+          if (isMobileDevice()) {
+            // On mobile, start with a more zoomed-in view
+            const mobileScale = Math.min(scaleX, scaleY, 1.5); // Allow scaling up to 1.5x on mobile
+            scale = Math.max(mobileScale, 0.8); // Ensure minimum 0.8x zoom for readability
+          } else {
+            scale = Math.min(scaleX, scaleY, 1); // Don't scale up on desktop, only down
+          }
+
+          // Calculate translation to center the scaled tree
+          const translateX = svgWidth / 2 - treeCenterX * scale;
+          const translateY = svgHeight / 2 - treeCenterY * scale;
+
+          const transform = d3.zoomIdentity
+            .translate(translateX, translateY)
+            .scale(scale);
+
+          svg.transition().duration(750).call(zoomBehavior.transform, transform);
+        };
+
+        // Center on initial render and when tree changes
+        centerTree();
+
+        // Store zoom functions for ref exposure
+        zoomFunctions.current = {
+          zoomIn: () => svg.transition().call(zoomBehavior.scaleBy, 1.2),
+          zoomOut: () => svg.transition().call(zoomBehavior.scaleBy, 1 / 1.2),
+          resetView: () => centerTree(),
+        };
+
+        // Optional: expose handlers (backward compatibility)
+        if (onZoomIn) onZoomIn(zoomFunctions.current.zoomIn);
+        if (onZoomOut) onZoomOut(zoomFunctions.current.zoomOut);
+        if (onResetView) onResetView(zoomFunctions.current.resetView);
+      };
+
+      const waitForDimensions = () => {
+        if (checkDimensions()) {
+          initialize();
         } else {
-          scale = Math.min(scaleX, scaleY, 1); // Don't scale up on desktop, only down
+          timeoutId = setTimeout(waitForDimensions, 100);
         }
-
-        // Calculate translation to center the scaled tree
-        const translateX = svgWidth / 2 - treeCenterX * scale;
-        const translateY = svgHeight / 2 - treeCenterY * scale;
-
-        const transform = d3.zoomIdentity
-          .translate(translateX, translateY)
-          .scale(scale);
-
-        svg.transition().duration(750).call(zoomBehavior.transform, transform);
       };
 
-      // Center on initial render and when tree changes
-      centerTree();
+      waitForDimensions();
 
-      // Store zoom functions for ref exposure
-      zoomFunctions.current = {
-        zoomIn: () => svg.transition().call(zoomBehavior.scaleBy, 1.2),
-        zoomOut: () => svg.transition().call(zoomBehavior.scaleBy, 1 / 1.2),
-        resetView: () => centerTree(),
-      };
-
-      // Optional: expose handlers (backward compatibility)
-      if (onZoomIn) onZoomIn(zoomFunctions.current.zoomIn);
-      if (onZoomOut) onZoomOut(zoomFunctions.current.zoomOut);
-      if (onResetView) onResetView(zoomFunctions.current.resetView);
+      return () => clearTimeout(timeoutId);
     }, [
       onZoomIn,
       onZoomOut,
@@ -480,7 +499,10 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
           className={`relative overflow-hidden ${
             isDarkMode ? "bg-gray-900" : "bg-white"
           }`}
-          style={{ height: settings.isFullScreen ? "100vh" : "800px" }}>
+          style={{
+            height: settings.isFullScreen ? "100vh" : "800px",
+            touchAction: "none",
+          }}>
           <svg
             id={svgId}
             ref={svgRef}
@@ -490,6 +512,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
               background: isDarkMode ? "#18181b" : "#f9fafb",
               overflow: "hidden", // Prevent overflow
               display: "block",
+              touchAction: "none",
             }}>
             <g className="tree-container">
               {/* Render links */}
@@ -653,67 +676,68 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
                   );
                 })}
 
-              {/* Render nodes */}
-              {tree.map((node) => {
-                // Use consistent card dimensions that match the settings
-                const actualCardWidth = settings.cardWidth;
-                const actualCardHeight = settings.cardHeight;
-                const expandedWidth = actualCardWidth + 40; // Extra space for buttons
-                const expandedHeight = actualCardHeight + 40;
+              {/* Render nodes with foreignObject when supported */}
+              {!isIOSSafari() &&
+                tree.map((node) => {
+                  // Use consistent card dimensions that match the settings
+                  const actualCardWidth = settings.cardWidth;
+                  const actualCardHeight = settings.cardHeight;
+                  const expandedWidth = actualCardWidth + 40; // Extra space for buttons
+                  const expandedHeight = actualCardHeight + 40;
 
-                // Ensure node has valid coordinates
-                const nodeX =
-                  typeof node.x === "number" && !isNaN(node.x) ? node.x : 0;
-                const nodeY =
-                  typeof node.y === "number" && !isNaN(node.y) ? node.y : 0;
+                  // Ensure node has valid coordinates
+                  const nodeX =
+                    typeof node.x === "number" && !isNaN(node.x) ? node.x : 0;
+                  const nodeY =
+                    typeof node.y === "number" && !isNaN(node.y) ? node.y : 0;
 
-                return (
-                  <foreignObject
-                    key={node.id}
-                    x={nodeX - expandedWidth / 2}
-                    y={nodeY - expandedHeight / 2}
-                    width={expandedWidth}
-                    height={expandedHeight}
-                    style={{ overflow: "visible" }}>
-                    <div
-                      style={{
-                        width: expandedWidth,
-                        height: expandedHeight,
-                        position: "relative",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}>
-                      <NodeCard
-                        node={node}
-                        isDarkMode={isDarkMode}
-                        isSelected={selectedNodeId === node.id}
-                        onNodeClick={onNodeClick}
-                        onAddRelative={onAddRelative}
-                        onRelationshipDrop={onRelationshipDrop}
-                        showSuggestionIndicator={
-                          data[node.id]
-                            ? SmartSuggestionsEngine.generateSuggestions(
-                                data[node.id],
-                                data,
-                                relationships
-                              ).length > 0
-                            : false
-                        }
-                        maleColor={settings.maleColor}
-                        femaleColor={settings.femaleColor}
-                        showLabels={settings.showLabels}
-                        allFamilyData={data}
+                  return (
+                    <foreignObject
+                      key={node.id}
+                      x={nodeX - expandedWidth / 2}
+                      y={nodeY - expandedHeight / 2}
+                      width={expandedWidth}
+                      height={expandedHeight}
+                      style={{ overflow: "visible" }}>
+                      <div
                         style={{
-                          width: actualCardWidth,
-                          height: actualCardHeight,
+                          width: expandedWidth,
+                          height: expandedHeight,
                           position: "relative",
-                        }}
-                      />
-                    </div>
-                  </foreignObject>
-                );
-              })}
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                        <NodeCard
+                          node={node}
+                          isDarkMode={isDarkMode}
+                          isSelected={selectedNodeId === node.id}
+                          onNodeClick={onNodeClick}
+                          onAddRelative={onAddRelative}
+                          onRelationshipDrop={onRelationshipDrop}
+                          showSuggestionIndicator={
+                            data[node.id]
+                              ? SmartSuggestionsEngine.generateSuggestions(
+                                  data[node.id],
+                                  data,
+                                  relationships
+                                ).length > 0
+                              : false
+                          }
+                          maleColor={settings.maleColor}
+                          femaleColor={settings.femaleColor}
+                          showLabels={settings.showLabels}
+                          allFamilyData={data}
+                          style={{
+                            width: actualCardWidth,
+                            height: actualCardHeight,
+                            position: "relative",
+                          }}
+                        />
+                      </div>
+                    </foreignObject>
+                  );
+                })}
 
               {/* Render placeholder nodes for adding relatives - only for selected node */}
               {isEditable &&
@@ -910,6 +934,77 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
                   .flat()}
             </g>
           </svg>
+          {isIOSSafari() && (
+            <div
+              ref={htmlLayerRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                transform: "translate(0px, 0px) scale(1)",
+                transformOrigin: "0 0",
+                pointerEvents: "none",
+                touchAction: "none",
+              }}
+            >
+              {tree.map((node) => {
+                const actualCardWidth = settings.cardWidth;
+                const actualCardHeight = settings.cardHeight;
+                const expandedWidth = actualCardWidth + 40;
+                const expandedHeight = actualCardHeight + 40;
+                const nodeX =
+                  typeof node.x === "number" && !isNaN(node.x) ? node.x : 0;
+                const nodeY =
+                  typeof node.y === "number" && !isNaN(node.y) ? node.y : 0;
+
+                return (
+                  <div
+                    key={node.id}
+                    style={{
+                      position: "absolute",
+                      left: nodeX - expandedWidth / 2,
+                      top: nodeY - expandedHeight / 2,
+                      width: expandedWidth,
+                      height: expandedHeight,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      pointerEvents: "auto",
+                    }}
+                  >
+                    <NodeCard
+                      node={node}
+                      isDarkMode={isDarkMode}
+                      isSelected={selectedNodeId === node.id}
+                      onNodeClick={onNodeClick}
+                      onAddRelative={onAddRelative}
+                      onRelationshipDrop={onRelationshipDrop}
+                      showSuggestionIndicator={
+                        data[node.id]
+                          ? SmartSuggestionsEngine.generateSuggestions(
+                              data[node.id],
+                              data,
+                              relationships
+                            ).length > 0
+                          : false
+                      }
+                      maleColor={settings.maleColor}
+                      femaleColor={settings.femaleColor}
+                      showLabels={settings.showLabels}
+                      allFamilyData={data}
+                      style={{
+                        width: actualCardWidth,
+                        height: actualCardHeight,
+                        position: "relative",
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {/* Mini tree overlay */}
           {showMiniTreeOnClick && miniTreeData && (
             <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center'>
