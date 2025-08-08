@@ -212,7 +212,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
       }
 
       const svg = d3.select(svgRef.current);
-      const g = svg.select("g");
+      const g = svg.select("g.tree-container");
 
       const zoomBehavior = d3
         .zoom<SVGSVGElement, unknown>()
@@ -491,7 +491,7 @@ export const BaseTree = forwardRef<any, BaseTreeProps>(
               overflow: "hidden", // Prevent overflow
               display: "block",
             }}>
-            <g>
+            <g className="tree-container">
               {/* Render links */}
               {links
                 .filter((link) => link.relationshipType !== "sibling")
