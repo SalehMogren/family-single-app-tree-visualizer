@@ -10,6 +10,7 @@ import {
   appendFile,
 } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import seedFamily from "../seed/family.json";
 import seedSite from "../seed/site.json";
@@ -23,9 +24,15 @@ import {
 const SEEDS: Record<string, unknown> = { "family.json": seedFamily, "site.json": seedSite };
 const MAX_BACKUPS = 30;
 
-/** DATA_DIR, or `<workspace root>/data` found by walking up from cwd. */
+/**
+ * DATA_DIR, or `<workspace root>/data` found by walking up from cwd.
+ * On serverless hosts (read-only filesystem) it falls back to the temp dir: data is then
+ * ephemeral and re-seeded per instance — fine for previews, use DATA_DIR or a DB in production.
+ */
 export const resolveDataDir = () => {
   if (process.env.DATA_DIR) return resolve(/*turbopackIgnore: true*/ process.env.DATA_DIR);
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+    return join(/*turbopackIgnore: true*/ tmpdir(), "family-data");
   let dir = process.cwd();
   for (let i = 0; i < 6; i += 1) {
     if (existsSync(join(/*turbopackIgnore: true*/ dir, "pnpm-workspace.yaml")))
