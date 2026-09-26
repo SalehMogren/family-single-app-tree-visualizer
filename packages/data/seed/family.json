@@ -1,0 +1,988 @@
+{
+  "schemaVersion": 2,
+  "revision": 1,
+  "rootId": "m_001",
+  "members": {
+    "m_001": {
+      "id": "m_001",
+      "name": "عبدالله",
+      "gender": "male",
+      "birthYear": 1880,
+      "deathYear": 1955,
+      "isDeceased": true,
+      "occupation": "تاجر",
+      "birthplace": "عنيزة",
+      "bio": "مؤسس العائلة، عمل في تجارة القوافل بين نجد والأحساء.",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_002": {
+      "id": "m_002",
+      "name": "حصة",
+      "gender": "female",
+      "birthYear": 1885,
+      "deathYear": 1960,
+      "isDeceased": true,
+      "birthplace": "عنيزة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_003": {
+      "id": "m_003",
+      "name": "محمد",
+      "gender": "male",
+      "birthYear": 1905,
+      "deathYear": 1980,
+      "isDeceased": true,
+      "occupation": "تاجر",
+      "birthplace": "عنيزة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_004": {
+      "id": "m_004",
+      "name": "نورة",
+      "gender": "female",
+      "birthYear": 1910,
+      "deathYear": 1992,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_005": {
+      "id": "m_005",
+      "name": "إبراهيم",
+      "gender": "male",
+      "birthYear": 1910,
+      "deathYear": 1990,
+      "isDeceased": true,
+      "occupation": "معلم",
+      "birthplace": "عنيزة",
+      "bio": "أسس أول مدرسة أهلية في الحي عام 1950.",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_006": {
+      "id": "m_006",
+      "name": "سارة",
+      "gender": "female",
+      "birthYear": 1914,
+      "deathYear": 1996,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_007": {
+      "id": "m_007",
+      "name": "فاطمة",
+      "gender": "female",
+      "birthYear": 1913,
+      "deathYear": 1999,
+      "isDeceased": true,
+      "birthplace": "عنيزة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_008": {
+      "id": "m_008",
+      "name": "عبدالعزيز",
+      "gender": "male",
+      "birthYear": 1908,
+      "deathYear": 1975,
+      "isDeceased": true,
+      "occupation": "مزارع",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_009": {
+      "id": "m_009",
+      "name": "سليمان",
+      "gender": "male",
+      "birthYear": 1918,
+      "deathYear": 2001,
+      "isDeceased": true,
+      "occupation": "موظف حكومي",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_010": {
+      "id": "m_010",
+      "name": "لطيفة",
+      "gender": "female",
+      "birthYear": 1922,
+      "deathYear": 2004,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_011": {
+      "id": "m_011",
+      "name": "منيرة",
+      "gender": "female",
+      "birthYear": 1928,
+      "deathYear": 2015,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_012": {
+      "id": "m_012",
+      "name": "عبدالله",
+      "gender": "male",
+      "birthYear": 1930,
+      "deathYear": 2010,
+      "isDeceased": true,
+      "occupation": "مهندس",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_013": {
+      "id": "m_013",
+      "name": "هيا",
+      "gender": "female",
+      "birthYear": 1935,
+      "deathYear": 2018,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_014": {
+      "id": "m_014",
+      "name": "أحمد",
+      "gender": "male",
+      "birthYear": 1934,
+      "deathYear": 2015,
+      "isDeceased": true,
+      "occupation": "طبيب",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_015": {
+      "id": "m_015",
+      "name": "موضي",
+      "gender": "female",
+      "birthYear": 1938,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_016": {
+      "id": "m_016",
+      "name": "حصة",
+      "gender": "female",
+      "birthYear": 1938,
+      "deathYear": 2020,
+      "isDeceased": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_017": {
+      "id": "m_017",
+      "name": "خالد",
+      "gender": "male",
+      "birthYear": 1936,
+      "deathYear": 2020,
+      "isDeceased": true,
+      "occupation": "تاجر",
+      "birthplace": "عنيزة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_018": {
+      "id": "m_018",
+      "name": "الجوهرة",
+      "gender": "female",
+      "birthYear": 1940,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_019": {
+      "id": "m_019",
+      "name": "صالح",
+      "gender": "male",
+      "birthYear": 1940,
+      "occupation": "أستاذ جامعي",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_020": {
+      "id": "m_020",
+      "name": "منى",
+      "gender": "female",
+      "birthYear": 1945,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_021": {
+      "id": "m_021",
+      "name": "ريم",
+      "gender": "female",
+      "birthYear": 1940,
+      "birthplace": "عنيزة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_022": {
+      "id": "m_022",
+      "name": "عبدالرحمن",
+      "gender": "male",
+      "birthYear": 1945,
+      "occupation": "ضابط",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_023": {
+      "id": "m_023",
+      "name": "نوف",
+      "gender": "female",
+      "birthYear": 1950,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_024": {
+      "id": "m_024",
+      "name": "فهد",
+      "gender": "male",
+      "birthYear": 1950,
+      "occupation": "محاسب",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_025": {
+      "id": "m_025",
+      "name": "أمل",
+      "gender": "female",
+      "birthYear": 1955,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_026": {
+      "id": "m_026",
+      "name": "نورة",
+      "gender": "female",
+      "birthYear": 1952,
+      "occupation": "معلمة",
+      "birthplace": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_027": {
+      "id": "m_027",
+      "name": "محمد",
+      "gender": "male",
+      "birthYear": 1958,
+      "occupation": "مهندس برمجيات",
+      "birthplace": "الرياض",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_028": {
+      "id": "m_028",
+      "name": "ريما",
+      "gender": "female",
+      "birthYear": 1962,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_029": {
+      "id": "m_029",
+      "name": "سعود",
+      "gender": "male",
+      "birthYear": 1962,
+      "occupation": "رجل أعمال",
+      "residence": "جدة",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_030": {
+      "id": "m_030",
+      "name": "فيصل",
+      "gender": "male",
+      "birthYear": 1960,
+      "occupation": "طبيب",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_031": {
+      "id": "m_031",
+      "name": "دانة",
+      "gender": "female",
+      "birthYear": 1964,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_032": {
+      "id": "m_032",
+      "name": "لولوة",
+      "gender": "female",
+      "birthYear": 1963,
+      "occupation": "صيدلانية",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_033": {
+      "id": "m_033",
+      "name": "تركي",
+      "gender": "male",
+      "birthYear": 1965,
+      "occupation": "طيار",
+      "residence": "الدمام",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_034": {
+      "id": "m_034",
+      "name": "ناصر",
+      "gender": "male",
+      "birthYear": 1970,
+      "occupation": "محامٍ",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_035": {
+      "id": "m_035",
+      "name": "سلمان",
+      "gender": "male",
+      "birthYear": 1972,
+      "occupation": "مهندس",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_036": {
+      "id": "m_036",
+      "name": "رهف",
+      "gender": "female",
+      "birthYear": 1978,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_037": {
+      "id": "m_037",
+      "name": "عبير",
+      "gender": "female",
+      "birthYear": 1975,
+      "occupation": "طبيبة",
+      "residence": "الخبر",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_038": {
+      "id": "m_038",
+      "name": "ماجد",
+      "gender": "male",
+      "birthYear": 1978,
+      "occupation": "مصمم",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_039": {
+      "id": "m_039",
+      "name": "عبدالله",
+      "gender": "male",
+      "birthYear": 1985,
+      "occupation": "مهندس بيانات",
+      "residence": "الرياض",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_040": {
+      "id": "m_040",
+      "name": "سارة",
+      "gender": "female",
+      "birthYear": 1988,
+      "occupation": "باحثة",
+      "residence": "بوسطن",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_041": {
+      "id": "m_041",
+      "name": "يوسف",
+      "gender": "male",
+      "birthYear": 1992,
+      "occupation": "طالب دكتوراه",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_042": {
+      "id": "m_042",
+      "name": "خالد",
+      "gender": "male",
+      "birthYear": 1990,
+      "occupation": "محلل مالي",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_043": {
+      "id": "m_043",
+      "name": "نورة",
+      "gender": "female",
+      "birthYear": 1994,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_044": {
+      "id": "m_044",
+      "name": "فهد",
+      "gender": "male",
+      "birthYear": 1995,
+      "occupation": "مهندس طيران",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_045": {
+      "id": "m_045",
+      "name": "الجوهرة",
+      "gender": "female",
+      "birthYear": 1998,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_046": {
+      "id": "m_046",
+      "name": "ريان",
+      "gender": "male",
+      "birthYear": 2002,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "m_047": {
+      "id": "m_047",
+      "name": "لمى",
+      "gender": "female",
+      "birthYear": 2005,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  },
+  "relationships": [
+    {
+      "id": "spouse:m_001:m_002",
+      "type": "spouse",
+      "fromId": "m_001",
+      "toId": "m_002",
+      "metadata": {
+        "marriageYear": 1902
+      }
+    },
+    {
+      "id": "parent:m_001:m_003",
+      "type": "parent",
+      "fromId": "m_001",
+      "toId": "m_003"
+    },
+    {
+      "id": "parent:m_002:m_003",
+      "type": "parent",
+      "fromId": "m_002",
+      "toId": "m_003"
+    },
+    {
+      "id": "spouse:m_003:m_004",
+      "type": "spouse",
+      "fromId": "m_003",
+      "toId": "m_004",
+      "metadata": {
+        "marriageYear": 1927
+      }
+    },
+    {
+      "id": "parent:m_001:m_005",
+      "type": "parent",
+      "fromId": "m_001",
+      "toId": "m_005"
+    },
+    {
+      "id": "parent:m_002:m_005",
+      "type": "parent",
+      "fromId": "m_002",
+      "toId": "m_005"
+    },
+    {
+      "id": "spouse:m_005:m_006",
+      "type": "spouse",
+      "fromId": "m_005",
+      "toId": "m_006",
+      "metadata": {
+        "marriageYear": 1933
+      }
+    },
+    {
+      "id": "parent:m_001:m_007",
+      "type": "parent",
+      "fromId": "m_001",
+      "toId": "m_007"
+    },
+    {
+      "id": "parent:m_002:m_007",
+      "type": "parent",
+      "fromId": "m_002",
+      "toId": "m_007"
+    },
+    {
+      "id": "spouse:m_007:m_008",
+      "type": "spouse",
+      "fromId": "m_007",
+      "toId": "m_008",
+      "metadata": {
+        "marriageYear": 1931
+      }
+    },
+    {
+      "id": "parent:m_001:m_009",
+      "type": "parent",
+      "fromId": "m_001",
+      "toId": "m_009"
+    },
+    {
+      "id": "parent:m_002:m_009",
+      "type": "parent",
+      "fromId": "m_002",
+      "toId": "m_009"
+    },
+    {
+      "id": "spouse:m_009:m_010",
+      "type": "spouse",
+      "fromId": "m_009",
+      "toId": "m_010",
+      "metadata": {
+        "marriageYear": 1940
+      }
+    },
+    {
+      "id": "spouse:m_009:m_011",
+      "type": "spouse",
+      "fromId": "m_009",
+      "toId": "m_011",
+      "metadata": {
+        "marriageYear": 1947
+      }
+    },
+    {
+      "id": "parent:m_003:m_012",
+      "type": "parent",
+      "fromId": "m_003",
+      "toId": "m_012"
+    },
+    {
+      "id": "parent:m_004:m_012",
+      "type": "parent",
+      "fromId": "m_004",
+      "toId": "m_012"
+    },
+    {
+      "id": "spouse:m_012:m_013",
+      "type": "spouse",
+      "fromId": "m_012",
+      "toId": "m_013",
+      "metadata": {
+        "marriageYear": 1955
+      }
+    },
+    {
+      "id": "parent:m_003:m_014",
+      "type": "parent",
+      "fromId": "m_003",
+      "toId": "m_014"
+    },
+    {
+      "id": "parent:m_004:m_014",
+      "type": "parent",
+      "fromId": "m_004",
+      "toId": "m_014"
+    },
+    {
+      "id": "spouse:m_014:m_015",
+      "type": "spouse",
+      "fromId": "m_014",
+      "toId": "m_015",
+      "metadata": {
+        "marriageYear": 1958
+      }
+    },
+    {
+      "id": "parent:m_003:m_016",
+      "type": "parent",
+      "fromId": "m_003",
+      "toId": "m_016"
+    },
+    {
+      "id": "parent:m_004:m_016",
+      "type": "parent",
+      "fromId": "m_004",
+      "toId": "m_016"
+    },
+    {
+      "id": "parent:m_005:m_017",
+      "type": "parent",
+      "fromId": "m_005",
+      "toId": "m_017"
+    },
+    {
+      "id": "parent:m_006:m_017",
+      "type": "parent",
+      "fromId": "m_006",
+      "toId": "m_017"
+    },
+    {
+      "id": "spouse:m_017:m_018",
+      "type": "spouse",
+      "fromId": "m_017",
+      "toId": "m_018",
+      "metadata": {
+        "marriageYear": 1961
+      }
+    },
+    {
+      "id": "parent:m_005:m_019",
+      "type": "parent",
+      "fromId": "m_005",
+      "toId": "m_019"
+    },
+    {
+      "id": "parent:m_006:m_019",
+      "type": "parent",
+      "fromId": "m_006",
+      "toId": "m_019"
+    },
+    {
+      "id": "spouse:m_019:m_020",
+      "type": "spouse",
+      "fromId": "m_019",
+      "toId": "m_020",
+      "metadata": {
+        "marriageYear": 1966
+      }
+    },
+    {
+      "id": "parent:m_007:m_021",
+      "type": "parent",
+      "fromId": "m_007",
+      "toId": "m_021"
+    },
+    {
+      "id": "parent:m_008:m_021",
+      "type": "parent",
+      "fromId": "m_008",
+      "toId": "m_021"
+    },
+    {
+      "id": "parent:m_009:m_022",
+      "type": "parent",
+      "fromId": "m_009",
+      "toId": "m_022"
+    },
+    {
+      "id": "parent:m_010:m_022",
+      "type": "parent",
+      "fromId": "m_010",
+      "toId": "m_022"
+    },
+    {
+      "id": "spouse:m_022:m_023",
+      "type": "spouse",
+      "fromId": "m_022",
+      "toId": "m_023",
+      "metadata": {
+        "marriageYear": 1969
+      }
+    },
+    {
+      "id": "parent:m_009:m_024",
+      "type": "parent",
+      "fromId": "m_009",
+      "toId": "m_024"
+    },
+    {
+      "id": "parent:m_011:m_024",
+      "type": "parent",
+      "fromId": "m_011",
+      "toId": "m_024"
+    },
+    {
+      "id": "spouse:m_024:m_025",
+      "type": "spouse",
+      "fromId": "m_024",
+      "toId": "m_025",
+      "metadata": {
+        "marriageYear": 1976
+      }
+    },
+    {
+      "id": "parent:m_009:m_026",
+      "type": "parent",
+      "fromId": "m_009",
+      "toId": "m_026"
+    },
+    {
+      "id": "parent:m_011:m_026",
+      "type": "parent",
+      "fromId": "m_011",
+      "toId": "m_026"
+    },
+    {
+      "id": "parent:m_012:m_027",
+      "type": "parent",
+      "fromId": "m_012",
+      "toId": "m_027"
+    },
+    {
+      "id": "parent:m_013:m_027",
+      "type": "parent",
+      "fromId": "m_013",
+      "toId": "m_027"
+    },
+    {
+      "id": "spouse:m_027:m_028",
+      "type": "spouse",
+      "fromId": "m_027",
+      "toId": "m_028",
+      "metadata": {
+        "marriageYear": 1984
+      }
+    },
+    {
+      "id": "parent:m_012:m_029",
+      "type": "parent",
+      "fromId": "m_012",
+      "toId": "m_029"
+    },
+    {
+      "id": "parent:m_013:m_029",
+      "type": "parent",
+      "fromId": "m_013",
+      "toId": "m_029"
+    },
+    {
+      "id": "parent:m_014:m_030",
+      "type": "parent",
+      "fromId": "m_014",
+      "toId": "m_030"
+    },
+    {
+      "id": "parent:m_015:m_030",
+      "type": "parent",
+      "fromId": "m_015",
+      "toId": "m_030"
+    },
+    {
+      "id": "spouse:m_030:m_031",
+      "type": "spouse",
+      "fromId": "m_030",
+      "toId": "m_031",
+      "metadata": {
+        "marriageYear": 1988
+      }
+    },
+    {
+      "id": "parent:m_014:m_032",
+      "type": "parent",
+      "fromId": "m_014",
+      "toId": "m_032"
+    },
+    {
+      "id": "parent:m_015:m_032",
+      "type": "parent",
+      "fromId": "m_015",
+      "toId": "m_032"
+    },
+    {
+      "id": "parent:m_017:m_033",
+      "type": "parent",
+      "fromId": "m_017",
+      "toId": "m_033"
+    },
+    {
+      "id": "parent:m_018:m_033",
+      "type": "parent",
+      "fromId": "m_018",
+      "toId": "m_033"
+    },
+    {
+      "id": "spouse:m_032:m_033",
+      "type": "spouse",
+      "fromId": "m_033",
+      "toId": "m_032",
+      "metadata": {
+        "marriageYear": 1990
+      }
+    },
+    {
+      "id": "parent:m_019:m_034",
+      "type": "parent",
+      "fromId": "m_019",
+      "toId": "m_034"
+    },
+    {
+      "id": "parent:m_020:m_034",
+      "type": "parent",
+      "fromId": "m_020",
+      "toId": "m_034"
+    },
+    {
+      "id": "parent:m_022:m_035",
+      "type": "parent",
+      "fromId": "m_022",
+      "toId": "m_035"
+    },
+    {
+      "id": "parent:m_023:m_035",
+      "type": "parent",
+      "fromId": "m_023",
+      "toId": "m_035"
+    },
+    {
+      "id": "spouse:m_035:m_036",
+      "type": "spouse",
+      "fromId": "m_035",
+      "toId": "m_036",
+      "metadata": {
+        "marriageYear": 2000
+      }
+    },
+    {
+      "id": "parent:m_022:m_037",
+      "type": "parent",
+      "fromId": "m_022",
+      "toId": "m_037"
+    },
+    {
+      "id": "parent:m_023:m_037",
+      "type": "parent",
+      "fromId": "m_023",
+      "toId": "m_037"
+    },
+    {
+      "id": "parent:m_024:m_038",
+      "type": "parent",
+      "fromId": "m_024",
+      "toId": "m_038"
+    },
+    {
+      "id": "parent:m_025:m_038",
+      "type": "parent",
+      "fromId": "m_025",
+      "toId": "m_038"
+    },
+    {
+      "id": "parent:m_027:m_039",
+      "type": "parent",
+      "fromId": "m_027",
+      "toId": "m_039"
+    },
+    {
+      "id": "parent:m_028:m_039",
+      "type": "parent",
+      "fromId": "m_028",
+      "toId": "m_039"
+    },
+    {
+      "id": "parent:m_027:m_040",
+      "type": "parent",
+      "fromId": "m_027",
+      "toId": "m_040"
+    },
+    {
+      "id": "parent:m_028:m_040",
+      "type": "parent",
+      "fromId": "m_028",
+      "toId": "m_040"
+    },
+    {
+      "id": "parent:m_027:m_041",
+      "type": "parent",
+      "fromId": "m_027",
+      "toId": "m_041"
+    },
+    {
+      "id": "parent:m_028:m_041",
+      "type": "parent",
+      "fromId": "m_028",
+      "toId": "m_041"
+    },
+    {
+      "id": "parent:m_030:m_042",
+      "type": "parent",
+      "fromId": "m_030",
+      "toId": "m_042"
+    },
+    {
+      "id": "parent:m_031:m_042",
+      "type": "parent",
+      "fromId": "m_031",
+      "toId": "m_042"
+    },
+    {
+      "id": "parent:m_030:m_043",
+      "type": "parent",
+      "fromId": "m_030",
+      "toId": "m_043"
+    },
+    {
+      "id": "parent:m_031:m_043",
+      "type": "parent",
+      "fromId": "m_031",
+      "toId": "m_043"
+    },
+    {
+      "id": "parent:m_033:m_044",
+      "type": "parent",
+      "fromId": "m_033",
+      "toId": "m_044"
+    },
+    {
+      "id": "parent:m_032:m_044",
+      "type": "parent",
+      "fromId": "m_032",
+      "toId": "m_044"
+    },
+    {
+      "id": "parent:m_033:m_045",
+      "type": "parent",
+      "fromId": "m_033",
+      "toId": "m_045"
+    },
+    {
+      "id": "parent:m_032:m_045",
+      "type": "parent",
+      "fromId": "m_032",
+      "toId": "m_045"
+    },
+    {
+      "id": "parent:m_035:m_046",
+      "type": "parent",
+      "fromId": "m_035",
+      "toId": "m_046"
+    },
+    {
+      "id": "parent:m_036:m_046",
+      "type": "parent",
+      "fromId": "m_036",
+      "toId": "m_046"
+    },
+    {
+      "id": "parent:m_035:m_047",
+      "type": "parent",
+      "fromId": "m_035",
+      "toId": "m_047"
+    },
+    {
+      "id": "parent:m_036:m_047",
+      "type": "parent",
+      "fromId": "m_036",
+      "toId": "m_047"
+    }
+  ],
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}

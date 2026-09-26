@@ -1,0 +1,5 @@
+legacy
+pnpm-lock.yaml
+**/.next
+**/node_modules
+data

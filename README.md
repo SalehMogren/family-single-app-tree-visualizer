@@ -1,173 +1,94 @@
-# Family Tree App - Open Source Template
+# شجرة العائلة · Family Tree
 
-A modern, configurable family tree application built with Next.js, React, and D3.js. Perfect for creating beautiful, interactive family trees with Arabic RTL support.
+An Arabic-first (RTL) family tree platform, split into a **public site** for the family and an
+**admin app** for editors. Built as a pnpm + Turborepo monorepo with Next.js 16, React 19,
+Tailwind CSS v4 and shadcn/ui.
 
-## 🌟 Features
+```
+apps/
+  web/      Public site: home, interactive tree, member directory & profiles, timeline   → :3000
+  admin/    Admin app: tree editor, members table, content, settings, import/backups    → :3001
+packages/
+  core/     Pure domain logic: types (zod), relationships, validation, layout, search,
+            data-health checks, privacy filter, legacy migration, GEDCOM export (+ tests)
+  data/     Server-only JSON file repository: revisions, backups, activity log (+ tests)
+  tree/     <FamilyTreeView/>: SVG renderer with d3-zoom, culling, LOD, minimap, export
+  ui/       shadcn/ui components (new-york, Tailwind v4 tokens, RTL-aware), theme
+  i18n/     Typed Arabic/English dictionaries and formatting helpers
+e2e/        Playwright tests that run both apps against a throwaway data directory
+legacy/     The original single app, kept for reference only (not built)
+```
 
-- **Interactive Family Tree**: Zoom, pan, and explore your family connections
-- **Configurable Design**: Customize colors, fonts, and layouts via JSON files
-- **Feature Toggles**: Enable/disable features like family history, stats, achievements
-- **RTL Support**: Full Arabic language and right-to-left layout support
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Dark/Light Mode**: Toggle between themes
-- **Export Ready**: Extensible for PDF/PNG export functionality
+## Quick start
 
-## 🚀 Quick Start
+```bash
+corepack enable            # provides the pinned pnpm version
+pnpm install
+cp .env.example .env       # optional in development
+pnpm dev                   # web on http://localhost:3000, admin on http://localhost:3001
+```
 
-1. **Clone the repository**
-   \`\`\`bash
-   git clone https://github.com/your-username/family-tree-app.git
-   cd family-tree-app
-   \`\`\`
+In development the admin password is `admin` when `ADMIN_PASSWORD` is not set. In production
+both `ADMIN_PASSWORD` and `ADMIN_SECRET` (≥16 chars) are required; the admin app refuses to
+run without them.
 
-2. **Install dependencies**
-   \`\`\`bash
-   npm install
-   \`\`\`
+| Command          | What it does                                  |
+| ---------------- | --------------------------------------------- |
+| `pnpm dev`       | Run both apps (`dev:web` / `dev:admin` for one) |
+| `pnpm build`     | Production build of both apps                  |
+| `pnpm lint`      | ESLint (Next.js + React hooks rules)           |
+| `pnpm typecheck` | TypeScript across the workspace                |
+| `pnpm test`      | Vitest unit tests (core + data)                |
+| `pnpm e2e`       | Playwright end-to-end tests (build first)      |
 
-3. **Configure your family data**
-   - Edit `public/data/family-data.json` with your family information
-   - Customize `public/config/family-brief.json` with your family's story
-   - Update `public/config/footer-config.json` with contact information
+## Data
 
-4. **Customize the theme**
-   - Modify `public/config/theme.json` to match your preferred colors and fonts
-   - Toggle features in `public/config/app-config.json`
+Both apps read the same JSON store in `DATA_DIR` (default `<repo>/data`, git-ignored). On first
+run it is seeded from `packages/data/seed/` with a sample 5-generation family.
 
-5. **Run the development server**
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+- `family.json` – members + relationships (`parent`, `spouse`; siblings are derived).
+- `site.json` – family story (ar/en), timeline, feature toggles, tree display, privacy.
+- `backups/` – automatic snapshot before every save (last 30), restorable from the admin app.
+- `activity.jsonl` – audit log of every change.
 
-6. **Open your browser**
-   Navigate to `http://localhost:3000`
+Saves use optimistic concurrency (`revision`): if two editors save at once, the second one
+gets a conflict prompt instead of silently overwriting. The repository lives behind a small
+interface in `packages/data`, so swapping to a database (e.g. Postgres/Supabase) only touches
+that package. Note that serverless hosts with a read-only filesystem need such a swap, or a
+persistent volume for `DATA_DIR`.
 
-## 📁 Configuration Files
+## Features
 
-### App Configuration (`public/config/app-config.json`)
-Control which features are enabled:
-\`\`\`json
-{
-  "features": {
-    "familyHistory": true,
-    "familyStats": true,
-    "familyGeo": true,
-    "familyAchievements": true,
-    "treeSettings": true,
-    "darkMode": true
-  }
-}
-\`\`\`
+**Public site (`apps/web`)**
+- Interactive tree: pan/zoom (mouse, touch, keyboard), expand/collapse branches, top-down or
+  bottom-up ("roots") layout, spouses and multiple marriages, cousin marriages, minimap.
+- Search palette (`/` or `Ctrl+K`) with Arabic-normalised matching over names *and* lineage
+  ("محمد بن عبدالله"), deep links (`/tree?focus=<id>`), lineage highlighting.
+- Member directory with filters, profile pages with full نسب, relatives and related events.
+- Timeline, family story, statistics; export PNG / SVG / JSON / GEDCOM (toggleable).
+- Arabic/English with full RTL/LTR, light/dark theme, accessible (skip link, roles, focus).
+- Privacy settings are enforced on the server: hidden details never reach the browser.
 
-### Theme Configuration (`public/config/theme.json`)
-Customize colors, fonts, and styling:
-\`\`\`json
-{
-  "colors": {
-    "light": {
-      "primary": "#2563eb",
-      "secondary": "#1d4ed8",
-      "maleColor": "#1E40AF",
-      "femaleColor": "#BE185D"
-    }
-  }
-}
-\`\`\`
+**Admin app (`apps/admin`)**
+- Password login (signed, http-only session cookie, rate-limited), every action re-checks auth.
+- Tree editor: select a person, edit details, add parent/child/spouse/sibling (new or existing
+  person) with live validation, unlink relationships, set tree root, delete with impact preview
+  and optional cascade. Undo/redo (50 levels), autosave, `Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+S`.
+- Members table with search, filters, sorting and pagination.
+- Data-health dashboard: disconnected people, impossible ages, duplicate suspects, missing
+  parents — with one-click fixes where safe.
+- Content editor (bilingual story + timeline), site settings, import (incl. legacy format),
+  export, backups/restore, activity log.
 
-### Family Data (`public/data/family-data.json`)
-Your family tree structure:
-\`\`\`json
-{
-  "name": "أحمد محمد فلان",
-  "gender": "male",
-  "birth_year": 1920,
-  "spouse": "فاطمة علي السالم",
-  "children": [...]
-}
-\`\`\`
+**Validation rules** (in `packages/core/src/validation.ts`): max two parents (one of each
+gender), no cycles, parent older than child (warning under 13 years), no marrying lineal
+relatives or siblings, overlapping lifespans, duplicate detection.
 
-## 🎨 Customization
+## Performance notes
 
-### Adding New Features
-1. Add feature toggle to `app-config.json`
-2. Check feature status in components using `useAppConfig()`
-3. Conditionally render based on configuration
-
-### Styling
-- All colors are defined in `theme.json`
-- Components use theme colors dynamically
-- Easy to create new color schemes
-
-### Fonts
-- Configure font families in `theme.json`
-- Supports Arabic fonts like Raqaa One, Amiri, Noto Sans Arabic
-
-## 🔧 Development
-
-### Project Structure
-\`\`\`
-├── public/
-│   ├── config/          # Configuration files
-│   └── data/           # Family data
-├── components/         # React components
-├── hooks/             # Custom hooks
-├── lib/               # Utilities and types
-└── app/               # Next.js app directory
-\`\`\`
-
-### Key Components
-- `FamilyTree`: Interactive D3.js tree visualization
-- `FamilyBrief`: Family history and information
-- `Navbar`: Navigation with feature toggles
-- `Footer`: Contact and statistics
-
-### Custom Hooks
-- `useAppConfig()`: Load app configuration
-- `useFamilyBrief()`: Load family information
-- `useTheme()`: Load theme settings
-
-## 📱 Responsive Design
-
-The app is fully responsive and works on:
-- Desktop computers
-- Tablets
-- Mobile phones
-- Different screen orientations
-
-## 🌐 Internationalization
-
-Currently supports:
-- Arabic (RTL)
-- Easy to extend for other languages
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - feel free to use this template for your family tree projects!
-
-## 🆘 Support
-
-- Create an issue for bugs or feature requests
-- Check the documentation for configuration help
-- Join our community discussions
-
-## 🎯 Roadmap
-
-- [ ] PDF/PNG export functionality
-- [ ] Family member editing interface
-- [ ] Photo upload support
-- [ ] Timeline view
-- [ ] Search and filter capabilities
-- [ ] Multi-language support
-- [ ] Cloud storage integration
-
----
-
-Made with ❤️ for preserving family histories
+- Layout is a pure function (`layoutFamilyTree`) memoised per data/options change.
+- Pan/zoom updates the SVG transform directly; React re-renders only when the (quantised)
+  visible viewport or level of detail changes. Off-screen cards are culled.
+- All links are drawn as three `<path>` elements regardless of tree size.
+- Cards are plain SVG (no `foreignObject`) for iOS correctness and faithful exports.
+- Adjacency indexes are cached per immutable dataset.
