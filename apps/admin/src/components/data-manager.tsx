@@ -28,7 +28,7 @@ import {
   CardTitle,
 } from "@family/ui/components/card";
 import { EmptyState } from "@family/ui/components/empty-state";
-import { toast } from "@family/ui/components/sonner";
+import { toast } from "@family/ui/lib/toast";
 import { importFamilyAction, restoreBackupAction } from "@/lib/actions";
 import { useFamilyStore } from "@/lib/family-store";
 

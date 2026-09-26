@@ -22,7 +22,13 @@ pnpm + Turborepo monorepo. Packages are consumed as TypeScript source
   Add behaviour here first and cover it with Vitest (`packages/core/test`).
 - `packages/data` — server-only file store (`DATA_DIR`), revisions, backups, activity log.
 - `packages/tree` — client React tree renderer + `useTreeState`, search palette, controls.
-- `packages/ui` — shadcn/ui components (hand-authored, new-york v4 style, `radix-ui` package).
+- `packages/ui` — shadcn/ui components (new-york v4, `radix-ui` package). They are **generated**
+  by `pnpm --filter @family/ui sync:shadcn` from the official shadcn/ui GitHub source (pinned ref),
+  with an automatic RTL transform (left→start, pl→ps, …) and small local patches defined in
+  `packages/ui/scripts/sync-shadcn.mjs`. Don't hand-edit synced files: add a patch there, add the
+  component name to `COMPONENTS` to pull a new one, or bump `SHADCN_REF` to upgrade.
+  `check:shadcn` (run in CI) fails if files drift. App-specific components (theme/locale toggles,
+  empty state) are hand-written alongside them.
 - `packages/i18n` — `ar` is the source dictionary; `en` must satisfy the same `Dictionary` type.
 - `apps/web` — public, mostly Server Components; reads data via `getPublicFamily()` which
   applies privacy rules server-side.

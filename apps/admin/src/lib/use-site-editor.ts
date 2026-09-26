@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { SiteContent } from "@family/core";
 import { lookup } from "@family/i18n";
 import { useI18n } from "@family/i18n/react";
-import { toast } from "@family/ui/components/sonner";
+import { toast } from "@family/ui/lib/toast";
 import { saveSiteAction } from "./actions";
 
 /** Local draft of site content with an explicit save (content edits are deliberate, not autosaved). */

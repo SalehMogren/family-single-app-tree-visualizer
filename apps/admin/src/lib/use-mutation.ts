@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { FamilyMutationError, type FamilyData } from "@family/core";
 import { format, lookup } from "@family/i18n";
 import { useI18n } from "@family/i18n/react";
-import { toast } from "@family/ui/components/sonner";
+import { toast } from "@family/ui/lib/toast";
 import { useFamilyStoreApi } from "./family-store";
 
 /**

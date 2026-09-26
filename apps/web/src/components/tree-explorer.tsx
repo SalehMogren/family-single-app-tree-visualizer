@@ -35,7 +35,7 @@ import {
 } from "@family/ui/components/dropdown-menu";
 import { EmptyState } from "@family/ui/components/empty-state";
 import { Sheet, SheetContent, SheetTitle } from "@family/ui/components/sheet";
-import { toast } from "@family/ui/components/sonner";
+import { toast } from "@family/ui/lib/toast";
 import { useMediaQuery } from "@family/ui/hooks/use-media-query";
 import { PersonPanel } from "./person-panel";
 
@@ -251,7 +251,6 @@ export const TreeExplorer = ({
         >
           <SheetContent
             side="bottom"
-            modal={false}
             closeLabel={dict.common.close}
             className="p-5"
             onInteractOutside={(e) => e.preventDefault()}

@@ -296,7 +296,12 @@ export const MembersTable = () => {
                   })}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
-                  <Badge variant={r.living ? "success" : "outline"}>
+                  <Badge
+                    variant="outline"
+                    className={
+                      r.living ? "border-transparent bg-success/15 text-success" : undefined
+                    }
+                  >
                     {r.living
                       ? dict.common.living
                       : r.member.gender === "female"

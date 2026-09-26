@@ -13,7 +13,7 @@ packages/
             data-health checks, privacy filter, legacy migration, GEDCOM export (+ tests)
   data/     Server-only JSON file repository: revisions, backups, activity log (+ tests)
   tree/     <FamilyTreeView/>: SVG renderer with d3-zoom, culling, LOD, minimap, export
-  ui/       shadcn/ui components (new-york, Tailwind v4 tokens, RTL-aware), theme
+  ui/       shadcn/ui components synced from upstream (new-york v4, Tailwind v4, RTL-aware)
   i18n/     Typed Arabic/English dictionaries and formatting helpers
 e2e/        Playwright tests that run both apps against a throwaway data directory
 legacy/     The original single app, kept for reference only (not built)
@@ -40,6 +40,23 @@ run without them.
 | `pnpm typecheck` | TypeScript across the workspace                |
 | `pnpm test`      | Vitest unit tests (core + data)                |
 | `pnpm e2e`       | Playwright end-to-end tests (build first)      |
+
+## shadcn/ui components
+
+Components in `packages/ui/src/components` are the official shadcn/ui source, fetched by a
+script instead of `shadcn add` (the CLI's registry host, ui.shadcn.com, is not reachable from
+every build environment; the same source is on GitHub):
+
+```bash
+pnpm --filter @family/ui sync:shadcn     # fetch + transform + patch (pinned upstream commit)
+pnpm --filter @family/ui check:shadcn    # CI: fail if local files drift from upstream
+SHADCN_REF=main pnpm --filter @family/ui sync:shadcn   # upgrade to latest upstream
+```
+
+The script rewrites imports, converts physical classes to logical ones so everything works
+in RTL (`left-*`→`start-*`, `pl-*`→`ps-*`, `border-l`→`border-s`, …) and applies a few
+asserted patches (translatable close labels, `start`/`end` sheet sides, RTL switch thumb).
+To add a component, append its name to `COMPONENTS` in `packages/ui/scripts/sync-shadcn.mjs`.
 
 ## Data
 

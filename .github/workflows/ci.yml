@@ -20,6 +20,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: shadcn/ui components match the pinned upstream
+        run: pnpm --filter @family/ui check:shadcn
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
