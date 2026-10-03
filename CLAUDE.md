@@ -1,87 +1,55 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
-## Development Commands
+## Commands
 
-- **Development server**: `npm run dev`
-- **Build**: `npm run build`
-- **Start production**: `npm start`
-- **Lint**: `npm run lint`
-- **Package manager**: npm (package-lock.json exists) or pnpm (pnpm-lock.yaml exists)
+- `pnpm install` — install (pnpm workspace; use `corepack enable` for the pinned version)
+- `pnpm dev` — web (:3000) + admin (:3001); `pnpm dev:web` / `pnpm dev:admin` for one
+- `pnpm lint` · `pnpm typecheck` · `pnpm test` · `pnpm build` — run via Turborepo
+- `pnpm e2e` — Playwright (needs `pnpm build` first)
+- Run a single package: `pnpm --filter @family/core test`
 
-## Project Architecture
+## Architecture
 
-This is a Next.js 14 family tree visualization application built with TypeScript, React, Redux Toolkit, Zustand, and D3.js. The app allows users to create, edit, and visualize complex family relationships with an interactive tree editor.
+pnpm + Turborepo monorepo. Packages are consumed as TypeScript source
+(`transpilePackages` in each app's `next.config.ts`).
 
-### Core State Management
+- `packages/core` — **all domain logic, pure and framework-free**: zod schemas/types,
+  graph queries (`getParentIds`, `getLineage`, …), validation, immutable mutations
+  (`addRelative`, `linkParent`, `removeMember` …), tree layout (`layoutFamilyTree`, d3-hierarchy),
+  search (Arabic normalisation), stats, health checks, privacy filter, legacy import, GEDCOM.
+  Add behaviour here first and cover it with Vitest (`packages/core/test`).
+- `packages/data` — server-only file store (`DATA_DIR`), revisions, backups, activity log.
+- `packages/tree` — client React tree renderer + `useTreeState`, search palette, controls.
+- `packages/ui` — shadcn/ui components (new-york v4, `radix-ui` package). They are **generated**
+  by `pnpm --filter @family/ui sync:shadcn` from the official shadcn/ui GitHub source (pinned ref),
+  with an automatic RTL transform (left→start, pl→ps, …) and small local patches defined in
+  `packages/ui/scripts/sync-shadcn.mjs`. Don't hand-edit synced files: add a patch there, add the
+  component name to `COMPONENTS` to pull a new one, or bump `SHADCN_REF` to upgrade.
+  `check:shadcn` (run in CI) fails if files drift. App-specific components (theme/locale toggles,
+  empty state) are hand-written alongside them.
+- `packages/i18n` — `ar` is the source dictionary; `en` must satisfy the same `Dictionary` type.
+- `apps/web` — public, mostly Server Components; reads data via `getPublicFamily()` which
+  applies privacy rules server-side.
+- `apps/admin` — auth via `src/proxy.ts` (Next 16 "proxy", formerly middleware) + `requireSession()`
+  in every server action. Family edits go through the zustand store in
+  `src/lib/family-store.tsx` (`apply` → history → debounced `saveFamilyAction`). Use the
+  `useMutate()` hook so validation errors become translated toasts.
+- `legacy/` — the old single app, reference only; not part of the workspace.
 
-- **Redux Store** (`lib/store/`): Centralized state management for family tree data
-  - `treeSlice.ts`: Main slice managing tree state, data, layout, and undo/redo history
-  - `useTreeStore.ts`: Custom hook providing simplified Redux interface
-- **Types** (`lib/types.ts`): Comprehensive TypeScript definitions for family members, tree nodes, relationships, and editor state
+## Data model
 
-### Key Components Architecture
+- `members: Record<id, Member>` — one record per person; `name` is the given name, the full
+  name (نسب) is derived from the father chain via `getLineage` / `formatLineage`.
+- `relationships: { type: "parent" | "spouse", fromId, toId }[]` — for `parent`, `fromId` is the
+  parent. Siblings are derived from shared parents, never stored.
+- Datasets are immutable; the adjacency index is cached per object in a `WeakMap`, so always
+  return new objects from mutations.
 
-1. **Tree Visualization System**:
-   - `BaseTree.tsx`: Reusable D3-based tree renderer with zoom/pan, node interaction
-   - `NodeCard.tsx`: Individual family member display cards with relationship controls
-   - `TreeSvg.tsx`: SVG-specific tree implementation for tree editor
+## Conventions
 
-2. **Tree Editor System** (`components/tree-editor/`):
-   - **Interactive Components**: AddOrEditNodeForm, RelationshipManager, InteractiveLink
-   - **Drag & Drop**: DragDropProvider for relationship creation via dragging
-   - **Smart Features**: SmartSuggestions engine, FloatingSuggestions UI
-   - **Add Relatives**: EnhancedAddRelativeUI, SuggestedRelatives for guided relationship creation
-
-3. **Configuration-Driven Design**:
-   - JSON config files in `public/config/` control features, themes, and content
-   - `useAppConfig()`, `useConfig()` hooks load configurations dynamically
-   - Feature toggles enable/disable functionality without code changes
-
-### Data Flow
-
-1. **Family Data**: Stored in Redux as `{ [id: string]: FamilyMember }`
-2. **Tree Calculation**: `CalculateTree.ts` transforms family data into positioned nodes
-3. **Rendering**: D3.js handles SVG positioning, zoom, and pan
-4. **State Updates**: All modifications go through Redux actions with undo/redo support
-
-### Layout & Styling
-
-- **Tailwind CSS**: Primary styling system
-- **Shadcn/ui**: Component library for buttons, cards, inputs
-- **RTL Support**: Full Arabic language support
-- **Responsive**: Mobile-first design with dynamic layouts
-
-### File Structure Patterns
-
-- `app/`: Next.js app router pages
-- `components/`: Organized by feature (tree/, tree-editor/, ui/)
-- `hooks/`: Custom React hooks for state and configuration
-- `lib/`: Utilities, types, store, and configuration logic
-- `public/config/`: JSON configuration files
-- `public/data/`: Family data storage
-
-### Development Guidelines
-
-From `.cursor/rules/front-end-dev-rules.mdc`:
-- Use early returns for readability
-- Tailwind classes only (no CSS/styled components)
-- Descriptive variable names with "handle" prefix for event handlers
-- Implement accessibility features (tabindex, aria-label, keyboard handlers)
-- Use const arrow functions with TypeScript types
-- Complete implementations without TODOs or placeholders
-
-### Testing & Quality
-
-- ESLint and TypeScript checks disabled during builds (next.config.mjs)
-- Manual testing recommended for complex family relationship logic
-- Focus on edge cases: orphaned nodes, circular relationships, invalid connections
-
-## Important Notes
-
-- **Relationship Logic**: Complex parent-child-spouse connections handled in `treeSlice.ts`
-- **Smart Suggestions**: `SmartSuggestions.ts` analyzes family data to suggest missing relationships
-- **Undo/Redo**: Automatic state history (50 levels) for all data modifications
-- **Export Features**: Built-in support for PNG/PDF export (html2canvas, jspdf)
-- **Performance**: D3.js handles large family trees efficiently with virtualization considerations
+- Tailwind classes only; use logical properties (`ms-`, `pe-`, `start-`, `end-`) for RTL.
+- UI strings come from `@family/i18n` — never hard-code text in components.
+- Const arrow functions, early returns, `handle*` event handler names, accessible markup.
+- Next 16: `params`/`searchParams`/`cookies()` are async.

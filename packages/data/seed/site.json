@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "settings": {
+    "defaultLocale": "ar",
+    "features": {
+      "brief": true,
+      "timeline": true,
+      "directory": true,
+      "stats": true,
+      "export": true
+    },
+    "tree": {
+      "direction": "top-down",
+      "showSpouses": true,
+      "showYears": true,
+      "showPhotos": true,
+      "initialDepth": 0
+    },
+    "privacy": {
+      "hideLivingDetails": false,
+      "hideSpouses": false
+    },
+    "contact": {
+      "location": "المملكة العربية السعودية - منطقة نجد",
+      "email": "family@example.com",
+      "phone": "+966 50 000 0000"
+    }
+  },
+  "brief": {
+    "ar": {
+      "familyName": "عائلة فلان",
+      "tagline": "جذور ممتدة… وأغصان تزهر في كل جيل",
+      "origin": "المملكة العربية السعودية - منطقة نجد",
+      "established": "أواخر القرن التاسع عشر",
+      "description": "عائلة فلان من العائلات العريقة في منطقة نجد، اشتهرت بالتجارة والعلم عبر الأجيال. تمتد جذور العائلة إلى أكثر من قرن من الزمان، وقد ساهم أفرادها في التنمية الاقتصادية والثقافية للمنطقة.",
+      "notableMembers": "تضم العائلة العديد من الشخصيات البارزة في مجالات التجارة والتعليم والطب والخدمة العامة.",
+      "geography": {
+        "mainRegion": "منطقة نجد التاريخية",
+        "description": "تنتشر العائلة اليوم في الرياض وجدة والمنطقة الشرقية، مع بقاء جذورها في عنيزة."
+      },
+      "achievements": [
+        "تأسيس أول مدرسة أهلية في الحي عام 1950",
+        "إنشاء مؤسسة خيرية لدعم الأيتام والمحتاجين",
+        "المساهمة في تطوير التجارة المحلية والإقليمية",
+        "تخريج أكثر من 20 طبيباً ومهندساً ومعلماً"
+      ]
+    },
+    "en": {
+      "familyName": "The Fulan Family",
+      "tagline": "Deep roots, and branches that bloom in every generation",
+      "origin": "Saudi Arabia - Najd Region",
+      "established": "Late 19th century",
+      "description": "The Fulan family is one of the long-established families of Najd, known for trade and scholarship across generations. Its roots go back more than a century, and its members have contributed to the economic and cultural development of the region.",
+      "notableMembers": "The family includes many prominent figures in trade, education, medicine and public service.",
+      "geography": {
+        "mainRegion": "Historic Najd Region",
+        "description": "Today the family lives across Riyadh, Jeddah and the Eastern Province, with its roots still in Unaizah."
+      },
+      "achievements": [
+        "Founded the neighbourhood's first private school in 1950",
+        "Established a charitable foundation supporting orphans and those in need",
+        "Contributed to the growth of local and regional trade",
+        "Raised more than 20 doctors, engineers and teachers"
+      ]
+    }
+  },
+  "timeline": [
+    {
+      "id": "e1",
+      "date": "1902",
+      "type": "marriage",
+      "title": {
+        "ar": "زواج المؤسس",
+        "en": "The founder's marriage"
+      },
+      "description": {
+        "ar": "زواج عبدالله وحصة وبداية تاريخ العائلة المسجل.",
+        "en": "Abdullah marries Hessa — the start of the family's recorded history."
+      },
+      "memberIds": [
+        "m_001",
+        "m_002"
+      ]
+    },
+    {
+      "id": "e2",
+      "date": "1935",
+      "type": "migration",
+      "title": {
+        "ar": "الانتقال إلى الرياض",
+        "en": "Moving to Riyadh"
+      },
+      "description": {
+        "ar": "انتقال جزء من العائلة من عنيزة إلى الرياض.",
+        "en": "Part of the family moves from Unaizah to Riyadh."
+      },
+      "memberIds": [
+        "m_009"
+      ]
+    },
+    {
+      "id": "e3",
+      "date": "1950-09-01",
+      "type": "education",
+      "title": {
+        "ar": "تأسيس المدرسة الأهلية",
+        "en": "Founding the private school"
+      },
+      "description": {
+        "ar": "إبراهيم يؤسس أول مدرسة أهلية في الحي.",
+        "en": "Ibrahim founds the neighbourhood's first private school."
+      },
+      "memberIds": [
+        "m_005"
+      ]
+    },
+    {
+      "id": "e4",
+      "date": "1960",
+      "type": "business",
+      "title": {
+        "ar": "تأسيس الأعمال التجارية",
+        "en": "Founding the family business"
+      },
+      "description": {
+        "ar": "بداية الأعمال التجارية للعائلة بإدارة خالد.",
+        "en": "The family business is founded, led by Khalid."
+      },
+      "memberIds": [
+        "m_017"
+      ]
+    },
+    {
+      "id": "e5",
+      "date": "1962",
+      "type": "education",
+      "title": {
+        "ar": "أول شهادة طب",
+        "en": "First medical degree"
+      },
+      "description": {
+        "ar": "أحمد أول فرد في العائلة يتخرج طبيباً.",
+        "en": "Ahmad becomes the family's first doctor."
+      },
+      "memberIds": [
+        "m_014"
+      ]
+    },
+    {
+      "id": "e6",
+      "date": "2000-12-31",
+      "type": "reunion",
+      "title": {
+        "ar": "لمّ الشمل الكبير",
+        "en": "The great reunion"
+      },
+      "description": {
+        "ar": "اجتماع كبير لجميع أفراد العائلة مع مطلع الألفية.",
+        "en": "A large gathering of the whole family at the turn of the millennium."
+      },
+      "memberIds": []
+    },
+    {
+      "id": "e7",
+      "date": "2005",
+      "type": "birth",
+      "title": {
+        "ar": "الجيل الخامس",
+        "en": "The fifth generation"
+      },
+      "description": {
+        "ar": "اكتمال الجيل الخامس بولادة لمى.",
+        "en": "The fifth generation grows with the birth of Lama."
+      },
+      "memberIds": []
+    }
+  ],
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
