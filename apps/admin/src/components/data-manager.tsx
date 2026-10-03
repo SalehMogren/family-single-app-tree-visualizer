@@ -2,8 +2,15 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArchiveRestore, Download, FileJson, FileUp, Loader2 } from "lucide-react";
-import { parseFamilyData, type FamilyData } from "@family/core";
+import { ArchiveRestore, Download, FileJson, FileSpreadsheet, FileUp, Loader2 } from "lucide-react";
+import {
+  csvTemplate,
+  CsvImportError,
+  fromCsv,
+  parseFamilyData,
+  type CsvRowIssue,
+  type FamilyData,
+} from "@family/core";
 import type { BackupInfo } from "@family/data";
 import { format, formatDate, lookup } from "@family/i18n";
 import { useI18n } from "@family/i18n/react";
@@ -44,6 +51,7 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
     data: FamilyData;
     dropped: number;
     migrated: boolean;
+    csvIssues: CsvRowIssue[];
   } | null>(null);
   const [restoreFile, setRestoreFile] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -51,10 +59,23 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
     try {
-      const raw = JSON.parse(await file.text());
-      setPreview({ raw, ...parseFamilyData(raw) });
-    } catch {
-      toast.error(dict.issues.invalidFile);
+      const text = await file.text();
+      const isCsv = /\.(csv|tsv|txt)$/i.test(file.name) || file.type.includes("csv");
+      if (isCsv) {
+        // Parsed in the browser for preview; the server re-validates on import.
+        const { data, issues } = fromCsv(text);
+        setPreview({ raw: data, ...parseFamilyData(data), csvIssues: issues });
+      } else {
+        const raw = JSON.parse(text);
+        setPreview({ raw, ...parseFamilyData(raw), csvIssues: [] });
+      }
+      requestAnimationFrame(() =>
+        document
+          .getElementById("import-preview")
+          ?.scrollIntoView({ block: "center", behavior: "smooth" }),
+      );
+    } catch (error) {
+      toast.error(error instanceof CsvImportError ? dict.csv[error.code] : dict.issues.invalidFile);
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -108,6 +129,11 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
               </a>
             </Button>
             <Button variant="outline" asChild>
+              <a href="/api/export?format=csv" download>
+                <FileSpreadsheet /> {dict.tree.exportCsv}
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
               <a href="/api/export?format=gedcom" download>
                 <Download /> {dict.tree.exportGedcom}
               </a>
@@ -128,16 +154,16 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
             <input
               ref={fileRef}
               type="file"
-              accept="application/json,.json"
+              accept="application/json,.json,text/csv,.csv,.tsv"
               className="sr-only"
               id="import-file"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
             <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <FileUp /> {t.chooseFile}
+              <FileUp /> {t.chooseCsvFile}
             </Button>
             {preview && (
-              <Alert>
+              <Alert id="import-preview" className="scroll-mt-24">
                 <FileJson />
                 <AlertTitle>
                   {format(t.importPreview, {
@@ -148,6 +174,23 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
                 <AlertDescription>
                   {preview.migrated && <p>{t.migrated}</p>}
                   {preview.dropped > 0 && <p>{format(t.dropped, { count: preview.dropped })}</p>}
+                  {preview.csvIssues.length > 0 && (
+                    <div className="mt-1 space-y-1">
+                      <p className="font-medium text-foreground">
+                        {format(t.csvIssues, {
+                          count: new Set(preview.csvIssues.map((i) => i.row)).size,
+                        })}
+                      </p>
+                      <ul className="max-h-40 list-inside list-disc overflow-y-auto text-xs">
+                        {preview.csvIssues.map((issue) => (
+                          <li key={`${issue.row}-${issue.code}-${issue.value ?? ""}`}>
+                            {format(t.csvRow, { row: issue.row })}:{" "}
+                            {format(dict.csv[issue.code], { value: issue.value ?? "" })}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="mt-2 flex gap-2">
                     <Button
                       size="sm"
@@ -168,6 +211,41 @@ export const DataManager = ({ backups }: { backups: BackupInfo[] }) => {
           </CardContent>
         </Card>
       </div>
+
+      <Card id="csv" className="scroll-mt-20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="size-5 text-success" /> {t.csvTitle}
+          </CardTitle>
+          <CardDescription>{t.csvHint}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <a href="/api/export?format=csv" download>
+                <Download /> {t.exportCsv}
+              </a>
+            </Button>
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              <FileUp /> {dict.admin.members.importCsv}
+            </Button>
+            <Button variant="ghost" asChild>
+              <a
+                href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvTemplate())}`}
+                download="family-members-template.csv"
+              >
+                <FileSpreadsheet /> {t.downloadTemplate}
+              </a>
+            </Button>
+          </div>
+          <p
+            dir="ltr"
+            className="overflow-x-auto rounded-md bg-muted px-3 py-2 font-mono text-xs whitespace-nowrap text-muted-foreground"
+          >
+            id,name,gender,birthYear,deathYear,isDeceased,fatherId,motherId,spouseIds,…
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

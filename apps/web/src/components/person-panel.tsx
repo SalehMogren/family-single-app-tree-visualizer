@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, GitBranch, X } from "lucide-react";
+import { ExternalLink, GitBranch, Network, X } from "lucide-react";
 import {
   formatLineage,
   getChildIds,
@@ -72,6 +72,7 @@ export const PersonPanel = ({
   highlightLineage,
   onHighlightLineageChange,
   showProfileLink,
+  onFocusView,
   className,
 }: {
   data: FamilyData;
@@ -81,6 +82,8 @@ export const PersonPanel = ({
   highlightLineage: boolean;
   onHighlightLineageChange: (value: boolean) => void;
   showProfileLink: boolean;
+  /** Show only this person's branch (offered when they have children). */
+  onFocusView?: (id: string) => void;
   className?: string;
 }) => {
   const { dict, locale } = useI18n();
@@ -169,6 +172,12 @@ export const PersonPanel = ({
           onCheckedChange={onHighlightLineageChange}
         />
       </div>
+      {onFocusView && getChildIds(data, id).length > 0 && (
+        <Button onClick={() => onFocusView(id)} title={dict.tree.focusViewHint}>
+          <Network />
+          {dict.tree.focusView}
+        </Button>
+      )}
       {showProfileLink && (
         <Button asChild variant="secondary">
           <Link href={`/members/${id}`}>

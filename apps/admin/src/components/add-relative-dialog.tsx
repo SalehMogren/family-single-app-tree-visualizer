@@ -174,7 +174,10 @@ export const AddRelativeDialog = ({
 
   return (
     <Dialog open onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl" closeLabel={dict.common.close}>
+      <DialogContent
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl"
+        closeLabel={dict.common.close}
+      >
         <DialogHeader>
           <DialogTitle>
             {format(dict.admin.editor.addRelativeTitle, {

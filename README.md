@@ -81,8 +81,10 @@ persistent volume for `DATA_DIR`.
   bottom-up ("roots") layout, spouses and multiple marriages, cousin marriages, minimap.
 - Search palette (`/` or `Ctrl+K`) with Arabic-normalised matching over names *and* lineage
   ("محمد بن عبدالله"), deep links (`/tree?focus=<id>`), lineage highlighting.
+- **Focus view**: show only one person's branch (them, spouses, descendants) with a breadcrumb
+  to step up the lineage; shareable via `/tree?root=<id>`.
 - Member directory with filters, profile pages with full نسب, relatives and related events.
-- Timeline, family story, statistics; export PNG / SVG / JSON / GEDCOM (toggleable).
+- Timeline, family story, statistics; export PNG / SVG / JSON / CSV / GEDCOM (toggleable).
 - Arabic/English with full RTL/LTR, light/dark theme, accessible (skip link, roles, focus).
 - Privacy settings are enforced on the server: hidden details never reach the browser.
 
@@ -91,7 +93,14 @@ persistent volume for `DATA_DIR`.
 - Tree editor: select a person, edit details, add parent/child/spouse/sibling (new or existing
   person) with live validation, unlink relationships, set tree root, delete with impact preview
   and optional cascade. Undo/redo (50 levels), autosave, `Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+S`.
-- Members table with search, filters, sorting and pagination.
+- **Focus view** in the editor: click a member with children → "Focus view" (or double-click
+  the card) to work on just that branch; `/editor?root=<id>` links straight to it.
+- Members table with search, filters, sorting, pagination and an import/export menu.
+- **CSV import/export** (Excel / Google Sheets): one row per person with `fatherId`,
+  `motherId` and `spouseIds` (`|`-separated). Arabic headers (`الاسم`, `الجنس`, `الأب`…),
+  Arabic gender values (`ذكر`/`أنثى`), Arabic digits and `;`-separated files are accepted;
+  bad rows are skipped and listed in the import preview. Exports include a UTF-8 BOM so
+  Excel shows Arabic correctly and are protected against formula injection.
 - Data-health dashboard: disconnected people, impossible ages, duplicate suspects, missing
   parents — with one-click fixes where safe.
 - Content editor (bilingual story + timeline), site settings, import (incl. legacy format),

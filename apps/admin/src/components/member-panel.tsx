@@ -160,12 +160,15 @@ export const MemberPanel = ({
   onSelect,
   onAddRelative,
   onDelete,
+  onFocusView,
   showTreeLink = false,
 }: {
   memberId: string;
   onSelect: (id: string) => void;
   onAddRelative: (relation: RelationKind) => void;
   onDelete: () => void;
+  /** Show only this member's branch in the tree (offered when they have children). */
+  onFocusView?: (id: string) => void;
   showTreeLink?: boolean;
 }) => {
   const { dict, locale, dir } = useI18n();
@@ -271,6 +274,11 @@ export const MemberPanel = ({
         </TabsContent>
       </Tabs>
       <div className="flex flex-wrap gap-2 border-t pt-4">
+        {onFocusView && getChildIds(data, memberId).length > 0 && (
+          <Button size="sm" onClick={() => onFocusView(memberId)} title={dict.tree.focusViewHint}>
+            <Network /> {dict.tree.focusView}
+          </Button>
+        )}
         {showTreeLink && (
           <Button variant="outline" size="sm" asChild>
             <Link href={`/editor?focus=${memberId}`}>

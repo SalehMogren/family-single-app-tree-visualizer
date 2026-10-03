@@ -8,8 +8,12 @@ export const generateMetadata = async (): Promise<Metadata> => {
   return { title: dict.tree.title };
 };
 
-const TreePage = async ({ searchParams }: { searchParams: Promise<{ focus?: string }> }) => {
-  const [{ focus }, data, site, { locale }] = await Promise.all([
+const TreePage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ focus?: string; root?: string }>;
+}) => {
+  const [{ focus, root }, data, site, { locale }] = await Promise.all([
     searchParams,
     getPublicFamily(),
     getSite(),
@@ -21,6 +25,7 @@ const TreePage = async ({ searchParams }: { searchParams: Promise<{ focus?: stri
         data={data}
         settings={site.settings}
         initialFocusId={focus ?? null}
+        initialRootId={root ?? null}
         fileName={site.brief[locale].familyName.replace(/\s+/g, "-") || "family-tree"}
       />
     </main>

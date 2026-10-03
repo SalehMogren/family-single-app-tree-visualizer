@@ -6,6 +6,7 @@ import {
   Download,
   FileCode2,
   FileJson,
+  FileSpreadsheet,
   Image as ImageIcon,
   SlidersHorizontal,
   TreePine,
@@ -14,6 +15,7 @@ import type { FamilyData, SiteSettings, TreeDirection } from "@family/core";
 import { useI18n } from "@family/i18n/react";
 import {
   FamilyTreeView,
+  FocusBanner,
   SearchTrigger,
   TreeControls,
   TreeSearch,
@@ -43,11 +45,14 @@ export const TreeExplorer = ({
   data,
   settings,
   initialFocusId,
+  initialRootId = null,
   fileName,
 }: {
   data: FamilyData;
   settings: SiteSettings;
   initialFocusId: string | null;
+  /** Branch shown in focus view on open (?root=). */
+  initialRootId?: string | null;
   fileName: string;
 }) => {
   const { dict, dir } = useI18n();
@@ -62,8 +67,9 @@ export const TreeExplorer = ({
   const tree = useTreeState(data, {
     initialDepth: settings.tree.initialDepth,
     initialSelectedId: validFocus,
+    initialFocusId: initialRootId && data.members[initialRootId] ? initialRootId : null,
   });
-  const { selectedId, setSelectedId, reveal } = tree;
+  const { selectedId, setSelectedId, reveal, focusId, focusOn, exitFocus } = tree;
 
   const labels = useMemo(
     () => ({
@@ -81,8 +87,31 @@ export const TreeExplorer = ({
     const url = new URL(window.location.href);
     if (selectedId) url.searchParams.set("focus", selectedId);
     else url.searchParams.delete("focus");
+    if (focusId) url.searchParams.set("root", focusId);
+    else url.searchParams.delete("root");
     window.history.replaceState(null, "", url);
-  }, [selectedId]);
+  }, [selectedId, focusId]);
+
+  const fitSoon = useCallback(
+    () => requestAnimationFrame(() => requestAnimationFrame(() => treeRef.current?.fit())),
+    [],
+  );
+
+  /** Show only this person's branch (them, their spouses and descendants). */
+  const handleFocusView = useCallback(
+    (id: string) => {
+      focusOn(id);
+      setSelectedId(id);
+      fitSoon();
+    },
+    [focusOn, setSelectedId, fitSoon],
+  );
+
+  const handleExitFocus = useCallback(() => {
+    exitFocus();
+    if (!selectedId) return fitSoon();
+    requestAnimationFrame(() => requestAnimationFrame(() => treeRef.current?.centerOn(selectedId)));
+  }, [exitFocus, selectedId, fitSoon]);
 
   const focusPerson = useCallback(
     (id: string) => {
@@ -104,7 +133,7 @@ export const TreeExplorer = ({
     [router, settings.features.directory],
   );
 
-  const handleExport = async (kind: "png" | "svg" | "json" | "gedcom") => {
+  const handleExport = async (kind: "png" | "svg" | "json" | "gedcom" | "csv") => {
     try {
       if (kind === "png") {
         const blob = await treeRef.current!.exportPng();
@@ -114,10 +143,11 @@ export const TreeExplorer = ({
         const markup = treeRef.current!.exportSvg();
         downloadBlob(new Blob([markup], { type: "image/svg+xml" }), `${fileName}.svg`);
       }
-      if (kind === "json" || kind === "gedcom") {
+      if (kind === "json" || kind === "gedcom" || kind === "csv") {
         const response = await fetch(`/api/export?format=${kind}`);
         if (!response.ok) throw new Error(response.statusText);
-        downloadBlob(await response.blob(), `${fileName}.${kind === "json" ? "json" : "ged"}`);
+        const extension = { json: "json", gedcom: "ged", csv: "csv" }[kind];
+        downloadBlob(await response.blob(), `${fileName}.${extension}`);
       }
       toast.success(dict.tree.exported);
     } catch {
@@ -142,6 +172,7 @@ export const TreeExplorer = ({
       highlightLineage={tree.highlightLineage}
       onHighlightLineageChange={tree.setHighlightLineage}
       showProfileLink={settings.features.directory}
+      onFocusView={selectedId !== focusId ? handleFocusView : undefined}
       className={isDesktop ? "w-[22rem]" : "border-0 bg-transparent p-0 shadow-none"}
     />
   );
@@ -226,6 +257,9 @@ export const TreeExplorer = ({
               <DropdownMenuItem onSelect={() => handleExport("json")}>
                 <FileJson /> {dict.tree.exportJson}
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleExport("csv")}>
+                <FileSpreadsheet /> {dict.tree.exportCsv}
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleExport("gedcom")}>
                 <FileJson /> {dict.tree.exportGedcom}
               </DropdownMenuItem>
@@ -233,6 +267,16 @@ export const TreeExplorer = ({
           </DropdownMenu>
         )}
       </div>
+
+      {focusId && (
+        <FocusBanner
+          data={data}
+          focusId={focusId}
+          onFocus={handleFocusView}
+          onExit={handleExitFocus}
+          className="absolute start-3 end-16 top-14 md:end-auto md:w-[34rem]"
+        />
+      )}
 
       <TreeControls
         treeRef={treeRef}

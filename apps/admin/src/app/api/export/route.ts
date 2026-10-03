@@ -1,4 +1,4 @@
-import { toGedcom } from "@family/core";
+import { toCsv, toGedcom } from "@family/core";
 import { getFamilyData, getSiteContent } from "@family/data";
 import { requireSession } from "@/lib/auth";
 
@@ -20,6 +20,14 @@ export const GET = async (request: Request) => {
     });
   }
   const data = await getFamilyData();
+  if (format === "csv") {
+    return new Response(toCsv(data), {
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": `attachment; filename="family-members-${stamp}.csv"`,
+      },
+    });
+  }
   if (format === "gedcom") {
     return new Response(toGedcom(data), {
       headers: {

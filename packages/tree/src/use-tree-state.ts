@@ -4,27 +4,52 @@ import { useCallback, useMemo, useState } from "react";
 import {
   collapseBeyondDepth,
   getChildIds,
+  getDescendantIds,
   getGenerations,
   getLineage,
+  getSpouseIds,
   pathToRoot,
   resolveRootId,
   type FamilyData,
 } from "@family/core";
 
-/** Collapse / selection / lineage-highlight state shared by the public and admin trees. */
+/**
+ * Collapse / selection / lineage-highlight / focus-view state shared by the public and
+ * admin trees. In focus view the tree is re-rooted at one member, showing only them, their
+ * spouses and their descendants.
+ */
 export const useTreeState = (
   data: FamilyData,
-  { initialDepth = 0, initialSelectedId = null as string | null } = {},
+  {
+    initialDepth = 0,
+    initialSelectedId = null as string | null,
+    initialFocusId = null as string | null,
+  } = {},
 ) => {
-  const rootId = resolveRootId(data);
+  const fullRootId = resolveRootId(data);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
-    const set = collapseBeyondDepth(data, initialDepth, rootId);
+    const set = collapseBeyondDepth(data, initialDepth, fullRootId);
     if (initialSelectedId)
-      for (const id of pathToRoot(data, initialSelectedId, rootId)) set.delete(id);
+      for (const id of pathToRoot(data, initialSelectedId, fullRootId)) set.delete(id);
+    if (initialFocusId) set.delete(initialFocusId);
     return set;
   });
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
   const [highlightLineage, setHighlightLineage] = useState(false);
+  const [rawFocusId, setRawFocusId] = useState<string | null>(initialFocusId);
+
+  // A focused member that was deleted (e.g. by undo) silently ends the focus view.
+  const focusId = rawFocusId && data.members[rawFocusId] ? rawFocusId : null;
+  const rootId = focusId ?? fullRootId;
+
+  /** Members visible in the current focus view (focus person, descendants and their spouses). */
+  const focusMembers = useMemo(() => {
+    if (!focusId) return null;
+    const blood = new Set([focusId, ...getDescendantIds(data, focusId)]);
+    const all = new Set(blood);
+    for (const id of blood) for (const s of getSpouseIds(data, id)) all.add(s);
+    return all;
+  }, [data, focusId]);
 
   const toggleCollapse = useCallback((id: string) => {
     setCollapsed((prev) => {
@@ -46,10 +71,24 @@ export const useTreeState = (
     );
   }, [data, rootId]);
 
-  /** Expand every ancestor so `id` is rendered. */
+  /** Show only `id` and their descendants. */
+  const focusOn = useCallback((id: string) => {
+    setRawFocusId(id);
+    setCollapsed((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const exitFocus = useCallback(() => setRawFocusId(null), []);
+
+  /** Expand every ancestor so `id` is rendered; leaves focus view if `id` is outside it. */
   const reveal = useCallback(
     (id: string) => {
-      const path = pathToRoot(data, id, rootId);
+      if (focusMembers && !focusMembers.has(id)) setRawFocusId(null);
+      const path = pathToRoot(data, id, fullRootId);
       setCollapsed((prev) => {
         if (!path.some((p) => prev.has(p))) return prev;
         const next = new Set(prev);
@@ -57,7 +96,7 @@ export const useTreeState = (
         return next;
       });
     },
-    [data, rootId],
+    [data, fullRootId, focusMembers],
   );
 
   const highlightIds = useMemo(() => {
@@ -66,7 +105,12 @@ export const useTreeState = (
   }, [data, selectedId, highlightLineage]);
 
   return {
+    /** Root currently rendered (the focus member in focus view). */
     rootId,
+    fullRootId,
+    focusId,
+    focusOn,
+    exitFocus,
     collapsed,
     setCollapsed,
     toggleCollapse,

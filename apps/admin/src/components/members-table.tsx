@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
-import { ArrowDownUp, MoreHorizontal, Network, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowDownUp,
+  GitBranch,
+  MoreHorizontal,
+  Network,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import {
   addMember,
   formatLineage,
@@ -325,6 +333,13 @@ export const MembersTable = () => {
                           <Network /> {dict.tree.showInTree}
                         </Link>
                       </DropdownMenuItem>
+                      {r.children > 0 && (
+                        <DropdownMenuItem asChild>
+                          <Link href={`/editor?root=${r.member.id}&focus=${r.member.id}`}>
+                            <GitBranch /> {dict.tree.focusView}
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         variant="destructive"

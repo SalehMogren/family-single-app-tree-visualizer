@@ -186,7 +186,10 @@ const EventDialog = ({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl" closeLabel={dict.common.close}>
+      <DialogContent
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl"
+        closeLabel={dict.common.close}
+      >
         <DialogHeader>
           <DialogTitle>{t.editEvent}</DialogTitle>
           <DialogDescription className="sr-only">{t.editEvent}</DialogDescription>
